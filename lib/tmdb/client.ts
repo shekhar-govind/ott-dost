@@ -1,4 +1,5 @@
 import { TMDB_API_BASE } from "./constants";
+import { fetchTmdb } from "./fetch";
 import type {
   TmdbDiscoverResponse,
   TmdbDiscoverMovieResult,
@@ -26,13 +27,9 @@ export async function searchMulti(query: string): Promise<TmdbSearchResponse> {
     page: "1",
   });
 
-  const response = await fetch(`${TMDB_API_BASE}/search/multi?${params}`, {
+  const response = await fetchTmdb(`${TMDB_API_BASE}/search/multi?${params}`, {
     next: { revalidate: 300 },
   });
-
-  if (!response.ok) {
-    throw new Error(`TMDB search failed: ${response.status}`);
-  }
 
   return response.json() as Promise<TmdbSearchResponse>;
 }
@@ -45,14 +42,10 @@ export async function getTitleDetails(
     append_to_response: "watch/providers",
   });
 
-  const response = await fetch(
+  const response = await fetchTmdb(
     `${TMDB_API_BASE}/${mediaType}/${id}?${params}`,
     { next: { revalidate: 3600 } },
   );
-
-  if (!response.ok) {
-    throw new Error(`TMDB details failed: ${response.status}`);
-  }
 
   return response.json() as Promise<TmdbMovieDetails | TmdbTvDetails>;
 }
@@ -74,13 +67,9 @@ export async function discoverLatestMovies(
     with_original_language: originalLanguage,
   });
 
-  const response = await fetch(`${TMDB_API_BASE}/discover/movie?${params}`, {
+  const response = await fetchTmdb(`${TMDB_API_BASE}/discover/movie?${params}`, {
     next: { revalidate: 3600 },
   });
-
-  if (!response.ok) {
-    throw new Error(`TMDB discover movies failed: ${response.status}`);
-  }
 
   return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>>;
 }
@@ -96,13 +85,9 @@ export async function discoverLatestTv(
     "first_air_date.lte": todayIsoDate(),
   });
 
-  const response = await fetch(`${TMDB_API_BASE}/discover/tv?${params}`, {
+  const response = await fetchTmdb(`${TMDB_API_BASE}/discover/tv?${params}`, {
     next: { revalidate: 3600 },
   });
-
-  if (!response.ok) {
-    throw new Error(`TMDB discover TV failed: ${response.status}`);
-  }
 
   return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>>;
 }
@@ -112,14 +97,10 @@ export async function getMovieWatchProviders(
 ): Promise<TmdbWatchProvidersApiResponse> {
   const params = buildParams();
 
-  const response = await fetch(
+  const response = await fetchTmdb(
     `${TMDB_API_BASE}/movie/${movieId}/watch/providers?${params}`,
     { next: { revalidate: 3600 } },
   );
-
-  if (!response.ok) {
-    throw new Error(`TMDB watch providers failed: ${response.status}`);
-  }
 
   return response.json() as Promise<TmdbWatchProvidersApiResponse>;
 }

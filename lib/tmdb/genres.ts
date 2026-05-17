@@ -1,4 +1,5 @@
 import { TMDB_API_BASE } from "./constants";
+import { fetchTmdb } from "./fetch";
 import { getTmdbApiKey } from "./utils";
 
 interface TmdbGenreListResponse {
@@ -17,13 +18,9 @@ export async function getMovieGenreMap(): Promise<Map<number, string>> {
     language: "en-IN",
   });
 
-  const response = await fetch(`${TMDB_API_BASE}/genre/movie/list?${params}`, {
+  const response = await fetchTmdb(`${TMDB_API_BASE}/genre/movie/list?${params}`, {
     next: { revalidate: 86_400 },
   });
-
-  if (!response.ok) {
-    throw new Error(`TMDB genre list failed: ${response.status}`);
-  }
 
   const data = (await response.json()) as TmdbGenreListResponse;
   movieGenreMap = new Map(data.genres.map((genre) => [genre.id, genre.name]));
