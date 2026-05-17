@@ -6,6 +6,8 @@ interface SearchInputProps {
   inputRef: React.RefObject<HTMLInputElement | null>;
   placeholder?: string;
   isLoading?: boolean;
+  listboxId?: string;
+  isExpanded?: boolean;
 }
 
 export function SearchInput({
@@ -16,12 +18,15 @@ export function SearchInput({
   inputRef,
   placeholder = "Search movies, series, documentaries…",
   isLoading = false,
+  listboxId,
+  isExpanded = false,
 }: SearchInputProps) {
   return (
     <div className="relative">
       <input
         ref={inputRef}
         type="search"
+        enterKeyHint="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onFocus={onFocus}
@@ -29,12 +34,14 @@ export function SearchInput({
         placeholder={placeholder}
         autoComplete="off"
         aria-autocomplete="list"
+        aria-expanded={isExpanded}
+        aria-controls={isExpanded && listboxId ? listboxId : undefined}
         aria-label="Search titles"
-        className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 pr-10 text-sm text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100"
+        className="w-full touch-manipulation rounded-xl border border-zinc-200 bg-white px-4 py-3.5 pr-11 text-base text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100 sm:py-3 sm:text-sm"
       />
       {isLoading && (
         <span
-          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-600"
+          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-600 sm:right-4"
           aria-hidden
         />
       )}

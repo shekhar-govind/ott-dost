@@ -9,8 +9,19 @@ import { SearchInput } from "./SearchInput";
 
 const DEBOUNCE_MS = 300;
 
-export function SearchBox() {
-  const [query, setQuery] = useState("");
+interface SearchBoxProps {
+  query: string;
+  onQueryChange: (query: string) => void;
+  onSelect?: (item: SearchTitle) => void;
+  onClear?: () => void;
+}
+
+export function SearchBox({
+  query,
+  onQueryChange,
+  onSelect,
+  onClear,
+}: SearchBoxProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,10 +52,25 @@ export function SearchBox() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelect = useCallback((item: SearchTitle) => {
-    setQuery(item.title);
-    setIsOpen(false);
-  }, []);
+  const handleSelect = useCallback(
+    (item: SearchTitle) => {
+      onQueryChange(item.title);
+      setIsOpen(false);
+      onSelect?.(item);
+    },
+    [onQueryChange, onSelect],
+  );
+
+  const handleChange = useCallback(
+    (value: string) => {
+      onQueryChange(value);
+      if (value.trim() === "") {
+        onClear?.();
+      }
+      setIsOpen(true);
+    },
+    [onClear, onQueryChange],
+  );
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -85,13 +111,12 @@ export function SearchBox() {
       <SearchInput
         inputRef={inputRef}
         value={query}
-        onChange={(value) => {
-          setQuery(value);
-          setIsOpen(true);
-        }}
+        onChange={handleChange}
         onFocus={() => setIsOpen(true)}
         onKeyDown={handleKeyDown}
         isLoading={isLoading}
+        listboxId={listboxId}
+        isExpanded={showDropdown && results.length > 0}
       />
 
       <SearchAutocomplete

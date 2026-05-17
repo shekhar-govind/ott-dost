@@ -30,7 +30,7 @@ export function SearchAutocomplete({
     !isLoading && !error && query.trim().length >= 2 && results.length === 0;
 
   return (
-    <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-10 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg">
+    <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg sm:shadow-xl">
       {error && (
         <p className="px-4 py-3 text-sm text-red-600" role="alert">
           {error}
@@ -42,7 +42,11 @@ export function SearchAutocomplete({
       )}
 
       {results.length > 0 && (
-        <ul id={listboxId} role="listbox" className="max-h-80 overflow-y-auto py-1">
+        <ul
+          id={listboxId}
+          role="listbox"
+          className="max-h-[min(18rem,50dvh)] overflow-y-auto overscroll-contain py-1 sm:max-h-80"
+        >
           {results.map((item, index) => (
             <SearchResultItem
               key={`${item.mediaType}-${item.id}`}

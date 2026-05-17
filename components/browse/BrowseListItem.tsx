@@ -1,33 +1,26 @@
-import { getMediaTypeLabel } from "@/lib/tmdb/utils";
 import type { SearchTitle } from "@/lib/tmdb/types";
+import { formatReleaseDate, getMediaTypeLabel } from "@/lib/tmdb/utils";
+import { GenreTags } from "./GenreTags";
+import { StreamOnLabel } from "./StreamOnLabel";
 
-interface SearchResultItemProps {
+interface BrowseListItemProps {
   item: SearchTitle;
-  isActive: boolean;
   onSelect: (item: SearchTitle) => void;
-  onHover: () => void;
 }
 
-export function SearchResultItem({
-  item,
-  isActive,
-  onSelect,
-  onHover,
-}: SearchResultItemProps) {
+export function BrowseListItem({ item, onSelect }: BrowseListItemProps) {
+  const formattedDate = formatReleaseDate(item.releaseDate);
+
   return (
-    <li role="option" aria-selected={isActive}>
+    <li>
       <button
         type="button"
-        onMouseEnter={onHover}
-        onTouchStart={onHover}
         onClick={() => onSelect(item)}
-        className={`flex w-full min-h-14 touch-manipulation items-center gap-3 px-3 py-3 text-left transition active:bg-zinc-100 sm:min-h-0 sm:py-2.5 ${
-          isActive ? "bg-zinc-100" : "hover:bg-zinc-50"
-        }`}
+        className="flex w-full min-h-14 touch-manipulation items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-left shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 active:bg-zinc-100 sm:min-h-0 sm:py-2.5"
       >
         <Poster posterUrl={item.posterUrl} title={item.title} />
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-baseline gap-x-2 gap-y-0.5 sm:items-center">
+          <div className="flex min-w-0 items-baseline gap-x-2">
             <p className="truncate text-sm font-medium text-zinc-900">
               {item.title}
             </p>
@@ -35,9 +28,12 @@ export function SearchResultItem({
               <span className="shrink-0 text-xs text-zinc-400">{item.year}</span>
             )}
           </div>
-          <p className="mt-0.5 truncate text-xs text-zinc-500">
+          <p className="mt-0.5 text-xs text-zinc-500">
             {getMediaTypeLabel(item.mediaType)}
+            {formattedDate ? ` · ${formattedDate}` : ""}
           </p>
+          <GenreTags genres={item.genres} />
+          <StreamOnLabel streamOn={item.streamOn} />
         </div>
       </button>
     </li>

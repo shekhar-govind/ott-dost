@@ -1,13 +1,28 @@
 import { TMDB_API_BASE } from "./constants";
-import type { TmdbSearchResponse } from "./types";
+import type {
+  TmdbDiscoverResponse,
+  TmdbDiscoverMovieResult,
+  TmdbDiscoverTvResult,
+  TmdbMediaType,
+  TmdbMovieDetails,
+  TmdbSearchResponse,
+  TmdbTvDetails,
+  TmdbWatchProvidersApiResponse,
+} from "./types";
 import { getTmdbApiKey } from "./utils";
 
-export async function searchMulti(query: string): Promise<TmdbSearchResponse> {
-  const params = new URLSearchParams({
+function buildParams(extra?: Record<string, string>) {
+  return new URLSearchParams({
     api_key: getTmdbApiKey(),
+    language: "en-IN",
+    ...extra,
+  });
+}
+
+export async function searchMulti(query: string): Promise<TmdbSearchResponse> {
+  const params = buildParams({
     query: query.trim(),
     include_adult: "false",
-    language: "en-IN",
     page: "1",
   });
 
@@ -20,4 +35,91 @@ export async function searchMulti(query: string): Promise<TmdbSearchResponse> {
   }
 
   return response.json() as Promise<TmdbSearchResponse>;
+}
+
+export async function getTitleDetails(
+  mediaType: TmdbMediaType,
+  id: number,
+): Promise<TmdbMovieDetails | TmdbTvDetails> {
+  const params = buildParams({
+    append_to_response: "watch/providers",
+  });
+
+  const response = await fetch(
+    `${TMDB_API_BASE}/${mediaType}/${id}?${params}`,
+    { next: { revalidate: 3600 } },
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB details failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<TmdbMovieDetails | TmdbTvDetails>;
+}
+
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export async function discoverLatestMovies(
+  page: number,
+  originalLanguage: string,
+): Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>> {
+  const params = buildParams({
+    sort_by: "primary_release_date.desc",
+    region: "IN",
+    page: String(page),
+    include_adult: "false",
+    "release_date.lte": todayIsoDate(),
+    with_original_language: originalLanguage,
+  });
+
+  const response = await fetch(`${TMDB_API_BASE}/discover/movie?${params}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`TMDB discover movies failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>>;
+}
+
+export async function discoverLatestTv(
+  page: number,
+): Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>> {
+  const params = buildParams({
+    sort_by: "first_air_date.desc",
+    watch_region: "IN",
+    page: String(page),
+    include_adult: "false",
+    "first_air_date.lte": todayIsoDate(),
+  });
+
+  const response = await fetch(`${TMDB_API_BASE}/discover/tv?${params}`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`TMDB discover TV failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>>;
+}
+
+export async function getMovieWatchProviders(
+  movieId: number,
+): Promise<TmdbWatchProvidersApiResponse> {
+  const params = buildParams();
+
+  const response = await fetch(
+    `${TMDB_API_BASE}/movie/${movieId}/watch/providers?${params}`,
+    { next: { revalidate: 3600 } },
+  );
+
+  if (!response.ok) {
+    throw new Error(`TMDB watch providers failed: ${response.status}`);
+  }
+
+  return response.json() as Promise<TmdbWatchProvidersApiResponse>;
 }
