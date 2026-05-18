@@ -18,6 +18,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   genreOptionsForMediaType,
+  providerOptionsForMediaType,
   toggleGenre,
   selectLanguage,
   toggleProvider,
@@ -69,7 +70,7 @@ export function BrowseFilterSheet({
   if (!open) return null;
 
   const languages = meta.languages;
-  const providers = meta.providers;
+  const providers = providerOptionsForMediaType(meta, draft.mediaType);
   const genreOptions = genreOptionsForMediaType(meta, draft.mediaType);
   const datePresets = getBrowseDatePresets();
   const datePresetId = datePresetIdForFilters(draft);
@@ -284,7 +285,7 @@ export function BrowseFilterSheet({
             ) : null}
             {providers.map((provider) => (
               <OttProviderFilterTile
-                key={provider.listKey ?? String(provider.id)}
+                key={provider.id}
                 provider={provider}
                 active={draft.providerIds.includes(provider.id)}
                 onToggle={() => setDraft((prev) => toggleProvider(prev, provider.id))}

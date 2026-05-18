@@ -2,6 +2,7 @@ import type { BrowseFilters } from "./filters";
 import { languageMatchesDefault } from "./filters";
 import { formatDateFilterChipLabel } from "./date-presets";
 import { findBrowseLanguageOption, getLanguageChipLabel } from "./languages";
+import { findOttProviderOption } from "./ott-platform-normalization";
 import type { BrowseGenreOption, BrowseLanguageOption, BrowseOttProvider } from "./types";
 
 export interface BrowseFilterChip {
@@ -27,12 +28,6 @@ export function buildBrowseFilterChips(
     }
   }
 
-  if (filters.mediaType === "tv") {
-    chips.push({ key: "type-tv", label: "TV ×" });
-  } else if (filters.mediaType === "movie") {
-    chips.push({ key: "type-movie", label: "Movies ×" });
-  }
-
   for (const genreId of filters.genreIds) {
     const genre = genreOptions.find((g) => g.id === genreId);
     chips.push({
@@ -47,7 +42,7 @@ export function buildBrowseFilterChips(
   }
 
   for (const providerId of filters.providerIds) {
-    const provider = providerOptions.find((p) => p.id === providerId);
+    const provider = findOttProviderOption(providerOptions, providerId);
     chips.push({
       key: `ott-${providerId}`,
       label: `${provider?.name ?? "Platform"} ×`,

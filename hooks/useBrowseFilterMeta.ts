@@ -9,7 +9,8 @@ import { useEffect, useState } from "react";
 const EMPTY_META: BrowseFilterMeta = {
   movieGenres: [],
   tvGenres: [],
-  providers: [],
+  movieProviders: [],
+  tvProviders: [],
   languages: [],
 };
 
@@ -26,10 +27,8 @@ export function useBrowseFilterMeta(enabled: boolean) {
     fetchBrowseFilterMeta(controller.signal)
       .then((loadedMeta) => {
         browseDebug("Filter meta loaded (OTT chip options)", {
-          providers: loadedMeta.providers.map((provider) => ({
-            id: provider.id,
-            name: provider.name,
-          })),
+          movieProviders: loadedMeta.movieProviders.length,
+          tvProviders: loadedMeta.tvProviders.length,
         });
         setMeta({
           ...loadedMeta,

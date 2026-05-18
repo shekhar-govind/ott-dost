@@ -1,20 +1,14 @@
-/** TMDB may list the same Indian service under different provider ids. */
-const OTT_PROVIDER_ALIAS_GROUPS: readonly number[][] = [
-  [122, 515, 2336], // Disney+ Hotstar / legacy ids / JioHotstar
-];
+export {
+  OTT_PLATFORM_GROUPS,
+  OTT_PROVIDER_ALIAS_GROUPS,
+  canonicalOttProviderId,
+  chipCanonicalOttProviderId,
+  dedupeOttProviderIds,
+  expandProviderFilterIds,
+  findOttPlatformGroup,
+  findOttProviderOption,
+  ottProviderIdsMatch,
+  shouldShowOttProviderChip,
+} from "./ott-platform-normalization";
 
-export function expandProviderFilterIds(providerIds: number[]): Set<number> {
-  if (providerIds.length === 0) return new Set();
-
-  const expanded = new Set(providerIds);
-  for (const id of providerIds) {
-    for (const group of OTT_PROVIDER_ALIAS_GROUPS) {
-      if (group.includes(id)) {
-        for (const aliasId of group) {
-          expanded.add(aliasId);
-        }
-      }
-    }
-  }
-  return expanded;
-}
+export type { OttNormalizationTier, OttPlatformGroup } from "./ott-platform-normalization";

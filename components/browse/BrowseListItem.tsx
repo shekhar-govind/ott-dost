@@ -18,7 +18,7 @@ export function BrowseListItem({ item }: BrowseListItemProps) {
         <span className="shrink-0 pt-px sm:pt-0.5">
           <ListItemPoster posterUrl={item.posterUrl} title={item.title} />
         </span>
-        <MediaListItemBody item={item} showStreamWhenEmpty />
+        <MediaListItemBody item={item} />
       </Link>
     </li>
   );

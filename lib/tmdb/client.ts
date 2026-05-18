@@ -59,7 +59,7 @@ function todayIsoDate(): string {
 export async function discoverLatestMovies(
   page: number,
   originalLanguage: string,
-  filters?: DiscoverFilters,
+  filters: DiscoverFilters,
 ): Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>> {
   const params = buildParams({
     sort_by: "primary_release_date.desc",
@@ -82,7 +82,7 @@ export async function discoverLatestMovies(
 export async function discoverLatestTv(
   page: number,
   originalLanguage: string,
-  filters?: DiscoverFilters,
+  filters: DiscoverFilters,
 ): Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>> {
   const params = buildParams({
     sort_by: "first_air_date.desc",

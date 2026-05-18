@@ -1,5 +1,5 @@
 import { mapTmdbLanguagesToBrowseOptions } from "./resolve-languages";
-import { resolveBrowseOttProviders } from "./ott-providers";
+import { resolveBrowseOttProviderMeta } from "./ott-providers";
 import type { BrowseFilterMeta } from "./types";
 import { getTmdbConfigurationLanguages } from "@/lib/tmdb/configuration";
 import { getMovieGenreMap, getTvGenreMap } from "@/lib/tmdb/genres";
@@ -11,17 +11,18 @@ function mapGenreOptions(genreMap: Map<number, string>) {
 }
 
 export async function resolveBrowseFilterMeta(): Promise<BrowseFilterMeta> {
-  const [movieGenreMap, tvGenreMap, providers, tmdbLanguages] = await Promise.all([
+  const [movieGenreMap, tvGenreMap, ottProviders, tmdbLanguages] = await Promise.all([
     getMovieGenreMap(),
     getTvGenreMap(),
-    resolveBrowseOttProviders(),
+    resolveBrowseOttProviderMeta(),
     getTmdbConfigurationLanguages(),
   ]);
 
   return {
     movieGenres: mapGenreOptions(movieGenreMap),
     tvGenres: mapGenreOptions(tvGenreMap),
-    providers,
+    movieProviders: ottProviders.movieProviders,
+    tvProviders: ottProviders.tvProviders,
     languages: mapTmdbLanguagesToBrowseOptions(tmdbLanguages),
   };
 }

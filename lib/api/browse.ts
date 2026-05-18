@@ -1,4 +1,8 @@
-import { browseDebug, summarizeBrowseItem } from "@/lib/browse/debug";
+import {
+  browseDebug,
+  logBrowseApiResponse,
+  summarizeBrowseItem,
+} from "@/lib/browse/debug";
 import type { BrowseFilters } from "@/lib/browse/filters";
 import { serializeBrowseFilters } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
@@ -32,12 +36,14 @@ export async function fetchBrowsePage(
   }
 
   const data = (await response.json()) as BrowsePage;
-  browseDebug("Browse API response", {
+  logBrowseApiResponse("response", {
     page: data.page,
+    totalPages: data.totalPages,
     itemCount: data.items.length,
     hasMore: data.hasMore,
     items: data.items.map(summarizeBrowseItem),
   });
+  browseDebug("Browse API response", data);
   return data;
 }
 

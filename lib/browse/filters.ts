@@ -4,8 +4,11 @@ import {
 } from "./date-presets";
 import { isAllowedBrowseLanguageCode } from "./indian-language-codes";
 import { defaultBrowseLanguage } from "./languages";
+import { dedupeOttProviderIds } from "./ott-platform-normalization";
 
-export type BrowseMediaType = "all" | "movie" | "tv";
+export type BrowseMediaType = "movie" | "tv";
+
+export const DEFAULT_BROWSE_MEDIA_TYPE: BrowseMediaType = "movie";
 
 export interface BrowseFilters {
   /** ISO 639-1; one TMDB discover call per browse page. */
@@ -19,7 +22,7 @@ export interface BrowseFilters {
 
 export const DEFAULT_BROWSE_FILTERS: BrowseFilters = {
   language: defaultBrowseLanguage(),
-  mediaType: "all",
+  mediaType: DEFAULT_BROWSE_MEDIA_TYPE,
   genreIds: [],
   dateFrom: null,
   dateTo: null,
@@ -37,21 +40,19 @@ export function parseBrowseFilters(
         .find(isAllowedBrowseLanguageCode)
     : undefined;
 
-  const mediaTypeParam = searchParams.get("type");
-  const mediaType: BrowseMediaType =
-    mediaTypeParam === "all" || mediaTypeParam === "tv" || mediaTypeParam === "movie"
-      ? mediaTypeParam
-      : DEFAULT_BROWSE_FILTERS.mediaType;
+  const mediaType = normalizeBrowseMediaType(searchParams.get("type"));
 
   const genreIds = (searchParams.get("genre") ?? "")
     .split(",")
     .map((id) => Number(id))
     .filter((id) => Number.isInteger(id) && id > 0);
 
-  const providerIds = (searchParams.get("ott") ?? "")
-    .split(",")
-    .map((id) => Number(id))
-    .filter((id) => Number.isInteger(id) && id > 0);
+  const providerIds = dedupeOttProviderIds(
+    (searchParams.get("ott") ?? "")
+      .split(",")
+      .map((id) => Number(id))
+      .filter((id) => Number.isInteger(id) && id > 0),
+  );
 
   const datePresetParam = searchParams.get("date");
   const preset = datePresetParam
@@ -73,6 +74,14 @@ export function parseBrowseFilters(
     dateTo,
     providerIds,
   };
+}
+
+/** Legacy `type=all` URLs map to the default (movies). */
+export function normalizeBrowseMediaType(
+  value: string | null | undefined,
+): BrowseMediaType {
+  if (value === "tv") return "tv";
+  return DEFAULT_BROWSE_MEDIA_TYPE;
 }
 
 function normalizeDateParam(

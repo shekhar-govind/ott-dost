@@ -1,18 +1,21 @@
+import { formatTmdbWithWatchProviders } from "@/lib/browse/ott-platform-normalization";
 import type { DiscoverFilters } from "./discover-types";
+import { TMDB_WATCH_REGION } from "./watch-providers";
 
 export function appendDiscoverFilters(
   params: URLSearchParams,
-  filters: DiscoverFilters | undefined,
+  filters: DiscoverFilters,
   mode: "movie" | "tv",
 ): void {
-  if (!filters) return;
+  params.set("watch_region", TMDB_WATCH_REGION);
+  params.set("with_watch_monetization_types", "flatrate");
 
   if (filters.genreIds.length > 0) {
     params.set("with_genres", filters.genreIds.join("|"));
   }
 
   const dateFrom = filters.dateFrom;
-  const dateTo = filters.dateTo ?? (mode === "movie" ? undefined : undefined);
+  const dateTo = filters.dateTo;
 
   if (mode === "movie") {
     if (dateFrom) params.set("primary_release_date.gte", dateFrom);
@@ -21,10 +24,15 @@ export function appendDiscoverFilters(
     if (dateFrom) params.set("first_air_date.gte", dateFrom);
     if (dateTo) params.set("first_air_date.lte", dateTo);
   }
+
+  const watchProviders = formatTmdbWithWatchProviders(filters.providerIds);
+  if (watchProviders) {
+    params.set("with_watch_providers", watchProviders);
+  }
 }
 
-export function resolveDateTo(filters: DiscoverFilters | undefined): string | undefined {
-  const dateTo = filters?.dateTo;
+export function resolveDateTo(filters: DiscoverFilters): string | undefined {
+  const dateTo = filters.dateTo;
   if (dateTo) return dateTo;
   return undefined;
 }

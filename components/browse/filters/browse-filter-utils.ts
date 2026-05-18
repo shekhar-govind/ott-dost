@@ -1,31 +1,31 @@
 import { browseDebug } from "@/lib/browse/debug";
-import { DEFAULT_BROWSE_FILTERS, type BrowseFilters } from "@/lib/browse/filters";
+import type { BrowseFilters } from "@/lib/browse/filters";
 import { defaultBrowseLanguage } from "@/lib/browse/languages";
+import {
+  dedupeOttProviderIds,
+  findOttPlatformGroup,
+  ottProviderIdsMatch,
+} from "@/lib/browse/ott-platform-normalization";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
 
 export function genreOptionsForMediaType(
   meta: BrowseFilterMeta,
   mediaType: BrowseFilters["mediaType"],
 ) {
-  if (mediaType === "movie") return meta.movieGenres;
-  if (mediaType === "tv") return meta.tvGenres;
+  return mediaType === "tv" ? meta.tvGenres : meta.movieGenres;
+}
 
-  const merged = new Map<number, string>();
-  for (const genre of [...meta.movieGenres, ...meta.tvGenres]) {
-    merged.set(genre.id, genre.name);
-  }
-  return [...merged.entries()]
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+export function providerOptionsForMediaType(
+  meta: BrowseFilterMeta,
+  mediaType: BrowseFilters["mediaType"],
+) {
+  return mediaType === "tv" ? meta.tvProviders : meta.movieProviders;
 }
 
 export function removeBrowseFilterChip(
   filters: BrowseFilters,
   chipKey: string,
 ): BrowseFilters {
-  if (chipKey === "type-tv" || chipKey === "type-movie") {
-    return { ...filters, mediaType: DEFAULT_BROWSE_FILTERS.mediaType };
-  }
   if (chipKey === "date") {
     return { ...filters, dateFrom: null, dateTo: null };
   }
@@ -43,7 +43,9 @@ export function removeBrowseFilterChip(
     const id = Number(chipKey.slice(4));
     return {
       ...filters,
-      providerIds: filters.providerIds.filter((providerId) => providerId !== id),
+      providerIds: filters.providerIds.filter(
+        (providerId) => !ottProviderIdsMatch(providerId, id),
+      ),
     };
   }
   return filters;
@@ -68,12 +70,25 @@ export function toggleGenre(filters: BrowseFilters, genreId: number): BrowseFilt
 }
 
 export function toggleProvider(filters: BrowseFilters, providerId: number): BrowseFilters {
+  const group = findOttPlatformGroup(providerId);
   const exists = filters.providerIds.includes(providerId);
+
+  if (exists) {
+    return {
+      ...filters,
+      providerIds: filters.providerIds.filter((id) => id !== providerId),
+    };
+  }
+
+  // Variant/alias: one tile per group (e.g. Prime vs Prime with Ads); discover still expands all ids.
+  const withoutGroupSiblings =
+    group && (group.tier === "alias" || group.tier === "variant")
+      ? filters.providerIds.filter((id) => !group.ids.includes(id))
+      : filters.providerIds;
+
   const next = {
     ...filters,
-    providerIds: exists
-      ? filters.providerIds.filter((id) => id !== providerId)
-      : [...filters.providerIds, providerId],
+    providerIds: dedupeOttProviderIds([...withoutGroupSiblings, providerId]),
   };
   browseDebug("OTT provider chip toggled", {
     chipProviderId: providerId,

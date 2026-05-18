@@ -5,8 +5,8 @@ import { StreamOnLabel } from "./StreamOnLabel";
 interface MediaListItemBodyProps {
   item: SearchTitle;
   /**
-   * When true, show the “not on OTT” line if there are no providers.
-   * Browse uses this; search hides the row when empty to keep the dropdown compact.
+   * When true, show the stream row even if empty (e.g. “not on OTT”).
+   * Browse omits this row; title detail uses {@link TitleSummaryProviders} instead.
    */
   showStreamWhenEmpty?: boolean;
 }

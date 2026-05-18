@@ -10,7 +10,8 @@ export async function GET() {
     const meta = await getBrowseFilterMetaCached();
 
     browseDebug("Browse meta API loaded (daily cache)", {
-      providerCount: meta.providers.length,
+      movieProviderCount: meta.movieProviders.length,
+      tvProviderCount: meta.tvProviders.length,
       languageCount: meta.languages.length,
       movieGenreCount: meta.movieGenres.length,
       tvGenreCount: meta.tvGenres.length,

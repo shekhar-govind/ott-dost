@@ -7,7 +7,11 @@ import {
   type BrowseMediaType,
 } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
-import { genreOptionsForMediaType, removeBrowseFilterChip } from "./browse-filter-utils";
+import {
+  genreOptionsForMediaType,
+  providerOptionsForMediaType,
+  removeBrowseFilterChip,
+} from "./browse-filter-utils";
 import { FilterChip } from "./FilterChip";
 
 interface BrowseFiltersToolbarProps {
@@ -19,7 +23,6 @@ interface BrowseFiltersToolbarProps {
 }
 
 const MEDIA_SEGMENTS: { value: BrowseMediaType; label: string }[] = [
-  { value: "all", label: "All" },
   { value: "movie", label: "Movies" },
   { value: "tv", label: "TV" },
 ];
@@ -33,11 +36,12 @@ export function BrowseFiltersToolbar({
 }: BrowseFiltersToolbarProps) {
   const activeCount = countActiveBrowseFilters(filters);
   const genreOptions = genreOptionsForMediaType(meta, filters.mediaType);
+  const providerOptions = providerOptionsForMediaType(meta, filters.mediaType);
   const chips = buildBrowseFilterChips(
     filters,
     genreOptions,
     meta.languages,
-    meta.providers,
+    providerOptions,
   );
 
   return (
@@ -65,7 +69,12 @@ export function BrowseFiltersToolbar({
             <button
               key={segment.value}
               type="button"
-              onClick={() => onFiltersChange({ ...filters, mediaType: segment.value })}
+              onClick={() =>
+                onFiltersChange({
+                  ...filters,
+                  mediaType: segment.value,
+                })
+              }
               className={`rounded-full px-2.5 py-1 font-medium transition sm:px-3 ${
                 filters.mediaType === segment.value
                   ? "bg-zinc-900 text-white"

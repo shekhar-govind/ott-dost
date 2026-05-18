@@ -12,14 +12,15 @@ interface TmdbProviderListResponse {
   results: TmdbProviderListItem[];
 }
 
-const WATCH_REGION = "IN";
+/** ISO 3166-1 — used for discover `watch_region` and provider list endpoints. */
+export const TMDB_WATCH_REGION = "IN";
 
 async function fetchProviderList(
   endpoint: "movie" | "tv",
 ): Promise<TmdbProviderListItem[]> {
   const params = new URLSearchParams({
     api_key: getTmdbApiKey(),
-    watch_region: WATCH_REGION,
+    watch_region: TMDB_WATCH_REGION,
   });
 
   const response = await fetchTmdb(
@@ -31,7 +32,17 @@ async function fetchProviderList(
   return data.results ?? [];
 }
 
-/** Full India provider lists from TMDB (movie + TV), preserving duplicates across lists. */
+/** Valid `with_watch_providers` ids for discover (matches TMDB filter list for media type). */
+export async function getIndiaWatchProvidersForMediaType(
+  mediaType: "movie" | "tv",
+): Promise<TmdbProviderListItem[]> {
+  const providers = await fetchProviderList(mediaType);
+  return [...providers].sort((a, b) =>
+    a.provider_name.localeCompare(b.provider_name),
+  );
+}
+
+/** @deprecated Use {@link getIndiaWatchProvidersForMediaType} per media type. */
 export async function listIndiaStreamingProviders(): Promise<TmdbProviderListItem[]> {
   const [movieProviders, tvProviders] = await Promise.all([
     fetchProviderList("movie"),
@@ -41,7 +52,7 @@ export async function listIndiaStreamingProviders(): Promise<TmdbProviderListIte
   return [...movieProviders, ...tvProviders];
 }
 
-/** TMDB catalog of streaming providers in India (flatrate-style list). */
+/** @deprecated Use {@link getIndiaWatchProvidersForMediaType}. */
 export async function getIndiaStreamingProviderCatalog(): Promise<
   Map<number, TmdbProviderListItem>
 > {

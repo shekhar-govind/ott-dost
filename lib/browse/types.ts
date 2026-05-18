@@ -11,8 +11,6 @@ export interface BrowseOttProvider {
   name: string;
   shortLabel: string;
   logoUrl: string | null;
-  /** Stable key when the same provider id appears more than once in the master list. */
-  listKey?: string;
 }
 
 export interface BrowseGenreOption {
@@ -23,6 +21,9 @@ export interface BrowseGenreOption {
 export interface BrowseFilterMeta {
   movieGenres: BrowseGenreOption[];
   tvGenres: BrowseGenreOption[];
-  providers: BrowseOttProvider[];
+  /** TMDB `/watch/providers/movie` ids valid for discover `with_watch_providers`. */
+  movieProviders: BrowseOttProvider[];
+  /** TMDB `/watch/providers/tv` ids valid for discover `with_watch_providers`. */
+  tvProviders: BrowseOttProvider[];
   languages: BrowseLanguageOption[];
 }

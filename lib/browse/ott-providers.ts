@@ -1,5 +1,6 @@
+import type { BrowseMediaType } from "./filters";
 import type { BrowseOttProvider } from "./types";
-import { listIndiaStreamingProviders } from "@/lib/tmdb/watch-providers";
+import { getIndiaWatchProvidersForMediaType } from "@/lib/tmdb/watch-providers";
 import { getPosterUrl } from "@/lib/tmdb/utils";
 
 function providerShortLabel(name: string): string {
@@ -13,16 +14,35 @@ function providerShortLabel(name: string): string {
     .toUpperCase();
 }
 
-export async function resolveBrowseOttProviders(): Promise<BrowseOttProvider[]> {
-  const providers = await listIndiaStreamingProviders();
+function mapTmdbProviders(
+  providers: Awaited<ReturnType<typeof getIndiaWatchProvidersForMediaType>>,
+): BrowseOttProvider[] {
+  return providers.map((provider) => ({
+    id: provider.provider_id,
+    name: provider.provider_name,
+    shortLabel: providerShortLabel(provider.provider_name),
+    logoUrl: getPosterUrl(provider.logo_path, "w92"),
+  }));
+}
 
-  return providers
-    .map((provider, index) => ({
-      id: provider.provider_id,
-      name: provider.provider_name,
-      shortLabel: providerShortLabel(provider.provider_name),
-      logoUrl: getPosterUrl(provider.logo_path, "w92"),
-      listKey: `${provider.provider_id}-${index}`,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+export async function resolveBrowseOttProvidersForMediaType(
+  mediaType: BrowseMediaType,
+): Promise<BrowseOttProvider[]> {
+  const providers = await getIndiaWatchProvidersForMediaType(mediaType);
+  return mapTmdbProviders(providers);
+}
+
+export async function resolveBrowseOttProviderMeta(): Promise<{
+  movieProviders: BrowseOttProvider[];
+  tvProviders: BrowseOttProvider[];
+}> {
+  const [movieProviders, tvProviders] = await Promise.all([
+    getIndiaWatchProvidersForMediaType("movie"),
+    getIndiaWatchProvidersForMediaType("tv"),
+  ]);
+
+  return {
+    movieProviders: mapTmdbProviders(movieProviders),
+    tvProviders: mapTmdbProviders(tvProviders),
+  };
 }
