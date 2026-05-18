@@ -13,11 +13,12 @@ import {
 } from "@/lib/route-scroll";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export function AppMainShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isDesignPreview = pathname.startsWith("/design/");
   const [query, setQuery] = useState("");
   /** Routes the user has left at least once (skip restore on first visit). */
   const routesLeftRef = useRef(new Set<string>());
@@ -148,6 +149,10 @@ export function AppMainShell({ children }: { children: ReactNode }) {
     };
   }, [tryRestoreRoute]);
 
+  if (isDesignPreview) {
+    return <main className="flex w-full flex-1 flex-col">{children}</main>;
+  }
+
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-10 sm:max-w-2xl sm:px-6 sm:py-16 lg:max-w-3xl lg:px-8 lg:py-20">
       <SiteSearchPanel
@@ -156,8 +161,26 @@ export function AppMainShell({ children }: { children: ReactNode }) {
         onClear={handleClear}
       >
         {!isHome ? children : null}
-        <BrowseList enabled={isHome} preserveStateWhenDisabled />
+        <Suspense fallback={<BrowseListFallback />}>
+          <BrowseList enabled={isHome} preserveStateWhenDisabled />
+        </Suspense>
       </SiteSearchPanel>
     </main>
+  );
+}
+
+function BrowseListFallback() {
+  return (
+    <section className="mt-8 w-full" aria-hidden>
+      <div className="mb-4 h-8 animate-pulse rounded-lg bg-zinc-100" />
+      <ul className="space-y-1.5">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <li
+            key={index}
+            className="min-h-[4.75rem] animate-pulse rounded-lg border border-zinc-100 bg-zinc-100"
+          />
+        ))}
+      </ul>
+    </section>
   );
 }

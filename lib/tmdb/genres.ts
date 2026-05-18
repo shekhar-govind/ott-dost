@@ -7,25 +7,38 @@ interface TmdbGenreListResponse {
 }
 
 let movieGenreMap: Map<number, string> | null = null;
+let tvGenreMap: Map<number, string> | null = null;
+
+async function fetchGenreMap(endpoint: string): Promise<Map<number, string>> {
+  const params = new URLSearchParams({
+    api_key: getTmdbApiKey(),
+    language: "en-IN",
+  });
+
+  const response = await fetchTmdb(`${TMDB_API_BASE}/${endpoint}?${params}`, {
+    next: { revalidate: 86_400 },
+  });
+
+  const data = (await response.json()) as TmdbGenreListResponse;
+  return new Map(data.genres.map((genre) => [genre.id, genre.name]));
+}
 
 export async function getMovieGenreMap(): Promise<Map<number, string>> {
   if (movieGenreMap) {
     return movieGenreMap;
   }
 
-  const params = new URLSearchParams({
-    api_key: getTmdbApiKey(),
-    language: "en-IN",
-  });
-
-  const response = await fetchTmdb(`${TMDB_API_BASE}/genre/movie/list?${params}`, {
-    next: { revalidate: 86_400 },
-  });
-
-  const data = (await response.json()) as TmdbGenreListResponse;
-  movieGenreMap = new Map(data.genres.map((genre) => [genre.id, genre.name]));
-
+  movieGenreMap = await fetchGenreMap("genre/movie/list");
   return movieGenreMap;
+}
+
+export async function getTvGenreMap(): Promise<Map<number, string>> {
+  if (tvGenreMap) {
+    return tvGenreMap;
+  }
+
+  tvGenreMap = await fetchGenreMap("genre/tv/list");
+  return tvGenreMap;
 }
 
 export function resolveGenreNames(

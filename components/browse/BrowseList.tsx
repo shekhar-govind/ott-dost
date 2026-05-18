@@ -1,8 +1,14 @@
 "use client";
 
+import { useBrowseFilterMeta } from "@/hooks/useBrowseFilterMeta";
+import { useBrowseFilters } from "@/hooks/useBrowseFilters";
 import { useBrowseList } from "@/hooks/useBrowseList";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { hasNonDefaultBrowseFilters } from "@/lib/browse/filters";
+import { useState } from "react";
+import { BrowseFilterSheet } from "./filters/BrowseFilterSheet";
+import { BrowseFiltersToolbar } from "./filters/BrowseFiltersToolbar";
 import { BrowseListItem } from "./BrowseListItem";
 import { BrowsePagination } from "./BrowsePagination";
 
@@ -17,6 +23,9 @@ export function BrowseList({
   preserveStateWhenDisabled = false,
 }: BrowseListProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const { filters, setFilters, clearFilters } = useBrowseFilters();
+  const { meta } = useBrowseFilterMeta(enabled);
 
   const {
     items,
@@ -33,6 +42,7 @@ export function BrowseList({
     enabled,
     preserveStateWhenDisabled,
     infiniteScroll: !isDesktop,
+    filters,
   });
 
   const sentinelRef = useInfiniteScroll({
@@ -43,6 +53,7 @@ export function BrowseList({
   });
 
   const visuallyHidden = !enabled && preserveStateWhenDisabled;
+  const filtersActive = hasNonDefaultBrowseFilters(filters);
 
   if (!enabled && !preserveStateWhenDisabled) return null;
 
@@ -50,15 +61,20 @@ export function BrowseList({
     <section
       className={`mt-8 w-full ${visuallyHidden ? "hidden" : ""}`}
       aria-hidden={visuallyHidden}
-      aria-label="Latest movies and TV shows in English, Hindi, and Malayalam"
+      aria-label="Latest movies and TV shows"
     >
+      <BrowseFiltersToolbar
+        filters={filters}
+        meta={meta}
+        onOpenFilters={() => setSheetOpen(true)}
+        onFiltersChange={setFilters}
+        onClearFilters={clearFilters}
+      />
+
       <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
-            Latest movies and TV shows
-          </h3>
-          <p className="mt-0.5 text-xs text-zinc-500">English · Hindi · Malayalam</p>
-        </div>
+        <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
+          Latest movies and TV shows
+        </h3>
         <button
           type="button"
           onClick={refresh}
@@ -70,7 +86,10 @@ export function BrowseList({
       </div>
 
       {error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+        <p
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -79,7 +98,9 @@ export function BrowseList({
         <BrowseListSkeleton />
       ) : items.length === 0 ? (
         <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
-          No titles with OTT availability on this page. Try the next page.
+          {filtersActive
+            ? "No titles match your filters on this page. Try clearing filters or the next page."
+            : "No titles with OTT availability on this page. Try the next page."}
         </p>
       ) : (
         <ul className="space-y-1.5">
@@ -109,6 +130,14 @@ export function BrowseList({
           disabled={isLoading}
         />
       )}
+
+      <BrowseFilterSheet
+        open={sheetOpen}
+        appliedFilters={filters}
+        meta={meta}
+        onClose={() => setSheetOpen(false)}
+        onApply={setFilters}
+      />
     </section>
   );
 }

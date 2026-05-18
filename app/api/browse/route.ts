@@ -1,17 +1,32 @@
-import { discoverLatestMovies } from "@/lib/tmdb/client";
-import { BROWSE_LANGUAGES } from "@/lib/tmdb/constants";
+import { languagesMatchDefault } from "@/lib/browse/filters";
+import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
+import { BROWSE_LANGUAGE_OPTIONS } from "@/lib/browse/languages";
+import {
+  discoverLatestMovies,
+  discoverLatestTv,
+} from "@/lib/tmdb/client";
+import { toDiscoverFilters } from "@/lib/tmdb/discover-types";
 import { enrichWithStreamProviders } from "@/lib/tmdb/enrich-browse";
-import { getMovieGenreMap, resolveGenreNames } from "@/lib/tmdb/genres";
-import type { TmdbDiscoverResponse, TmdbDiscoverMovieResult } from "@/lib/tmdb/types";
+import { getMovieGenreMap, getTvGenreMap, resolveGenreNames } from "@/lib/tmdb/genres";
+import type {
+  TmdbDiscoverResponse,
+  TmdbDiscoverMovieResult,
+  TmdbDiscoverTvResult,
+} from "@/lib/tmdb/types";
 import {
   compareByReleaseDateDesc,
   toSearchTitleFromMovie,
+  toSearchTitleFromTv,
 } from "@/lib/tmdb/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 const PAGE_SIZE = 10;
-/** Fetch extra candidates so we can fill a page after OTT-only filtering */
 const CANDIDATE_POOL_SIZE = 24;
+const CANDIDATE_POOL_SIZE_FILTERED = 40;
+
+type DiscoverResult =
+  | TmdbDiscoverResponse<TmdbDiscoverMovieResult>
+  | TmdbDiscoverResponse<TmdbDiscoverTvResult>;
 
 export async function GET(request: NextRequest) {
   const pageParam = request.nextUrl.searchParams.get("page") ?? "1";
@@ -21,21 +36,39 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid page" }, { status: 400 });
   }
 
+  const filters = parseBrowseFiltersFromRequest(request);
+  const discoverFilters = toDiscoverFilters(filters);
+  const mediaKinds =
+    filters.mediaType === "all" ? (["movie", "tv"] as const) : ([filters.mediaType] as const);
+
+  const hasStrictFilters =
+    filters.providerIds.length > 0 ||
+    filters.genreIds.length > 0 ||
+    Boolean(filters.dateFrom || filters.dateTo) ||
+    !languagesMatchDefault(filters.languages) ||
+    filters.languages.length < BROWSE_LANGUAGE_OPTIONS.length;
+
+  const poolSize = hasStrictFilters ? CANDIDATE_POOL_SIZE_FILTERED : CANDIDATE_POOL_SIZE;
+
   try {
-    const [discoverResults, genreMap] = await Promise.all([
-      Promise.allSettled(
-        BROWSE_LANGUAGES.map((language) => discoverLatestMovies(page, language)),
+    const discoverTasks = filters.languages.flatMap((language) =>
+      mediaKinds.map((kind) =>
+        kind === "movie"
+          ? discoverLatestMovies(page, language, discoverFilters)
+          : discoverLatestTv(page, language, discoverFilters),
       ),
+    );
+
+    const [discoverResults, movieGenreMap, tvGenreMap] = await Promise.all([
+      Promise.allSettled(discoverTasks),
       getMovieGenreMap(),
+      getTvGenreMap(),
     ]);
 
     const responses = discoverResults
       .filter(
-        (
-          result,
-        ): result is PromiseFulfilledResult<
-          TmdbDiscoverResponse<TmdbDiscoverMovieResult>
-        > => result.status === "fulfilled",
+        (result): result is PromiseFulfilledResult<DiscoverResult> =>
+          result.status === "fulfilled",
       )
       .map((result) => result.value);
 
@@ -43,28 +76,40 @@ export async function GET(request: NextRequest) {
       throw new Error("Browse failed");
     }
 
+    const providerFilter = new Set(filters.providerIds);
     const seen = new Set<string>();
     const candidates = responses
       .flatMap((response) =>
-        response.results.map((movie) =>
-          toSearchTitleFromMovie(
-            movie,
-            resolveGenreNames(movie.genre_ids, genreMap),
-          ),
-        ),
+        response.results.map((item) => {
+          if ("title" in item) {
+            return toSearchTitleFromMovie(
+              item,
+              resolveGenreNames(item.genre_ids, movieGenreMap),
+            );
+          }
+          return toSearchTitleFromTv(
+            item,
+            resolveGenreNames(item.genre_ids, tvGenreMap),
+          );
+        }),
       )
       .filter((item) => {
-        const key = String(item.id);
+        const key = `${item.mediaType}-${item.id}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       })
       .sort(compareByReleaseDateDesc)
-      .slice(0, CANDIDATE_POOL_SIZE);
+      .slice(0, poolSize);
 
     const enriched = await enrichWithStreamProviders(candidates);
     const items = enriched
       .filter((item) => item.streamProviders.length > 0)
+      .filter(
+        (item) =>
+          providerFilter.size === 0 ||
+          item.streamProviders.some((provider) => providerFilter.has(provider.id)),
+      )
       .slice(0, PAGE_SIZE);
 
     const totalPages = Math.min(...responses.map((response) => response.total_pages));

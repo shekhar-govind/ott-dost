@@ -143,7 +143,10 @@ export function toSearchTitleFromMovie(
   };
 }
 
-export function toSearchTitleFromTv(show: TmdbDiscoverTvResult): SearchTitle {
+export function toSearchTitleFromTv(
+  show: TmdbDiscoverTvResult,
+  genres: string[] = [],
+): SearchTitle {
   const releaseDate = show.first_air_date ?? null;
   const { rating, voteCount } = tmdbUserRating(
     show.vote_average,
@@ -162,7 +165,7 @@ export function toSearchTitleFromTv(show: TmdbDiscoverTvResult): SearchTitle {
     voteCount,
     languageLabel: formatOriginalLanguage(show.original_language),
     streamProviders: [],
-    genres: [],
+    genres,
   };
 }
 

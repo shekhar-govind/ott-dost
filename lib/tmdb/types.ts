@@ -43,6 +43,7 @@ export interface TmdbDiscoverTvResult {
   overview?: string;
   poster_path?: string | null;
   first_air_date?: string;
+  genre_ids?: number[];
   vote_average?: number;
   vote_count?: number;
   /** ISO 639-1 */

@@ -1,5 +1,5 @@
+import { getMovieWatchProviders, getTvWatchProviders } from "./client";
 import { mapWithConcurrency } from "./concurrency";
-import { getMovieWatchProviders } from "./client";
 import type { SearchTitle } from "./types";
 import { getStreamFlatrateProviders } from "./utils";
 
@@ -10,7 +10,10 @@ export async function enrichWithStreamProviders(
 ): Promise<SearchTitle[]> {
   return mapWithConcurrency(items, WATCH_PROVIDER_CONCURRENCY, async (item) => {
     try {
-      const providers = await getMovieWatchProviders(item.id);
+      const providers =
+        item.mediaType === "tv"
+          ? await getTvWatchProviders(item.id)
+          : await getMovieWatchProviders(item.id);
       return {
         ...item,
         streamProviders: getStreamFlatrateProviders(providers),

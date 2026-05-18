@@ -1,6 +1,8 @@
 "use client";
 
 import { fetchBrowsePage } from "@/lib/api/browse";
+import type { BrowseFilters } from "@/lib/browse/filters";
+import { filtersAreEqual } from "@/lib/browse/filters";
 import type { SearchTitle } from "@/lib/tmdb/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -9,6 +11,7 @@ interface UseBrowseListOptions {
   /** When true, disabling does not clear list state (e.g. navigating away from home). */
   preserveStateWhenDisabled?: boolean;
   infiniteScroll: boolean;
+  filters: BrowseFilters;
 }
 
 interface UseBrowseListResult {
@@ -28,6 +31,7 @@ export function useBrowseList({
   enabled,
   preserveStateWhenDisabled = false,
   infiniteScroll,
+  filters,
 }: UseBrowseListOptions): UseBrowseListResult {
   const [items, setItems] = useState<SearchTitle[]>([]);
   const [page, setPage] = useState(1);
@@ -37,6 +41,13 @@ export function useBrowseList({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
+  const filtersRef = useRef(filters);
+  const prevFiltersRef = useRef(filters);
+  const hasLoadedRef = useRef(false);
+
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
 
   const loadPage = useCallback(
     async (targetPage: number, mode: "replace" | "append") => {
@@ -51,7 +62,7 @@ export function useBrowseList({
       setError(null);
 
       try {
-        const data = await fetchBrowsePage(targetPage);
+        const data = await fetchBrowsePage(targetPage, filtersRef.current);
 
         if (currentRequest !== requestId.current) return;
 
@@ -89,16 +100,28 @@ export function useBrowseList({
         setError(null);
         setIsLoading(false);
         setIsLoadingMore(false);
+        hasLoadedRef.current = false;
       }
       return;
     }
 
-    if (preserveStateWhenDisabled && items.length > 0) {
+    const filtersChanged = !filtersAreEqual(prevFiltersRef.current, filters);
+    prevFiltersRef.current = filters;
+
+    if (filtersChanged) {
+      setPage(1);
+      hasLoadedRef.current = true;
+      loadPage(1, "replace");
       return;
     }
 
+    if (preserveStateWhenDisabled && hasLoadedRef.current) {
+      return;
+    }
+
+    hasLoadedRef.current = true;
     loadPage(1, "replace");
-  }, [enabled, preserveStateWhenDisabled, items.length, loadPage]);
+  }, [enabled, filters, preserveStateWhenDisabled, loadPage]);
 
   useEffect(() => {
     if (!enabled || infiniteScroll || page === 1) return;
