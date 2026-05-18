@@ -3,7 +3,6 @@ import { fetchTmdb } from "./fetch";
 import type {
   TmdbDiscoverResponse,
   TmdbDiscoverMovieResult,
-  TmdbDiscoverTvResult,
   TmdbMediaType,
   TmdbMovieDetails,
   TmdbSearchResponse,
@@ -72,24 +71,6 @@ export async function discoverLatestMovies(
   });
 
   return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>>;
-}
-
-export async function discoverLatestTv(
-  page: number,
-): Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>> {
-  const params = buildParams({
-    sort_by: "first_air_date.desc",
-    watch_region: "IN",
-    page: String(page),
-    include_adult: "false",
-    "first_air_date.lte": todayIsoDate(),
-  });
-
-  const response = await fetchTmdb(`${TMDB_API_BASE}/discover/tv?${params}`, {
-    next: { revalidate: 3600 },
-  });
-
-  return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>>;
 }
 
 export async function getMovieWatchProviders(
