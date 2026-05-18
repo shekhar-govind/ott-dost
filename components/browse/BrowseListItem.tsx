@@ -1,70 +1,25 @@
 import type { SearchTitle } from "@/lib/tmdb/types";
-import { formatReleaseDate, getMediaTypeLabel } from "@/lib/tmdb/utils";
-import { GenreTags } from "./GenreTags";
-import { StreamOnLabel } from "./StreamOnLabel";
+import { ListItemPoster } from "@/components/shared/ListItemPoster";
+import { MediaListItemBody } from "@/components/shared/MediaListItemBody";
+import Link from "next/link";
+import { titlePathFromSearchTitle } from "@/lib/title-url";
 
 interface BrowseListItemProps {
   item: SearchTitle;
-  onSelect: (item: SearchTitle) => void;
 }
 
-export function BrowseListItem({ item, onSelect }: BrowseListItemProps) {
-  const formattedDate = formatReleaseDate(item.releaseDate);
-
+export function BrowseListItem({ item }: BrowseListItemProps) {
   return (
     <li>
-      <button
-        type="button"
-        onClick={() => onSelect(item)}
-        className="flex w-full min-h-14 touch-manipulation items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-left shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 active:bg-zinc-100 sm:min-h-0 sm:py-2.5"
+      <Link
+        href={titlePathFromSearchTitle(item)}
+        className="flex w-full min-h-14 touch-manipulation items-start gap-2.5 rounded-lg border border-zinc-100 bg-white px-2.5 py-2 text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition hover:border-zinc-200/90 hover:bg-zinc-50/70 active:bg-zinc-50 sm:min-h-0 sm:gap-3 sm:px-3 sm:py-2.5"
       >
-        <Poster posterUrl={item.posterUrl} title={item.title} />
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-baseline gap-x-2">
-            <p className="truncate text-sm font-medium text-zinc-900">
-              {item.title}
-            </p>
-            {item.year && (
-              <span className="shrink-0 text-xs text-zinc-400">{item.year}</span>
-            )}
-          </div>
-          <p className="mt-0.5 text-xs text-zinc-500">
-            {getMediaTypeLabel(item.mediaType)}
-            {formattedDate ? ` · ${formattedDate}` : ""}
-          </p>
-          <GenreTags genres={item.genres} />
-          <StreamOnLabel streamOn={item.streamOn} />
-        </div>
-      </button>
+        <span className="shrink-0 pt-px sm:pt-0.5">
+          <ListItemPoster posterUrl={item.posterUrl} title={item.title} />
+        </span>
+        <MediaListItemBody item={item} showStreamWhenEmpty />
+      </Link>
     </li>
-  );
-}
-
-function Poster({
-  posterUrl,
-  title,
-}: {
-  posterUrl: string | null;
-  title: string;
-}) {
-  if (posterUrl) {
-    return (
-      <img
-        src={posterUrl}
-        alt=""
-        width={32}
-        height={48}
-        className="h-12 w-8 shrink-0 rounded object-cover bg-zinc-100"
-      />
-    );
-  }
-
-  return (
-    <div
-      className="flex h-12 w-8 shrink-0 items-center justify-center rounded bg-zinc-100 text-[10px] font-medium text-zinc-400"
-      aria-hidden
-    >
-      {title.slice(0, 1).toUpperCase()}
-    </div>
   );
 }

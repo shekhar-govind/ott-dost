@@ -4,9 +4,16 @@ import { TitleSummaryProviders } from "./TitleSummaryProviders";
 
 interface TitleSummaryProps {
   detail: TitleDetail;
+  /** `page`: standalone route (h1). `panel`: inline summary (h3). */
+  variant?: "page" | "panel";
 }
 
-export function TitleSummary({ detail }: TitleSummaryProps) {
+export function TitleSummary({
+  detail,
+  variant = "panel",
+}: TitleSummaryProps) {
+  const titleClass =
+    "text-pretty text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl";
   const metaItems = [
     getMediaTypeLabel(detail.mediaType),
     detail.year,
@@ -22,9 +29,11 @@ export function TitleSummary({ detail }: TitleSummaryProps) {
 
         <div className="min-w-0 flex-1">
           <header>
-            <h3 className="text-pretty text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">
-              {detail.title}
-            </h3>
+            {variant === "page" ? (
+              <h1 className={titleClass}>{detail.title}</h1>
+            ) : (
+              <h3 className={titleClass}>{detail.title}</h3>
+            )}
             {metaItems.length > 0 && (
               <p className="mt-2 text-sm text-zinc-500">{metaItems.join(" · ")}</p>
             )}

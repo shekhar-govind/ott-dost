@@ -40,6 +40,24 @@ export function getYearFromDate(date?: string): string | null {
   return year || null;
 }
 
+const UNDETERMINED_LANGUAGE_CODES = new Set(["xx", "zz"]);
+
+/** TMDB `original_language` (ISO 639-1) → readable label, e.g. `hi` → Hindi */
+export function formatOriginalLanguage(
+  code: string | null | undefined,
+): string | null {
+  const trimmed = code?.trim().toLowerCase();
+  if (!trimmed || UNDETERMINED_LANGUAGE_CODES.has(trimmed)) return null;
+
+  try {
+    const label = new Intl.DisplayNames(["en"], { type: "language" }).of(trimmed);
+    if (!label) return trimmed.toUpperCase();
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  } catch {
+    return trimmed.toUpperCase();
+  }
+}
+
 export function getPosterUrl(
   posterPath: string | null | undefined,
   size: "w92" | "w185" | "w500" = "w92",
@@ -54,6 +72,22 @@ export function isSearchableMedia(
   return item.media_type === "movie" || item.media_type === "tv";
 }
 
+function tmdbUserRating(
+  voteAverage?: number,
+  voteCount?: number,
+): { rating: number | null; voteCount: number | null } {
+  return {
+    rating:
+      voteAverage != null && Number.isFinite(voteAverage) && voteAverage > 0
+        ? voteAverage
+        : null,
+    voteCount:
+      voteCount != null && Number.isFinite(voteCount) && voteCount > 0
+        ? voteCount
+        : null,
+  };
+}
+
 function getReleaseDate(item: TmdbSearchResult): string | null {
   return item.release_date ?? item.first_air_date ?? null;
 }
@@ -62,6 +96,10 @@ export function toSearchTitle(item: TmdbSearchResult): SearchTitle | null {
   if (!isSearchableMedia(item)) return null;
 
   const releaseDate = getReleaseDate(item);
+  const { rating, voteCount } = tmdbUserRating(
+    item.vote_average,
+    item.vote_count,
+  );
 
   return {
     id: item.id,
@@ -71,7 +109,10 @@ export function toSearchTitle(item: TmdbSearchResult): SearchTitle | null {
     releaseDate,
     overview: item.overview ?? "",
     posterUrl: getPosterUrl(item.poster_path),
-    streamOn: [],
+    rating,
+    voteCount,
+    languageLabel: formatOriginalLanguage(item.original_language),
+    streamProviders: [],
     genres: [],
   };
 }
@@ -81,6 +122,10 @@ export function toSearchTitleFromMovie(
   genres: string[] = [],
 ): SearchTitle {
   const releaseDate = movie.release_date ?? null;
+  const { rating, voteCount } = tmdbUserRating(
+    movie.vote_average,
+    movie.vote_count,
+  );
 
   return {
     id: movie.id,
@@ -90,13 +135,20 @@ export function toSearchTitleFromMovie(
     releaseDate,
     overview: movie.overview ?? "",
     posterUrl: getPosterUrl(movie.poster_path),
-    streamOn: [],
+    rating,
+    voteCount,
+    languageLabel: formatOriginalLanguage(movie.original_language),
+    streamProviders: [],
     genres,
   };
 }
 
 export function toSearchTitleFromTv(show: TmdbDiscoverTvResult): SearchTitle {
   const releaseDate = show.first_air_date ?? null;
+  const { rating, voteCount } = tmdbUserRating(
+    show.vote_average,
+    show.vote_count,
+  );
 
   return {
     id: show.id,
@@ -106,23 +158,12 @@ export function toSearchTitleFromTv(show: TmdbDiscoverTvResult): SearchTitle {
     releaseDate,
     overview: show.overview ?? "",
     posterUrl: getPosterUrl(show.poster_path),
-    streamOn: [],
+    rating,
+    voteCount,
+    languageLabel: formatOriginalLanguage(show.original_language),
+    streamProviders: [],
     genres: [],
   };
-}
-
-export function getStreamProviderNames(
-  response: TmdbWatchProvidersApiResponse,
-): string[] {
-  const region = response.results?.[WATCH_REGION];
-  return mapProviderList(region?.flatrate ?? []).map((provider) => provider.name);
-}
-
-export function formatStreamOnLabel(streamOn: string[]): string {
-  if (streamOn.length === 0) {
-    return "Not on any OTT platform";
-  }
-  return streamOn.join(" · ");
 }
 
 export function compareByReleaseDateDesc(a: SearchTitle, b: SearchTitle): number {
@@ -191,6 +232,13 @@ function mapProviderList(
       seen.add(provider.id);
       return true;
     });
+}
+
+export function getStreamFlatrateProviders(
+  response: TmdbWatchProvidersApiResponse,
+): StreamingProvider[] {
+  const region = response.results?.[WATCH_REGION];
+  return mapProviderList(region?.flatrate ?? []);
 }
 
 export function mapWatchAvailability(

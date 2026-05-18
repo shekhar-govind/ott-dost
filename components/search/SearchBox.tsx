@@ -2,7 +2,10 @@
 
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTitleSearch } from "@/hooks/useTitleSearch";
+import { saveHomeScrollPosition } from "@/lib/home-scroll";
+import { titlePathFromSearchTitle } from "@/lib/title-url";
 import type { SearchTitle } from "@/lib/tmdb/types";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 import { SearchInput } from "./SearchInput";
@@ -12,16 +15,15 @@ const DEBOUNCE_MS = 300;
 interface SearchBoxProps {
   query: string;
   onQueryChange: (query: string) => void;
-  onSelect?: (item: SearchTitle) => void;
   onClear?: () => void;
 }
 
 export function SearchBox({
   query,
   onQueryChange,
-  onSelect,
   onClear,
 }: SearchBoxProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,13 +54,14 @@ export function SearchBox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelect = useCallback(
+  const handlePickItem = useCallback(
     (item: SearchTitle) => {
       onQueryChange(item.title);
       setIsOpen(false);
-      onSelect?.(item);
+      saveHomeScrollPosition();
+      router.push(titlePathFromSearchTitle(item));
     },
-    [onQueryChange, onSelect],
+    [onQueryChange, router],
   );
 
   const handleChange = useCallback(
@@ -95,7 +98,7 @@ export function SearchBox({
         case "Enter":
           if (activeIndex >= 0 && results[activeIndex]) {
             event.preventDefault();
-            handleSelect(results[activeIndex]);
+            handlePickItem(results[activeIndex]);
           }
           break;
         case "Escape":
@@ -103,7 +106,7 @@ export function SearchBox({
           break;
       }
     },
-    [activeIndex, handleSelect, results, showDropdown],
+    [activeIndex, handlePickItem, results, showDropdown],
   );
 
   return (
@@ -126,7 +129,6 @@ export function SearchBox({
         query={query}
         error={error}
         activeIndex={activeIndex}
-        onSelect={handleSelect}
         onActiveIndexChange={setActiveIndex}
         listboxId={listboxId}
       />

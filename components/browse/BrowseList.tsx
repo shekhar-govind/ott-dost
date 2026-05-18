@@ -3,16 +3,19 @@
 import { useBrowseList } from "@/hooks/useBrowseList";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { SearchTitle } from "@/lib/tmdb/types";
 import { BrowseListItem } from "./BrowseListItem";
 import { BrowsePagination } from "./BrowsePagination";
 
 interface BrowseListProps {
   enabled: boolean;
-  onSelect: (item: SearchTitle) => void;
+  /** Keep list data in memory when disabled (e.g. route away from home). */
+  preserveStateWhenDisabled?: boolean;
 }
 
-export function BrowseList({ enabled, onSelect }: BrowseListProps) {
+export function BrowseList({
+  enabled,
+  preserveStateWhenDisabled = false,
+}: BrowseListProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const {
@@ -28,6 +31,7 @@ export function BrowseList({ enabled, onSelect }: BrowseListProps) {
     refresh,
   } = useBrowseList({
     enabled,
+    preserveStateWhenDisabled,
     infiniteScroll: !isDesktop,
   });
 
@@ -38,14 +42,20 @@ export function BrowseList({ enabled, onSelect }: BrowseListProps) {
     onLoadMore: loadMore,
   });
 
-  if (!enabled) return null;
+  const visuallyHidden = !enabled && preserveStateWhenDisabled;
+
+  if (!enabled && !preserveStateWhenDisabled) return null;
 
   return (
-    <section className="mt-8 w-full" aria-label="Latest movies in English, Hindi, and Malayalam">
+    <section
+      className={`mt-8 w-full ${visuallyHidden ? "hidden" : ""}`}
+      aria-hidden={visuallyHidden}
+      aria-label="Latest movies and TV shows in English, Hindi, and Malayalam"
+    >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
-            Latest movies
+            Latest movies and TV shows
           </h3>
           <p className="mt-0.5 text-xs text-zinc-500">English · Hindi · Malayalam</p>
         </div>
@@ -72,13 +82,9 @@ export function BrowseList({ enabled, onSelect }: BrowseListProps) {
           No titles with OTT availability on this page. Try the next page.
         </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5">
           {items.map((item) => (
-            <BrowseListItem
-              key={`${item.mediaType}-${item.id}`}
-              item={item}
-              onSelect={onSelect}
-            />
+            <BrowseListItem key={`${item.mediaType}-${item.id}`} item={item} />
           ))}
         </ul>
       )}
@@ -109,11 +115,11 @@ export function BrowseList({ enabled, onSelect }: BrowseListProps) {
 
 function BrowseListSkeleton() {
   return (
-    <ul className="space-y-2" aria-hidden>
+    <ul className="space-y-1.5" aria-hidden>
       {Array.from({ length: 5 }).map((_, index) => (
         <li
           key={index}
-          className="h-16 animate-pulse rounded-xl border border-zinc-200 bg-zinc-100"
+          className="min-h-[4.75rem] animate-pulse rounded-lg border border-zinc-100 bg-zinc-100"
         />
       ))}
     </ul>

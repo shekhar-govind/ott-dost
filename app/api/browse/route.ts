@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
     const enriched = await enrichWithStreamProviders(candidates);
     const items = enriched
-      .filter((item) => item.streamOn.length > 0)
+      .filter((item) => item.streamProviders.length > 0)
       .slice(0, PAGE_SIZE);
 
     const totalPages = Math.min(...responses.map((response) => response.total_pages));

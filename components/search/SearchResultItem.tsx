@@ -1,74 +1,35 @@
-import { getMediaTypeLabel } from "@/lib/tmdb/utils";
 import type { SearchTitle } from "@/lib/tmdb/types";
+import { ListItemPoster } from "@/components/shared/ListItemPoster";
+import { MediaListItemBody } from "@/components/shared/MediaListItemBody";
+import Link from "next/link";
+import { titlePathFromSearchTitle } from "@/lib/title-url";
 
 interface SearchResultItemProps {
   item: SearchTitle;
   isActive: boolean;
-  onSelect: (item: SearchTitle) => void;
   onHover: () => void;
 }
 
 export function SearchResultItem({
   item,
   isActive,
-  onSelect,
   onHover,
 }: SearchResultItemProps) {
   return (
     <li role="option" aria-selected={isActive}>
-      <button
-        type="button"
+      <Link
+        href={titlePathFromSearchTitle(item)}
         onMouseEnter={onHover}
         onTouchStart={onHover}
-        onClick={() => onSelect(item)}
-        className={`flex w-full min-h-14 touch-manipulation items-center gap-3 px-3 py-3 text-left transition active:bg-zinc-100 sm:min-h-0 sm:py-2.5 ${
+        className={`flex w-full min-h-14 touch-manipulation items-start gap-3 px-3 py-3 text-left transition active:bg-zinc-100 sm:min-h-0 sm:py-2.5 ${
           isActive ? "bg-zinc-100" : "hover:bg-zinc-50"
         }`}
       >
-        <Poster posterUrl={item.posterUrl} title={item.title} />
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-baseline gap-x-2 gap-y-0.5 sm:items-center">
-            <p className="truncate text-sm font-medium text-zinc-900">
-              {item.title}
-            </p>
-            {item.year && (
-              <span className="shrink-0 text-xs text-zinc-400">{item.year}</span>
-            )}
-          </div>
-          <p className="mt-0.5 truncate text-xs text-zinc-500">
-            {getMediaTypeLabel(item.mediaType)}
-          </p>
-        </div>
-      </button>
+        <span className="shrink-0 pt-0.5 sm:pt-0">
+          <ListItemPoster posterUrl={item.posterUrl} title={item.title} />
+        </span>
+        <MediaListItemBody item={item} />
+      </Link>
     </li>
-  );
-}
-
-function Poster({
-  posterUrl,
-  title,
-}: {
-  posterUrl: string | null;
-  title: string;
-}) {
-  if (posterUrl) {
-    return (
-      <img
-        src={posterUrl}
-        alt=""
-        width={32}
-        height={48}
-        className="h-12 w-8 shrink-0 rounded object-cover bg-zinc-100"
-      />
-    );
-  }
-
-  return (
-    <div
-      className="flex h-12 w-8 shrink-0 items-center justify-center rounded bg-zinc-100 text-[10px] font-medium text-zinc-400"
-      aria-hidden
-    >
-      {title.slice(0, 1).toUpperCase()}
-    </div>
   );
 }

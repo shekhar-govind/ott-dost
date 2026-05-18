@@ -8,7 +8,6 @@ interface SearchAutocompleteProps {
   query: string;
   error: string | null;
   activeIndex: number;
-  onSelect: (item: SearchTitle) => void;
   onActiveIndexChange: (index: number) => void;
   listboxId: string;
 }
@@ -20,7 +19,6 @@ export function SearchAutocomplete({
   query,
   error,
   activeIndex,
-  onSelect,
   onActiveIndexChange,
   listboxId,
 }: SearchAutocompleteProps) {
@@ -45,14 +43,13 @@ export function SearchAutocomplete({
         <ul
           id={listboxId}
           role="listbox"
-          className="max-h-[min(18rem,50dvh)] overflow-y-auto overscroll-contain py-1 sm:max-h-80"
+          className="max-h-[min(24rem,58dvh)] overflow-y-auto overscroll-contain py-1 sm:max-h-[22rem]"
         >
           {results.map((item, index) => (
             <SearchResultItem
               key={`${item.mediaType}-${item.id}`}
               item={item}
               isActive={index === activeIndex}
-              onSelect={onSelect}
               onHover={() => onActiveIndexChange(index)}
             />
           ))}

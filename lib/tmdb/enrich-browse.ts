@@ -1,7 +1,7 @@
 import { mapWithConcurrency } from "./concurrency";
 import { getMovieWatchProviders } from "./client";
 import type { SearchTitle } from "./types";
-import { getStreamProviderNames } from "./utils";
+import { getStreamFlatrateProviders } from "./utils";
 
 const WATCH_PROVIDER_CONCURRENCY = 5;
 
@@ -13,10 +13,10 @@ export async function enrichWithStreamProviders(
       const providers = await getMovieWatchProviders(item.id);
       return {
         ...item,
-        streamOn: getStreamProviderNames(providers),
+        streamProviders: getStreamFlatrateProviders(providers),
       };
     } catch {
-      return { ...item, streamOn: [] };
+      return { ...item, streamProviders: [] };
     }
   });
 }

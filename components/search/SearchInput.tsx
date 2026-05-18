@@ -16,7 +16,7 @@ export function SearchInput({
   onFocus,
   onKeyDown,
   inputRef,
-  placeholder = "Search movies, series, documentaries…",
+  placeholder = "Search movies and TV shows…",
   isLoading = false,
   listboxId,
   isExpanded = false,

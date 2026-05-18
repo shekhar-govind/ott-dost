@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseBrowseListOptions {
   enabled: boolean;
+  /** When true, disabling does not clear list state (e.g. navigating away from home). */
+  preserveStateWhenDisabled?: boolean;
   infiniteScroll: boolean;
 }
 
@@ -24,6 +26,7 @@ interface UseBrowseListResult {
 
 export function useBrowseList({
   enabled,
+  preserveStateWhenDisabled = false,
   infiniteScroll,
 }: UseBrowseListOptions): UseBrowseListResult {
   const [items, setItems] = useState<SearchTitle[]>([]);
@@ -80,16 +83,22 @@ export function useBrowseList({
 
   useEffect(() => {
     if (!enabled) {
-      setItems([]);
-      setPage(1);
-      setError(null);
-      setIsLoading(false);
-      setIsLoadingMore(false);
+      if (!preserveStateWhenDisabled) {
+        setItems([]);
+        setPage(1);
+        setError(null);
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+      return;
+    }
+
+    if (preserveStateWhenDisabled && items.length > 0) {
       return;
     }
 
     loadPage(1, "replace");
-  }, [enabled, loadPage]);
+  }, [enabled, preserveStateWhenDisabled, items.length, loadPage]);
 
   useEffect(() => {
     if (!enabled || infiniteScroll || page === 1) return;

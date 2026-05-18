@@ -1,0 +1,56 @@
+import type { SearchTitle } from "@/lib/tmdb/types";
+import { formatReleaseDate, getMediaTypeLabel } from "@/lib/tmdb/utils";
+import { StreamOnLabel } from "./StreamOnLabel";
+
+interface MediaListItemBodyProps {
+  item: SearchTitle;
+  /**
+   * When true, show the “not on OTT” line if there are no providers.
+   * Browse uses this; search hides the row when empty to keep the dropdown compact.
+   */
+  showStreamWhenEmpty?: boolean;
+}
+
+export function MediaListItemBody({
+  item,
+  showStreamWhenEmpty = false,
+}: MediaListItemBodyProps) {
+  const formattedDate = formatReleaseDate(item.releaseDate);
+  const metaLine = [
+    getMediaTypeLabel(item.mediaType),
+    ...(item.rating !== null ? [`${item.rating.toFixed(1)} / 10`] : []),
+    formattedDate,
+    item.languageLabel,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const overview = item.overview?.trim();
+
+  const showStream =
+    item.streamProviders.length > 0 || showStreamWhenEmpty;
+
+  return (
+    <div className="min-w-0 flex-1">
+      <p className="min-w-0 truncate text-[15px] font-medium leading-snug text-zinc-900 sm:text-base">
+        {item.title}
+      </p>
+      <p className="mt-px truncate text-[11px] leading-tight tabular-nums text-zinc-400">
+        {metaLine}
+      </p>
+      {overview ? (
+        <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-zinc-500">
+          {overview}
+        </p>
+      ) : null}
+      {item.genres.length > 0 ? (
+        <p className="mt-1 truncate text-[11px] text-zinc-400">
+          {item.genres.join(" · ")}
+        </p>
+      ) : null}
+      {showStream ? (
+        <StreamOnLabel providers={item.streamProviders} density="compact" />
+      ) : null}
+    </div>
+  );
+}

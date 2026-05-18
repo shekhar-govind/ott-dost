@@ -11,6 +11,10 @@ export interface TmdbSearchResult {
   poster_path?: string | null;
   release_date?: string;
   first_air_date?: string;
+  vote_average?: number;
+  vote_count?: number;
+  /** ISO 639-1 */
+  original_language?: string;
 }
 
 export interface TmdbSearchResponse {
@@ -27,6 +31,10 @@ export interface TmdbDiscoverMovieResult {
   poster_path?: string | null;
   release_date?: string;
   genre_ids?: number[];
+  vote_average?: number;
+  vote_count?: number;
+  /** ISO 639-1 */
+  original_language?: string;
 }
 
 export interface TmdbDiscoverTvResult {
@@ -35,6 +43,10 @@ export interface TmdbDiscoverTvResult {
   overview?: string;
   poster_path?: string | null;
   first_air_date?: string;
+  vote_average?: number;
+  vote_count?: number;
+  /** ISO 639-1 */
+  original_language?: string;
 }
 
 export interface TmdbDiscoverResponse<T> {
@@ -42,6 +54,12 @@ export interface TmdbDiscoverResponse<T> {
   results: T[];
   total_pages: number;
   total_results: number;
+}
+
+export interface StreamingProvider {
+  id: number;
+  name: string;
+  logoUrl: string | null;
 }
 
 export interface SearchTitle {
@@ -52,8 +70,13 @@ export interface SearchTitle {
   releaseDate: string | null;
   overview: string;
   posterUrl: string | null;
-  /** Subscription OTT platform names in India (flatrate) */
-  streamOn: string[];
+  /** TMDB user score (0–10); null when missing or not yet rated */
+  rating: number | null;
+  voteCount: number | null;
+  /** Human-readable primary language (TMDB original_language) */
+  languageLabel: string | null;
+  /** Subscription OTT platforms in India (flatrate), with logos */
+  streamProviders: StreamingProvider[];
   genres: string[];
 }
 
@@ -67,12 +90,6 @@ export interface BrowsePage {
   page: number;
   totalPages: number;
   hasMore: boolean;
-}
-
-export interface StreamingProvider {
-  id: number;
-  name: string;
-  logoUrl: string | null;
 }
 
 export interface WatchAvailability {
