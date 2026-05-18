@@ -54,14 +54,21 @@ export function SearchBox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handlePickItem = useCallback(
+  const closeDropdownForItem = useCallback(
     (item: SearchTitle) => {
       onQueryChange(item.title);
       setIsOpen(false);
+    },
+    [onQueryChange],
+  );
+
+  const handlePickItem = useCallback(
+    (item: SearchTitle) => {
+      closeDropdownForItem(item);
       saveHomeScrollPosition();
       router.push(titlePathFromSearchTitle(item));
     },
-    [onQueryChange, router],
+    [closeDropdownForItem, router],
   );
 
   const handleChange = useCallback(
@@ -130,6 +137,7 @@ export function SearchBox({
         error={error}
         activeIndex={activeIndex}
         onActiveIndexChange={setActiveIndex}
+        onSelect={closeDropdownForItem}
         listboxId={listboxId}
       />
     </div>

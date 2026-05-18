@@ -9,6 +9,7 @@ interface SearchAutocompleteProps {
   error: string | null;
   activeIndex: number;
   onActiveIndexChange: (index: number) => void;
+  onSelect: (item: SearchTitle) => void;
   listboxId: string;
 }
 
@@ -20,6 +21,7 @@ export function SearchAutocomplete({
   error,
   activeIndex,
   onActiveIndexChange,
+  onSelect,
   listboxId,
 }: SearchAutocompleteProps) {
   if (!isOpen) return null;
@@ -51,6 +53,7 @@ export function SearchAutocomplete({
               item={item}
               isActive={index === activeIndex}
               onHover={() => onActiveIndexChange(index)}
+              onSelect={() => onSelect(item)}
             />
           ))}
         </ul>
