@@ -1,6 +1,6 @@
-import { BROWSE_DATE_PRESETS } from "./constants";
 import type { BrowseFilters } from "./filters";
 import { languageMatchesDefault } from "./filters";
+import { formatDateFilterChipLabel } from "./date-presets";
 import { findBrowseLanguageOption, getLanguageChipLabel } from "./languages";
 import type { BrowseGenreOption, BrowseLanguageOption, BrowseOttProvider } from "./types";
 
@@ -41,10 +41,9 @@ export function buildBrowseFilterChips(
     });
   }
 
-  if (filters.dateFrom || filters.dateTo) {
-    const fromYear = filters.dateFrom?.slice(0, 4) ?? "…";
-    const toYear = filters.dateTo?.slice(0, 4) ?? "…";
-    chips.push({ key: "date", label: `${fromYear}–${toYear} ×` });
+  const dateChipLabel = formatDateFilterChipLabel(filters);
+  if (dateChipLabel) {
+    chips.push({ key: "date", label: dateChipLabel });
   }
 
   for (const providerId of filters.providerIds) {
@@ -58,11 +57,4 @@ export function buildBrowseFilterChips(
   return chips;
 }
 
-export function datePresetIdForFilters(filters: BrowseFilters): string {
-  if (!filters.dateFrom && !filters.dateTo) return "any";
-
-  const match = BROWSE_DATE_PRESETS.find(
-    (preset) => preset.from === filters.dateFrom && preset.to === filters.dateTo,
-  );
-  return match?.id ?? "custom";
-}
+export { datePresetIdForFilters } from "./date-presets";

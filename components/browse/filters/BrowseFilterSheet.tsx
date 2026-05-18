@@ -1,8 +1,16 @@
 "use client";
 
-import { BROWSE_DATE_PRESETS } from "@/lib/browse/constants";
+import {
+  applyBrowseDatePreset,
+  BROWSE_CUSTOM_YEAR_MAX,
+  BROWSE_CUSTOM_YEAR_MIN,
+  customBrowseDateRangeFromYears,
+  datePresetIdForFilters,
+  getBrowseCustomYearOptions,
+  getBrowseDatePresets,
+  isCustomBrowseDateRangeInvalid,
+} from "@/lib/browse/date-presets";
 import { getLanguageChipLabel } from "@/lib/browse/languages";
-import { datePresetIdForFilters } from "@/lib/browse/labels";
 import { browseDebug } from "@/lib/browse/debug";
 import { filtersAreEqual, type BrowseFilters } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
@@ -23,10 +31,6 @@ interface BrowseFilterSheetProps {
   meta: BrowseFilterMeta;
   onClose: () => void;
   onApply: (filters: BrowseFilters) => void;
-}
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 export function BrowseFilterSheet({
@@ -67,12 +71,33 @@ export function BrowseFilterSheet({
   const languages = meta.languages;
   const providers = meta.providers;
   const genreOptions = genreOptionsForMediaType(meta, draft.mediaType);
+  const datePresets = getBrowseDatePresets();
   const datePresetId = datePresetIdForFilters(draft);
-  const currentYear = new Date().getFullYear();
-  const customFromYear = draft.dateFrom?.slice(0, 4) ?? String(currentYear - 5);
-  const customToYear = draft.dateTo?.slice(0, 4) ?? String(currentYear);
+  const customYearOptions = getBrowseCustomYearOptions();
+  const clampCustomYear = (year: string | undefined, fallback: number) => {
+    const parsed = Number(year);
+    if (!Number.isInteger(parsed)) return String(fallback);
+    return String(
+      Math.min(BROWSE_CUSTOM_YEAR_MAX, Math.max(BROWSE_CUSTOM_YEAR_MIN, parsed)),
+    );
+  };
+  const customFromYear = clampCustomYear(
+    draft.dateFrom?.slice(0, 4),
+    customYearOptions.at(-1) ?? BROWSE_CUSTOM_YEAR_MIN,
+  );
+  const customToYear = clampCustomYear(
+    draft.dateTo?.slice(0, 4),
+    customYearOptions[0] ?? BROWSE_CUSTOM_YEAR_MAX,
+  );
+  const customDateRangeInvalid =
+    datePresetId === "custom" &&
+    isCustomBrowseDateRangeInvalid(customFromYear, customToYear);
+  const applyDisabled =
+    filtersAreEqual(draft, appliedFilters) || customDateRangeInvalid;
 
   const handleApply = () => {
+    if (customDateRangeInvalid) return;
+
     browseDebug("Filter sheet apply", {
       draftProviderIds: draft.providerIds,
       ottChipOptions: providers.map((provider) => ({
@@ -122,7 +147,7 @@ export function BrowseFilterSheet({
           <button
             type="button"
             onClick={handleApply}
-            disabled={filtersAreEqual(draft, appliedFilters)}
+            disabled={applyDisabled}
             className="text-sm font-semibold text-zinc-900 transition hover:text-zinc-600 disabled:opacity-40"
           >
             Apply
@@ -174,7 +199,7 @@ export function BrowseFilterSheet({
             Released
           </p>
           <div className="mb-3 flex flex-wrap gap-1.5">
-            {BROWSE_DATE_PRESETS.map((preset) => (
+            {datePresets.map((preset) => (
               <FilterChip
                 key={preset.id}
                 label={preset.label}
@@ -182,8 +207,7 @@ export function BrowseFilterSheet({
                 onClick={() =>
                   setDraft((prev) => ({
                     ...prev,
-                    dateFrom: preset.from,
-                    dateTo: preset.id === "last5" ? todayIsoDate() : preset.to,
+                    ...applyBrowseDatePreset(preset.id),
                   }))
                 }
               />
@@ -194,46 +218,58 @@ export function BrowseFilterSheet({
               onClick={() =>
                 setDraft((prev) => ({
                   ...prev,
-                  dateFrom: `${customFromYear}-01-01`,
-                  dateTo: `${customToYear}-12-31`,
+                  ...customBrowseDateRangeFromYears(customFromYear, customToYear),
                 }))
               }
             />
           </div>
           {datePresetId === "custom" ? (
-            <div className="flex items-center gap-2">
-              <label className="flex flex-1 flex-col gap-1 text-xs text-zinc-500">
-                From
-                <input
-                  type="number"
-                  min={1900}
-                  max={currentYear}
-                  value={customFromYear}
-                  onChange={(event) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      dateFrom: `${event.target.value}-01-01`,
-                    }))
-                  }
-                  className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900"
-                />
-              </label>
-              <label className="flex flex-1 flex-col gap-1 text-xs text-zinc-500">
-                To
-                <input
-                  type="number"
-                  min={1900}
-                  max={currentYear}
-                  value={customToYear}
-                  onChange={(event) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      dateTo: `${event.target.value}-12-31`,
-                    }))
-                  }
-                  className="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900"
-                />
-              </label>
+            <div>
+              <div className="flex items-center gap-2">
+                <label className="flex flex-1 flex-col gap-1 text-xs text-zinc-500">
+                  From
+                  <select
+                    value={customFromYear}
+                    onChange={(event) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        dateFrom: `${event.target.value}-01-01`,
+                      }))
+                    }
+                    className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900"
+                  >
+                    {customYearOptions.map((year) => (
+                      <option key={`from-${year}`} value={String(year)}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-1 flex-col gap-1 text-xs text-zinc-500">
+                  To
+                  <select
+                    value={customToYear}
+                    onChange={(event) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        dateTo: `${event.target.value}-12-31`,
+                      }))
+                    }
+                    className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900"
+                  >
+                    {customYearOptions.map((year) => (
+                      <option key={`to-${year}`} value={String(year)}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              {customDateRangeInvalid ? (
+                <p className="mt-2 text-xs text-red-600" role="alert">
+                  “From” year must be earlier than or equal to “To” year.
+                </p>
+              ) : null}
             </div>
           ) : null}
         </section>
@@ -261,7 +297,8 @@ export function BrowseFilterSheet({
       <button
         type="button"
         onClick={handleApply}
-        className="mt-5 w-full shrink-0 rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white transition hover:bg-zinc-700 lg:hidden"
+        disabled={applyDisabled}
+        className="mt-5 w-full shrink-0 rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 lg:hidden"
       >
         Apply filters
       </button>

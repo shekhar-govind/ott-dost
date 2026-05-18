@@ -1,3 +1,7 @@
+import {
+  datePresetIdForFilters,
+  getBrowseDatePreset,
+} from "./date-presets";
 import { isAllowedBrowseLanguageCode } from "./indian-language-codes";
 import { defaultBrowseLanguage } from "./languages";
 
@@ -49,8 +53,17 @@ export function parseBrowseFilters(
     .map((id) => Number(id))
     .filter((id) => Number.isInteger(id) && id > 0);
 
-  const dateFrom = normalizeDateParam(searchParams.get("from"), "start");
-  const dateTo = normalizeDateParam(searchParams.get("to"), "end");
+  const datePresetParam = searchParams.get("date");
+  const preset = datePresetParam
+    ? getBrowseDatePreset(datePresetParam)
+  : undefined;
+
+  const dateFrom = preset
+    ? preset.from
+    : normalizeDateParam(searchParams.get("from"), "start");
+  const dateTo = preset
+    ? preset.to
+    : normalizeDateParam(searchParams.get("to"), "end");
 
   return {
     language: parsedLanguage ?? defaultBrowseLanguage(),
@@ -90,12 +103,16 @@ export function serializeBrowseFilters(filters: BrowseFilters): string {
     params.set("genre", filters.genreIds.join(","));
   }
 
-  if (filters.dateFrom) {
-    params.set("from", filters.dateFrom.slice(0, 4));
-  }
-
-  if (filters.dateTo) {
-    params.set("to", filters.dateTo.slice(0, 4));
+  const datePresetId = resolveDatePresetIdForSerialize(filters);
+  if (datePresetId) {
+    params.set("date", datePresetId);
+  } else {
+    if (filters.dateFrom) {
+      params.set("from", filters.dateFrom.slice(0, 4));
+    }
+    if (filters.dateTo) {
+      params.set("to", filters.dateTo.slice(0, 4));
+    }
   }
 
   if (filters.providerIds.length > 0) {
@@ -130,4 +147,9 @@ export function countActiveBrowseFilters(filters: BrowseFilters): number {
 
 export function hasNonDefaultBrowseFilters(filters: BrowseFilters): boolean {
   return countActiveBrowseFilters(filters) > 0;
+}
+
+function resolveDatePresetIdForSerialize(filters: BrowseFilters): string | null {
+  const id = datePresetIdForFilters(filters);
+  return id === "any" || id === "custom" ? null : id;
 }
