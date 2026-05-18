@@ -1,9 +1,11 @@
-import { defaultBrowseLanguageCodes, isBrowseLanguageCode } from "./languages";
+import { isAllowedBrowseLanguageCode } from "./indian-language-codes";
+import { defaultBrowseLanguage } from "./languages";
 
 export type BrowseMediaType = "all" | "movie" | "tv";
 
 export interface BrowseFilters {
-  languages: string[];
+  /** ISO 639-1; one TMDB discover call per browse page. */
+  language: string;
   mediaType: BrowseMediaType;
   genreIds: number[];
   dateFrom: string | null;
@@ -12,7 +14,7 @@ export interface BrowseFilters {
 }
 
 export const DEFAULT_BROWSE_FILTERS: BrowseFilters = {
-  languages: defaultBrowseLanguageCodes(),
+  language: defaultBrowseLanguage(),
   mediaType: "all",
   genreIds: [],
   dateFrom: null,
@@ -23,13 +25,13 @@ export const DEFAULT_BROWSE_FILTERS: BrowseFilters = {
 export function parseBrowseFilters(
   searchParams: URLSearchParams,
 ): BrowseFilters {
-  const languagesParam = searchParams.get("lang");
-  const languages = languagesParam
-    ? languagesParam
+  const langParam = searchParams.get("lang");
+  const parsedLanguage = langParam
+    ? langParam
         .split(",")
         .map((code) => code.trim().toLowerCase())
-        .filter(isBrowseLanguageCode)
-    : defaultBrowseLanguageCodes();
+        .find(isAllowedBrowseLanguageCode)
+    : undefined;
 
   const mediaTypeParam = searchParams.get("type");
   const mediaType: BrowseMediaType =
@@ -51,7 +53,7 @@ export function parseBrowseFilters(
   const dateTo = normalizeDateParam(searchParams.get("to"), "end");
 
   return {
-    languages: languages.length > 0 ? languages : defaultBrowseLanguageCodes(),
+    language: parsedLanguage ?? defaultBrowseLanguage(),
     mediaType,
     genreIds,
     dateFrom,
@@ -76,10 +78,8 @@ export function serializeBrowseFilters(filters: BrowseFilters): string {
   const params = new URLSearchParams();
   const defaults = DEFAULT_BROWSE_FILTERS;
 
-  const langKey = filters.languages.slice().sort().join(",");
-  const defaultLangKey = defaults.languages.slice().sort().join(",");
-  if (langKey !== defaultLangKey) {
-    params.set("lang", filters.languages.join(","));
+  if (filters.language !== defaults.language) {
+    params.set("lang", filters.language);
   }
 
   if (filters.mediaType !== defaults.mediaType) {
@@ -109,17 +109,15 @@ export function filtersAreEqual(a: BrowseFilters, b: BrowseFilters): boolean {
   return serializeBrowseFilters(a) === serializeBrowseFilters(b);
 }
 
-export function languagesMatchDefault(languages: string[]): boolean {
-  const selected = languages.slice().sort().join(",");
-  const defaults = defaultBrowseLanguageCodes().slice().sort().join(",");
-  return selected === defaults;
+export function languageMatchesDefault(language: string): boolean {
+  return language === defaultBrowseLanguage();
 }
 
 export function countActiveBrowseFilters(filters: BrowseFilters): number {
   let count = 0;
   const defaults = DEFAULT_BROWSE_FILTERS;
 
-  if (!languagesMatchDefault(filters.languages)) {
+  if (!languageMatchesDefault(filters.language)) {
     count += 1;
   }
   if (filters.mediaType !== defaults.mediaType) count += 1;

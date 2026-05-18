@@ -1,50 +1,89 @@
 import type { BrowseLanguageOption } from "./types";
 
-/** ISO 639-1 codes for English + scheduled languages of India (TMDB discover). */
-export const BROWSE_LANGUAGE_OPTIONS: BrowseLanguageOption[] = [
-  { code: "as", label: "অসম", name: "Assamese" },
-  { code: "bn", label: "বাংলা", name: "Bengali" },
-  { code: "doi", label: "डोगरी", name: "Dogri" },
-  { code: "en", label: "EN", name: "English" },
-  { code: "gu", label: "ગુજ", name: "Gujarati" },
-  { code: "hi", label: "हिं", name: "Hindi" },
-  { code: "kn", label: "ಕನ್ನ", name: "Kannada" },
-  { code: "ks", label: "کٲش", name: "Kashmiri" },
-  { code: "kok", label: "कों", name: "Konkani" },
-  { code: "mai", label: "मैथ", name: "Maithili" },
-  { code: "ml", label: "മല", name: "Malayalam" },
-  { code: "mni", label: "মৈ", name: "Manipuri" },
-  { code: "mr", label: "मर", name: "Marathi" },
-  { code: "ne", label: "नेप", name: "Nepali" },
-  { code: "or", label: "ଓଡ଼", name: "Odia" },
-  { code: "pa", label: "ਪੰਜ", name: "Punjabi" },
-  { code: "sa", label: "सं", name: "Sanskrit" },
-  { code: "sd", label: "سن", name: "Sindhi" },
-  { code: "ta", label: "தமிழ்", name: "Tamil" },
-  { code: "te", label: "తెల", name: "Telugu" },
-  { code: "ur", label: "اردو", name: "Urdu" },
-];
+/** Pre-nativeName/romanName meta cache entries (daily cache). */
+type LegacyBrowseLanguageOption = {
+  code: string;
+  label?: string;
+  name?: string;
+  nativeName?: string;
+  romanName?: string;
+};
 
-export const BROWSE_LANGUAGE_CODES = BROWSE_LANGUAGE_OPTIONS.map((lang) => lang.code);
+/** Default browse discover language (TMDB `with_original_language`). */
+export const DEFAULT_BROWSE_LANGUAGE = "en";
 
-export const DEFAULT_BROWSE_LANGUAGE_CODES = ["en", "hi"] as const;
-
-const LANGUAGE_SET = new Set<string>(BROWSE_LANGUAGE_CODES);
+/** @deprecated Use {@link DEFAULT_BROWSE_LANGUAGE} */
+export const DEFAULT_BROWSE_LANGUAGE_CODES = [DEFAULT_BROWSE_LANGUAGE] as const;
 
 export function isBrowseLanguageCode(code: string): boolean {
-  return LANGUAGE_SET.has(code);
+  return /^[a-z]{2}$/.test(code);
 }
 
-export function getBrowseLanguageOption(code: string): BrowseLanguageOption | undefined {
-  return BROWSE_LANGUAGE_OPTIONS.find((lang) => lang.code === code);
+export function defaultBrowseLanguage(): string {
+  return DEFAULT_BROWSE_LANGUAGE;
 }
 
-/** Chip text: native label + English name, e.g. "हिं (Hindi)". */
-export function getLanguageChipLabel(lang: BrowseLanguageOption): string {
-  if (lang.code === "en") return "English";
-  return `${lang.label} (${lang.name})`;
+function isBrokenNativeName(nativeName: string, romanName: string): boolean {
+  const trimmed = nativeName.trim();
+  if (!trimmed) return true;
+  if (/^[?\s.]+$/.test(trimmed)) return true;
+  return trimmed.toLowerCase() === romanName.toLowerCase();
 }
 
+export function normalizeBrowseLanguageOption(
+  lang: BrowseLanguageOption | LegacyBrowseLanguageOption,
+): BrowseLanguageOption {
+  const legacy = lang as LegacyBrowseLanguageOption;
+  const romanName =
+    legacy.romanName?.trim() ||
+    legacy.name?.trim() ||
+    lang.code.toUpperCase();
+
+  let nativeName = legacy.nativeName?.trim() || legacy.label?.trim() || "";
+  if (isBrokenNativeName(nativeName, romanName)) {
+    try {
+      const fromIntl = new Intl.DisplayNames([lang.code], { type: "language" }).of(
+        lang.code,
+      );
+      nativeName = fromIntl && !isBrokenNativeName(fromIntl, romanName) ? fromIntl : romanName;
+    } catch {
+      nativeName = romanName;
+    }
+  }
+
+  return { code: lang.code, nativeName, romanName };
+}
+
+export function normalizeBrowseLanguageOptions(
+  languages: (BrowseLanguageOption | LegacyBrowseLanguageOption)[],
+): BrowseLanguageOption[] {
+  return languages.map(normalizeBrowseLanguageOption);
+}
+
+export function findBrowseLanguageOption(
+  languages: (BrowseLanguageOption | LegacyBrowseLanguageOption)[],
+  code: string,
+): BrowseLanguageOption | undefined {
+  const match = languages.find((lang) => lang.code === code);
+  return match ? normalizeBrowseLanguageOption(match) : undefined;
+}
+
+/** Chip text: native script (roman), e.g. "हिन्दी (Hindi)". */
+export function getLanguageChipLabel(
+  lang: BrowseLanguageOption | LegacyBrowseLanguageOption,
+): string {
+  const { code, nativeName, romanName } = normalizeBrowseLanguageOption(lang);
+
+  if (
+    code === "en" ||
+    nativeName.toLowerCase() === romanName.toLowerCase()
+  ) {
+    return romanName;
+  }
+  return `${nativeName} (${romanName})`;
+}
+
+/** @deprecated Use {@link defaultBrowseLanguage} */
 export function defaultBrowseLanguageCodes(): string[] {
-  return [...DEFAULT_BROWSE_LANGUAGE_CODES];
+  return [DEFAULT_BROWSE_LANGUAGE];
 }

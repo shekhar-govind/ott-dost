@@ -6,6 +6,7 @@ import { useBrowseList } from "@/hooks/useBrowseList";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { hasNonDefaultBrowseFilters } from "@/lib/browse/filters";
+import { browseItemKey } from "@/lib/browse/items";
 import { useState } from "react";
 import { BrowseFilterSheet } from "./filters/BrowseFilterSheet";
 import { BrowseFiltersToolbar } from "./filters/BrowseFiltersToolbar";
@@ -46,9 +47,10 @@ export function BrowseList({
   });
 
   const sentinelRef = useInfiniteScroll({
-    enabled: enabled && !isDesktop && items.length > 0,
+    enabled: enabled && !isDesktop,
     hasMore,
     isLoading: isLoading || isLoadingMore,
+    canObserve: items.length > 0,
     onLoadMore: loadMore,
   });
 
@@ -100,19 +102,19 @@ export function BrowseList({
         <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
           {filtersActive
             ? "No titles match your filters. Try clearing filters or adjusting your selection."
-            : "No titles with OTT availability on this page. Try the next page."}
+            : "No titles with OTT availability on this page."}
         </p>
       ) : (
         <ul className="space-y-1.5">
           {items.map((item) => (
-            <BrowseListItem key={`${item.mediaType}-${item.id}`} item={item} />
+            <BrowseListItem key={browseItemKey(item)} item={item} />
           ))}
         </ul>
       )}
 
       {!isDesktop && (
         <>
-          <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
+          <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
           {isLoadingMore && (
             <p className="mt-4 text-center text-sm text-zinc-500">Loading more…</p>
           )}

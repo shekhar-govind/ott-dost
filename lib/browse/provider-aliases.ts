@@ -1,6 +1,6 @@
 /** TMDB may list the same Indian service under different provider ids. */
 const OTT_PROVIDER_ALIAS_GROUPS: readonly number[][] = [
-  [122, 515], // Disney+ Hotstar / JioHotstar
+  [122, 515, 2336], // Disney+ Hotstar / legacy ids / JioHotstar
 ];
 
 export function expandProviderFilterIds(providerIds: number[]): Set<number> {

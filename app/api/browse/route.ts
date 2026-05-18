@@ -1,7 +1,7 @@
-import { languagesMatchDefault } from "@/lib/browse/filters";
+import { browseDebug, summarizeBrowseItem } from "@/lib/browse/debug";
+import { languageMatchesDefault } from "@/lib/browse/filters";
 import { expandProviderFilterIds } from "@/lib/browse/provider-aliases";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
-import { BROWSE_LANGUAGE_OPTIONS } from "@/lib/browse/languages";
 import {
   discoverLatestMovies,
   discoverLatestTv,
@@ -21,8 +21,9 @@ import {
 } from "@/lib/tmdb/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-const PAGE_SIZE = 10;
-const CANDIDATE_POOL_SIZE = 24;
+/** Matches TMDB discover page size (20 results per upstream page). */
+const PAGE_SIZE = 20;
+const CANDIDATE_POOL_SIZE = 40;
 const CANDIDATE_POOL_SIZE_FILTERED = 40;
 
 type DiscoverResult =
@@ -38,6 +39,15 @@ export async function GET(request: NextRequest) {
   }
 
   const filters = parseBrowseFiltersFromRequest(request);
+  const rawOttParam = request.nextUrl.searchParams.get("ott");
+
+  browseDebug("Browse API received", {
+    page,
+    rawOttParam,
+    parsedProviderIds: filters.providerIds,
+    allFilters: filters,
+  });
+
   const discoverFilters = toDiscoverFilters(filters);
   const mediaKinds =
     filters.mediaType === "all" ? (["movie", "tv"] as const) : ([filters.mediaType] as const);
@@ -46,18 +56,15 @@ export async function GET(request: NextRequest) {
     filters.providerIds.length > 0 ||
     filters.genreIds.length > 0 ||
     Boolean(filters.dateFrom || filters.dateTo) ||
-    !languagesMatchDefault(filters.languages) ||
-    filters.languages.length < BROWSE_LANGUAGE_OPTIONS.length;
+    !languageMatchesDefault(filters.language);
 
   const poolSize = hasStrictFilters ? CANDIDATE_POOL_SIZE_FILTERED : CANDIDATE_POOL_SIZE;
 
   try {
-    const discoverTasks = filters.languages.flatMap((language) =>
-      mediaKinds.map((kind) =>
-        kind === "movie"
-          ? discoverLatestMovies(page, language, discoverFilters)
-          : discoverLatestTv(page, language, discoverFilters),
-      ),
+    const discoverTasks = mediaKinds.map((kind) =>
+      kind === "movie"
+        ? discoverLatestMovies(page, filters.language, discoverFilters)
+        : discoverLatestTv(page, filters.language, discoverFilters),
     );
 
     const [discoverResults, movieGenreMap, tvGenreMap] = await Promise.all([
@@ -78,6 +85,12 @@ export async function GET(request: NextRequest) {
     }
 
     const providerFilter = expandProviderFilterIds(filters.providerIds);
+
+    browseDebug("Provider filter expanded", {
+      requestedProviderIds: filters.providerIds,
+      expandedProviderIds: [...providerFilter],
+    });
+
     const seen = new Set<string>();
     const candidates = responses
       .flatMap((response) =>
@@ -104,6 +117,12 @@ export async function GET(request: NextRequest) {
       .slice(0, poolSize);
 
     const enriched = await enrichWithStreamProviders(candidates);
+
+    browseDebug("Enriched candidates before OTT filter", {
+      candidateCount: enriched.length,
+      candidates: enriched.map(summarizeBrowseItem),
+    });
+
     const items = enriched
       .filter((item) => item.streamProviders.length > 0)
       .filter(
@@ -113,14 +132,15 @@ export async function GET(request: NextRequest) {
       )
       .slice(0, PAGE_SIZE);
 
+    browseDebug("Browse API returning items", {
+      page,
+      itemCount: items.length,
+      hasMoreWillBeComputed: true,
+      items: items.map(summarizeBrowseItem),
+    });
+
     const totalPages = Math.min(...responses.map((response) => response.total_pages));
-    const hasMoreFromTmdb = page < totalPages;
-    const hasMore =
-      items.length > 0
-        ? hasMoreFromTmdb
-        : filters.providerIds.length > 0
-          ? false
-          : hasMoreFromTmdb;
+    const hasMore = page < totalPages;
 
     return NextResponse.json({
       items,

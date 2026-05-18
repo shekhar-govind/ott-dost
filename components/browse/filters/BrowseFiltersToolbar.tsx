@@ -33,7 +33,12 @@ export function BrowseFiltersToolbar({
 }: BrowseFiltersToolbarProps) {
   const activeCount = countActiveBrowseFilters(filters);
   const genreOptions = genreOptionsForMediaType(meta, filters.mediaType);
-  const chips = buildBrowseFilterChips(filters, genreOptions);
+  const chips = buildBrowseFilterChips(
+    filters,
+    genreOptions,
+    meta.languages,
+    meta.providers,
+  );
 
   return (
     <div className="mb-4 space-y-2.5">

@@ -1,31 +1,26 @@
-import { BROWSE_LANGUAGE_OPTIONS } from "@/lib/browse/constants";
-import { resolveBrowseOttProviders } from "@/lib/browse/ott-providers";
-import type { BrowseFilterMeta } from "@/lib/browse/types";
-import { getMovieGenreMap, getTvGenreMap } from "@/lib/tmdb/genres";
+import { browseDebug } from "@/lib/browse/debug";
+import { getBrowseFilterMetaCached } from "@/lib/browse/get-filter-meta-cached";
 import { NextResponse } from "next/server";
 
-function mapGenreOptions(genreMap: Map<number, string>) {
-  return [...genreMap.entries()]
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
+/** Full route response is cached on the server and shared across users (24h). */
+export const revalidate = 86_400;
 
 export async function GET() {
   try {
-    const [movieGenreMap, tvGenreMap, providers] = await Promise.all([
-      getMovieGenreMap(),
-      getTvGenreMap(),
-      resolveBrowseOttProviders(),
-    ]);
+    const meta = await getBrowseFilterMetaCached();
 
-    const meta: BrowseFilterMeta = {
-      movieGenres: mapGenreOptions(movieGenreMap),
-      tvGenres: mapGenreOptions(tvGenreMap),
-      providers,
-      languages: BROWSE_LANGUAGE_OPTIONS,
-    };
+    browseDebug("Browse meta API loaded (daily cache)", {
+      providerCount: meta.providers.length,
+      languageCount: meta.languages.length,
+      movieGenreCount: meta.movieGenres.length,
+      tvGenreCount: meta.tvGenres.length,
+    });
 
-    return NextResponse.json(meta);
+    return NextResponse.json(meta, {
+      headers: {
+        "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=3600",
+      },
+    });
   } catch {
     return NextResponse.json({ error: "Could not load filter options" }, { status: 502 });
   }

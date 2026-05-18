@@ -1,6 +1,8 @@
 "use client";
 
 import { fetchBrowseFilterMeta } from "@/lib/api/browse";
+import { browseDebug } from "@/lib/browse/debug";
+import { normalizeBrowseLanguageOptions } from "@/lib/browse/languages";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
 import { useEffect, useState } from "react";
 
@@ -22,7 +24,18 @@ export function useBrowseFilterMeta(enabled: boolean) {
     setIsLoading(true);
 
     fetchBrowseFilterMeta(controller.signal)
-      .then(setMeta)
+      .then((loadedMeta) => {
+        browseDebug("Filter meta loaded (OTT chip options)", {
+          providers: loadedMeta.providers.map((provider) => ({
+            id: provider.id,
+            name: provider.name,
+          })),
+        });
+        setMeta({
+          ...loadedMeta,
+          languages: normalizeBrowseLanguageOptions(loadedMeta.languages),
+        });
+      })
       .catch(() => {
         if (!controller.signal.aborted) setMeta(EMPTY_META);
       })

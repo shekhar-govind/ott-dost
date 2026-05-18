@@ -65,7 +65,7 @@ export function SearchBox({
   const handlePickItem = useCallback(
     (item: SearchTitle) => {
       closeDropdownForItem(item);
-      saveRouteScrollPosition(getRouteUrl(), "search-pick");
+      saveRouteScrollPosition(getRouteUrl());
       router.push(titlePathFromSearchTitle(item));
     },
     [closeDropdownForItem, router],

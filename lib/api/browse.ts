@@ -1,3 +1,4 @@
+import { browseDebug, summarizeBrowseItem } from "@/lib/browse/debug";
 import type { BrowseFilters } from "@/lib/browse/filters";
 import { serializeBrowseFilters } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
@@ -15,13 +16,29 @@ export async function fetchBrowsePage(
     filterParams.forEach((value, key) => params.set(key, value));
   }
 
-  const response = await fetch(`/api/browse?${params}`, { signal });
+  const requestUrl = `/api/browse?${params}`;
+  browseDebug("Browse API request", {
+    page,
+    providerIds: filters.providerIds,
+    ottQueryParam: params.get("ott"),
+    requestUrl,
+    filters,
+  });
+
+  const response = await fetch(requestUrl, { signal });
 
   if (!response.ok) {
     throw new Error("Browse request failed");
   }
 
-  return response.json() as Promise<BrowsePage>;
+  const data = (await response.json()) as BrowsePage;
+  browseDebug("Browse API response", {
+    page: data.page,
+    itemCount: data.items.length,
+    hasMore: data.hasMore,
+    items: data.items.map(summarizeBrowseItem),
+  });
+  return data;
 }
 
 export async function fetchBrowseFilterMeta(

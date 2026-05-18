@@ -1,7 +1,9 @@
 export interface BrowseLanguageOption {
   code: string;
-  label: string;
-  name: string;
+  /** Language name in its own script, e.g. "हिन्दी". */
+  nativeName: string;
+  /** Romanized / English name, e.g. "Hindi". */
+  romanName: string;
 }
 
 export interface BrowseOttProvider {
@@ -9,6 +11,8 @@ export interface BrowseOttProvider {
   name: string;
   shortLabel: string;
   logoUrl: string | null;
+  /** Stable key when the same provider id appears more than once in the master list. */
+  listKey?: string;
 }
 
 export interface BrowseGenreOption {

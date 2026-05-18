@@ -1,5 +1,6 @@
+import { browseDebug } from "@/lib/browse/debug";
 import { DEFAULT_BROWSE_FILTERS, type BrowseFilters } from "@/lib/browse/filters";
-import { defaultBrowseLanguageCodes } from "@/lib/browse/languages";
+import { defaultBrowseLanguage } from "@/lib/browse/languages";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
 
 export function genreOptionsForMediaType(
@@ -29,12 +30,7 @@ export function removeBrowseFilterChip(
     return { ...filters, dateFrom: null, dateTo: null };
   }
   if (chipKey.startsWith("lang-")) {
-    const code = chipKey.slice(5);
-    const nextLanguages = filters.languages.filter((lang) => lang !== code);
-    return {
-      ...filters,
-      languages: nextLanguages.length > 0 ? nextLanguages : defaultBrowseLanguageCodes(),
-    };
+    return { ...filters, language: defaultBrowseLanguage() };
   }
   if (chipKey.startsWith("genre-")) {
     const id = Number(chipKey.slice(6));
@@ -53,16 +49,12 @@ export function removeBrowseFilterChip(
   return filters;
 }
 
-export function toggleLanguage(filters: BrowseFilters, code: string): BrowseFilters {
-  const isSelected = filters.languages.includes(code);
-  const next = isSelected
-    ? filters.languages.filter((lang) => lang !== code)
-    : [...filters.languages, code];
+/** Single-select: tap active language resets to default; otherwise select that language. */
+export function selectLanguage(filters: BrowseFilters, code: string): BrowseFilters {
+  const nextLanguage =
+    filters.language === code ? defaultBrowseLanguage() : code;
 
-  return {
-    ...filters,
-    languages: next.length > 0 ? next : defaultBrowseLanguageCodes(),
-  };
+  return { ...filters, language: nextLanguage };
 }
 
 export function toggleGenre(filters: BrowseFilters, genreId: number): BrowseFilters {
@@ -77,10 +69,16 @@ export function toggleGenre(filters: BrowseFilters, genreId: number): BrowseFilt
 
 export function toggleProvider(filters: BrowseFilters, providerId: number): BrowseFilters {
   const exists = filters.providerIds.includes(providerId);
-  return {
+  const next = {
     ...filters,
     providerIds: exists
       ? filters.providerIds.filter((id) => id !== providerId)
       : [...filters.providerIds, providerId],
   };
+  browseDebug("OTT provider chip toggled", {
+    chipProviderId: providerId,
+    action: exists ? "removed" : "added",
+    providerIds: next.providerIds,
+  });
+  return next;
 }

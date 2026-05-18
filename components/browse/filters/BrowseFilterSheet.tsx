@@ -1,11 +1,9 @@
 "use client";
 
-import { BROWSE_DATE_PRESETS, BROWSE_OTT_PROVIDERS } from "@/lib/browse/constants";
-import {
-  BROWSE_LANGUAGE_OPTIONS,
-  getLanguageChipLabel,
-} from "@/lib/browse/languages";
+import { BROWSE_DATE_PRESETS } from "@/lib/browse/constants";
+import { getLanguageChipLabel } from "@/lib/browse/languages";
 import { datePresetIdForFilters } from "@/lib/browse/labels";
+import { browseDebug } from "@/lib/browse/debug";
 import { filtersAreEqual, type BrowseFilters } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -13,7 +11,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import {
   genreOptionsForMediaType,
   toggleGenre,
-  toggleLanguage,
+  selectLanguage,
   toggleProvider,
 } from "./browse-filter-utils";
 import { FilterChip } from "./FilterChip";
@@ -66,8 +64,8 @@ export function BrowseFilterSheet({
 
   if (!open) return null;
 
-  const languages = meta.languages.length > 0 ? meta.languages : BROWSE_LANGUAGE_OPTIONS;
-  const providers = meta.providers.length > 0 ? meta.providers : BROWSE_OTT_PROVIDERS;
+  const languages = meta.languages;
+  const providers = meta.providers;
   const genreOptions = genreOptionsForMediaType(meta, draft.mediaType);
   const datePresetId = datePresetIdForFilters(draft);
   const currentYear = new Date().getFullYear();
@@ -75,6 +73,14 @@ export function BrowseFilterSheet({
   const customToYear = draft.dateTo?.slice(0, 4) ?? String(currentYear);
 
   const handleApply = () => {
+    browseDebug("Filter sheet apply", {
+      draftProviderIds: draft.providerIds,
+      ottChipOptions: providers.map((provider) => ({
+        id: provider.id,
+        name: provider.name,
+      })),
+      appliedProviderIds: appliedFilters.providerIds,
+    });
     onApply(draft);
     onClose();
   };
@@ -87,8 +93,8 @@ export function BrowseFilterSheet({
       aria-labelledby={titleId}
       className={
         isDesktop
-          ? "relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-5 shadow-xl ring-1 ring-zinc-900/5"
-          : "relative z-10 max-h-[min(85dvh,640px)] w-full rounded-t-2xl border border-zinc-200 border-b-0 bg-white px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.2)] ring-1 ring-zinc-900/5"
+          ? "relative z-10 flex max-h-[min(85dvh,720px)] w-full max-w-md min-h-0 flex-col rounded-2xl border border-zinc-200 bg-white p-5 shadow-xl ring-1 ring-zinc-900/5"
+          : "relative z-10 flex max-h-[min(85dvh,640px)] w-full min-h-0 flex-col rounded-t-2xl border border-zinc-200 border-b-0 bg-white px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.2)] ring-1 ring-zinc-900/5"
       }
     >
       {!isDesktop ? (
@@ -98,8 +104,8 @@ export function BrowseFilterSheet({
       <div
         className={
           isDesktop
-            ? "mb-4 flex items-center justify-between gap-3"
-            : "-mx-4 mb-4 flex items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3"
+            ? "mb-4 flex shrink-0 items-center justify-between gap-3"
+            : "-mx-4 mb-4 flex shrink-0 items-center justify-between gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3"
         }
       >
         <h4 id={titleId} className="text-sm font-semibold text-zinc-900 sm:text-base">
@@ -124,18 +130,21 @@ export function BrowseFilterSheet({
         </div>
       </div>
 
-      <div className="space-y-5 overflow-y-auto pr-1 [-ms-overflow-style:none] [scrollbar-width:thin] max-h-[min(58dvh,480px)] lg:max-h-none">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain pr-1 [-ms-overflow-style:none] [scrollbar-width:thin]">
         <section>
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
             Language
           </p>
-          <div className="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto pr-1 sm:max-h-none">
+          <div className="flex flex-wrap gap-1.5">
+            {languages.length === 0 ? (
+              <p className="text-xs text-zinc-400">Loading languages…</p>
+            ) : null}
             {languages.map((language) => (
               <FilterChip
                 key={language.code}
                 label={getLanguageChipLabel(language)}
-                active={draft.languages.includes(language.code)}
-                onClick={() => setDraft((prev) => toggleLanguage(prev, language.code))}
+                active={draft.language === language.code}
+                onClick={() => setDraft((prev) => selectLanguage(prev, language.code))}
               />
             ))}
           </div>
@@ -146,6 +155,9 @@ export function BrowseFilterSheet({
             Genres
           </p>
           <div className="flex flex-wrap gap-1.5">
+            {genreOptions.length === 0 ? (
+              <p className="text-xs text-zinc-400">Loading genres…</p>
+            ) : null}
             {genreOptions.map((genre) => (
               <FilterChip
                 key={genre.id}
@@ -231,9 +243,12 @@ export function BrowseFilterSheet({
             Streaming on
           </p>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-4">
+            {providers.length === 0 ? (
+              <p className="col-span-full text-xs text-zinc-400">Loading platforms…</p>
+            ) : null}
             {providers.map((provider) => (
               <OttProviderFilterTile
-                key={provider.id}
+                key={provider.listKey ?? String(provider.id)}
                 provider={provider}
                 active={draft.providerIds.includes(provider.id)}
                 onToggle={() => setDraft((prev) => toggleProvider(prev, provider.id))}
@@ -246,7 +261,7 @@ export function BrowseFilterSheet({
       <button
         type="button"
         onClick={handleApply}
-        className="mt-5 w-full rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white transition hover:bg-zinc-700 lg:hidden"
+        className="mt-5 w-full shrink-0 rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white transition hover:bg-zinc-700 lg:hidden"
       >
         Apply filters
       </button>

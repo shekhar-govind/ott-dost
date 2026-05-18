@@ -1,8 +1,8 @@
-import { BROWSE_DATE_PRESETS, BROWSE_OTT_PROVIDERS } from "./constants";
+import { BROWSE_DATE_PRESETS } from "./constants";
 import type { BrowseFilters } from "./filters";
-import { languagesMatchDefault } from "./filters";
-import { getBrowseLanguageOption, getLanguageChipLabel } from "./languages";
-import type { BrowseGenreOption } from "./types";
+import { languageMatchesDefault } from "./filters";
+import { findBrowseLanguageOption, getLanguageChipLabel } from "./languages";
+import type { BrowseGenreOption, BrowseLanguageOption, BrowseOttProvider } from "./types";
 
 export interface BrowseFilterChip {
   key: string;
@@ -12,15 +12,18 @@ export interface BrowseFilterChip {
 export function buildBrowseFilterChips(
   filters: BrowseFilters,
   genreOptions: BrowseGenreOption[],
+  languageOptions: BrowseLanguageOption[],
+  providerOptions: BrowseOttProvider[],
 ): BrowseFilterChip[] {
   const chips: BrowseFilterChip[] = [];
 
-  if (!languagesMatchDefault(filters.languages)) {
-    for (const code of filters.languages) {
-      const lang = getBrowseLanguageOption(code);
-      if (lang) {
-        chips.push({ key: `lang-${code}`, label: `${getLanguageChipLabel(lang)} ×` });
-      }
+  if (!languageMatchesDefault(filters.language)) {
+    const lang = findBrowseLanguageOption(languageOptions, filters.language);
+    if (lang) {
+      chips.push({
+        key: `lang-${filters.language}`,
+        label: `${getLanguageChipLabel(lang)} ×`,
+      });
     }
   }
 
@@ -45,7 +48,7 @@ export function buildBrowseFilterChips(
   }
 
   for (const providerId of filters.providerIds) {
-    const provider = BROWSE_OTT_PROVIDERS.find((p) => p.id === providerId);
+    const provider = providerOptions.find((p) => p.id === providerId);
     chips.push({
       key: `ott-${providerId}`,
       label: `${provider?.name ?? "Platform"} ×`,

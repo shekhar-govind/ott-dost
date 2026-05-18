@@ -120,10 +120,7 @@ export function initRouteScrollStorage(): void {
   writeStore(store);
 }
 
-export function saveRouteScrollPosition(
-  routeUrl?: string,
-  reason = "unspecified",
-): void {
+export function saveRouteScrollPosition(routeUrl?: string): void {
   if (typeof window === "undefined") return;
 
   const route = normalizeRouteUrl(routeUrl ?? getRouteUrl());
@@ -132,13 +129,6 @@ export function saveRouteScrollPosition(
   const store = loadStore();
   store[route] = y;
   writeStore(store);
-
-  console.log("[route-scroll] saved", {
-    y,
-    routeUrl: route,
-    storeKey: SCROLL_STORE_KEY,
-    reason,
-  });
 }
 
 export function readRouteScrollPosition(routeUrl: string): number | null {
@@ -151,22 +141,7 @@ export function readRouteScrollPosition(routeUrl: string): number | null {
 
 export function readSavedRouteScroll(routeUrl?: string): number | null {
   const route = normalizeRouteUrl(routeUrl ?? getRouteUrl());
-  const y = readRouteScrollPosition(route);
-
-  if (y != null) {
-    console.log("[route-scroll] read for restore", {
-      y,
-      routeUrl: route,
-      storeKey: SCROLL_STORE_KEY,
-    });
-    return y;
-  }
-
-  console.log("[route-scroll] no saved scroll", {
-    routeUrl: route,
-    storeKey: SCROLL_STORE_KEY,
-  });
-  return null;
+  return readRouteScrollPosition(route);
 }
 
 export function restoreRouteScrollPixel(y: number): void {
@@ -186,8 +161,6 @@ export function restoreRouteScrollWhenLayoutReady(
 ): () => void {
   const start = performance.now();
   let raf = 0;
-  let loggedStart = false;
-  let loggedDone = false;
 
   const tick = () => {
     const el = document.documentElement;
@@ -197,28 +170,6 @@ export function restoreRouteScrollWhenLayoutReady(
 
     const tallEnough = maxScroll >= targetY - 1;
     const timedOut = performance.now() - start > maxWaitMs;
-
-    if (!loggedStart) {
-      loggedStart = true;
-      console.log("[route-scroll] restore started", {
-        targetY,
-        appliedY: y,
-        routeUrl: getRouteUrl(),
-      });
-    }
-
-    if ((tallEnough || timedOut) && !loggedDone) {
-      loggedDone = true;
-      console.log("[route-scroll] restore finished", {
-        targetY,
-        appliedY: y,
-        currentScrollY: readScrollY(),
-        routeUrl: getRouteUrl(),
-        tallEnough,
-        timedOut,
-        elapsedMs: Math.round(performance.now() - start),
-      });
-    }
 
     if (!tallEnough && !timedOut) {
       raf = requestAnimationFrame(tick);

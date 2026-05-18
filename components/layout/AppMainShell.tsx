@@ -81,7 +81,7 @@ export function AppMainShell({ children }: { children: ReactNode }) {
 
       const currentRoute = getRouteUrl();
       if (destRoute === currentRoute) return;
-      saveRouteScrollPosition(currentRoute, "link-pointerdown");
+      saveRouteScrollPosition(currentRoute);
     };
 
     document.addEventListener("pointerdown", preNavigateSave, true);
@@ -95,7 +95,7 @@ export function AppMainShell({ children }: { children: ReactNode }) {
     const onScroll = () => {
       if (timeout) clearTimeout(timeout);
       timeout = setTimeout(() => {
-        saveRouteScrollPosition(getRouteUrl(), "scroll-debounced");
+        saveRouteScrollPosition(getRouteUrl());
       }, 120);
     };
 
