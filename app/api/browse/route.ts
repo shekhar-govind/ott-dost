@@ -1,4 +1,5 @@
 import { languagesMatchDefault } from "@/lib/browse/filters";
+import { expandProviderFilterIds } from "@/lib/browse/provider-aliases";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
 import { BROWSE_LANGUAGE_OPTIONS } from "@/lib/browse/languages";
 import {
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
       throw new Error("Browse failed");
     }
 
-    const providerFilter = new Set(filters.providerIds);
+    const providerFilter = expandProviderFilterIds(filters.providerIds);
     const seen = new Set<string>();
     const candidates = responses
       .flatMap((response) =>
@@ -113,12 +114,19 @@ export async function GET(request: NextRequest) {
       .slice(0, PAGE_SIZE);
 
     const totalPages = Math.min(...responses.map((response) => response.total_pages));
+    const hasMoreFromTmdb = page < totalPages;
+    const hasMore =
+      items.length > 0
+        ? hasMoreFromTmdb
+        : filters.providerIds.length > 0
+          ? false
+          : hasMoreFromTmdb;
 
     return NextResponse.json({
       items,
       page,
       totalPages,
-      hasMore: page < totalPages,
+      hasMore,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Browse failed";

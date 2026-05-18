@@ -28,7 +28,7 @@ export function TitleSummaryProviders({ availability }: TitleSummaryProvidersPro
       </h3>
 
       {stream.length > 0 ? (
-        <ProviderGroup label="Stream on" providers={stream} />
+        <ProviderGroup label="Streaming on" providers={stream} />
       ) : (
         <p className="text-sm text-zinc-500">
           Not available to stream on subscription platforms.

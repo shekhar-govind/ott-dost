@@ -46,7 +46,7 @@ export function BrowseList({
   });
 
   const sentinelRef = useInfiniteScroll({
-    enabled: enabled && !isDesktop,
+    enabled: enabled && !isDesktop && items.length > 0,
     hasMore,
     isLoading: isLoading || isLoadingMore,
     onLoadMore: loadMore,
@@ -99,7 +99,7 @@ export function BrowseList({
       ) : items.length === 0 ? (
         <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
           {filtersActive
-            ? "No titles match your filters on this page. Try clearing filters or the next page."
+            ? "No titles match your filters. Try clearing filters or adjusting your selection."
             : "No titles with OTT availability on this page. Try the next page."}
         </p>
       ) : (

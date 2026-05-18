@@ -36,7 +36,7 @@ export function StreamOnLabel({
             isCompact ? "text-[9px]" : "text-[10px] sm:text-xs"
           }`}
         >
-          Stream
+          Streaming on
         </span>
         <ul
           className={`flex min-w-0 flex-1 flex-wrap items-center ${isCompact ? "gap-1" : "gap-1.5"}`}

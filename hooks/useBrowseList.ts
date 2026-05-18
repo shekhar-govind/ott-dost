@@ -68,7 +68,8 @@ export function useBrowseList({
 
         setPage(data.page);
         setTotalPages(data.totalPages);
-        setHasMore(data.hasMore);
+        const appendedNothing = isAppend && data.items.length === 0;
+        setHasMore(appendedNothing ? false : data.hasMore);
         setItems((prev) =>
           isAppend ? [...prev, ...data.items] : data.items,
         );
@@ -129,7 +130,14 @@ export function useBrowseList({
   }, [enabled, infiniteScroll, page, loadPage]);
 
   const loadMore = useCallback(() => {
-    if (!enabled || !infiniteScroll || isLoading || isLoadingMore || !hasMore) {
+    if (
+      !enabled ||
+      !infiniteScroll ||
+      isLoading ||
+      isLoadingMore ||
+      !hasMore ||
+      items.length === 0
+    ) {
       return;
     }
     loadPage(page + 1, "append");
@@ -139,6 +147,7 @@ export function useBrowseList({
     infiniteScroll,
     isLoading,
     isLoadingMore,
+    items.length,
     loadPage,
     page,
   ]);
