@@ -1,4 +1,4 @@
-import { getMediaTypeLabel } from "@/lib/tmdb/utils";
+import { buildListMetaLine } from "@/lib/tmdb/utils";
 import type { TitleDetail } from "@/lib/tmdb/types";
 import { TitleSummaryProviders } from "./TitleSummaryProviders";
 
@@ -14,13 +14,18 @@ export function TitleSummary({
 }: TitleSummaryProps) {
   const titleClass =
     "text-pretty text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl";
-  const metaItems = [
-    getMediaTypeLabel(detail.mediaType),
-    detail.year,
+  const metaLine = [
+    buildListMetaLine({
+      mediaType: detail.mediaType,
+      rating: detail.rating,
+      releaseDate: detail.releaseDate,
+      languageLabel: detail.languageLabel,
+    }),
     detail.runtime,
     detail.status,
-    detail.rating !== null ? `${detail.rating.toFixed(1)} / 10` : null,
-  ].filter(Boolean) as string[];
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <article className="mt-8 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
@@ -28,15 +33,17 @@ export function TitleSummary({
         <Poster posterUrl={detail.posterUrl} title={detail.title} />
 
         <div className="min-w-0 flex-1">
-          <header>
+          <header className="min-w-0">
             {variant === "page" ? (
               <h1 className={titleClass}>{detail.title}</h1>
             ) : (
               <h3 className={titleClass}>{detail.title}</h3>
             )}
-            {metaItems.length > 0 && (
-              <p className="mt-2 text-sm text-zinc-500">{metaItems.join(" · ")}</p>
-            )}
+            {metaLine ? (
+              <p className="mt-px min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-tight tabular-nums text-zinc-400">
+                {metaLine}
+              </p>
+            ) : null}
           </header>
 
           {detail.genres.length > 0 && (

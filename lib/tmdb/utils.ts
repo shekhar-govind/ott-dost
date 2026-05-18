@@ -190,6 +190,23 @@ export function getMediaTypeLabel(mediaType: TmdbMediaType): string {
   return mediaType === "movie" ? "Movie" : "TV Series";
 }
 
+/** Meta row shared by list cards and title summary: type · rating · date · language */
+export function buildListMetaLine(parts: {
+  mediaType: TmdbMediaType;
+  rating: number | null;
+  releaseDate: string | null;
+  languageLabel: string | null;
+}): string {
+  return [
+    getMediaTypeLabel(parts.mediaType),
+    ...(parts.rating !== null ? [`${parts.rating.toFixed(1)} / 10`] : []),
+    formatReleaseDate(parts.releaseDate),
+    parts.languageLabel,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function formatRuntime(minutes: number | null | undefined): string | null {
   if (!minutes || minutes <= 0) return null;
   const hours = Math.floor(minutes / 60);
@@ -262,15 +279,19 @@ export function hasWatchAvailability(availability: WatchAvailability): boolean {
 }
 
 export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
+  const releaseDate = movie.release_date ?? null;
+
   return {
     id: movie.id,
     mediaType: "movie",
     title: movie.title,
-    year: getYearFromDate(movie.release_date),
+    year: getYearFromDate(releaseDate ?? undefined),
+    releaseDate,
     overview: movie.overview,
     posterUrl: getPosterUrl(movie.poster_path, "w500"),
     rating: movie.vote_average > 0 ? movie.vote_average : null,
     voteCount: movie.vote_count > 0 ? movie.vote_count : null,
+    languageLabel: formatOriginalLanguage(movie.original_language),
     runtime: formatRuntime(movie.runtime),
     genres: movie.genres.map((genre) => genre.name),
     status: movie.status ?? null,
@@ -279,15 +300,19 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
 }
 
 export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
+  const releaseDate = show.first_air_date ?? null;
+
   return {
     id: show.id,
     mediaType: "tv",
     title: show.name,
-    year: getYearFromDate(show.first_air_date),
+    year: getYearFromDate(releaseDate ?? undefined),
+    releaseDate,
     overview: show.overview,
     posterUrl: getPosterUrl(show.poster_path, "w500"),
     rating: show.vote_average > 0 ? show.vote_average : null,
     voteCount: show.vote_count > 0 ? show.vote_count : null,
+    languageLabel: formatOriginalLanguage(show.original_language),
     runtime: formatTvRuntime(show),
     genres: show.genres.map((genre) => genre.name),
     status: show.status || null,

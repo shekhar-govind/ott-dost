@@ -1,5 +1,5 @@
 import type { SearchTitle } from "@/lib/tmdb/types";
-import { formatReleaseDate, getMediaTypeLabel } from "@/lib/tmdb/utils";
+import { buildListMetaLine } from "@/lib/tmdb/utils";
 import { StreamOnLabel } from "./StreamOnLabel";
 
 interface MediaListItemBodyProps {
@@ -15,15 +15,12 @@ export function MediaListItemBody({
   item,
   showStreamWhenEmpty = false,
 }: MediaListItemBodyProps) {
-  const formattedDate = formatReleaseDate(item.releaseDate);
-  const metaLine = [
-    getMediaTypeLabel(item.mediaType),
-    ...(item.rating !== null ? [`${item.rating.toFixed(1)} / 10`] : []),
-    formattedDate,
-    item.languageLabel,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const metaLine = buildListMetaLine({
+    mediaType: item.mediaType,
+    rating: item.rating,
+    releaseDate: item.releaseDate,
+    languageLabel: item.languageLabel,
+  });
 
   const overview = item.overview?.trim();
 

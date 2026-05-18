@@ -103,10 +103,12 @@ export interface TitleDetail {
   mediaType: TmdbMediaType;
   title: string;
   year: string | null;
+  releaseDate: string | null;
   overview: string;
   posterUrl: string | null;
   rating: number | null;
   voteCount: number | null;
+  languageLabel: string | null;
   runtime: string | null;
   genres: string[];
   status: string | null;
@@ -137,6 +139,8 @@ export interface TmdbMovieDetails {
   overview: string;
   poster_path: string | null;
   release_date?: string;
+  /** ISO 639-1 */
+  original_language?: string;
   vote_average: number;
   vote_count: number;
   runtime: number | null;
@@ -153,6 +157,8 @@ export interface TmdbTvDetails {
   overview: string;
   poster_path: string | null;
   first_air_date?: string;
+  /** ISO 639-1 */
+  original_language?: string;
   vote_average: number;
   vote_count: number;
   number_of_seasons: number;
