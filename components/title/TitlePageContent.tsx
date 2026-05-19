@@ -5,6 +5,7 @@ import type { TmdbMediaType } from "@/lib/tmdb/types";
 import { TitlePeopleSection } from "./TitlePeopleSection";
 import { TitleRecommendations } from "./TitleRecommendations";
 import { TitleSummary } from "./TitleSummary";
+import { TitleTrailer } from "./TitleTrailer";
 import { TitleWatchCard } from "./TitleWatchCard";
 
 interface TitlePageContentProps {
@@ -36,6 +37,7 @@ export async function TitlePageContent({
   return (
     <>
       <TitleSummary detail={detail} variant="page" />
+      {detail.trailer ? <TitleTrailer trailer={detail.trailer} /> : null}
       <TitleWatchCard availability={detail.watchAvailability} />
       <TitlePeopleSection cast={detail.cast} crew={detail.crew} />
       <TitleRecommendations items={detail.recommendations} />

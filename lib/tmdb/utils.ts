@@ -5,6 +5,7 @@ import type {
   SearchTitle,
   StreamingProvider,
   TitleDetail,
+  TitleTrailer,
   TmdbCredits,
   TmdbDiscoverMovieResult,
   TmdbDiscoverTvResult,
@@ -14,6 +15,7 @@ import type {
   TmdbRecommendations,
   TmdbSearchResult,
   TmdbTvDetails,
+  TmdbVideos,
   TmdbWatchProvidersApiResponse,
   WatchAvailability,
 } from "./types";
@@ -341,6 +343,44 @@ export function toSearchTitleFromRecommendation(
   };
 }
 
+const TRAILER_TYPE_PRIORITY: Record<string, number> = {
+  Trailer: 0,
+  Teaser: 1,
+};
+
+export function mapTrailer(videos?: TmdbVideos | null): TitleTrailer | null {
+  const candidates = (videos?.results ?? []).filter(
+    (video) =>
+      video.site === "YouTube" &&
+      video.key?.trim() &&
+      (video.type === "Trailer" || video.type === "Teaser"),
+  );
+
+  if (candidates.length === 0) return null;
+
+  const sorted = [...candidates].sort((a, b) => {
+    const typeA = TRAILER_TYPE_PRIORITY[a.type] ?? 99;
+    const typeB = TRAILER_TYPE_PRIORITY[b.type] ?? 99;
+    if (typeA !== typeB) return typeA - typeB;
+    if (Boolean(b.official) !== Boolean(a.official)) {
+      return Number(b.official) - Number(a.official);
+    }
+    const dateA = a.published_at ? Date.parse(a.published_at) : 0;
+    const dateB = b.published_at ? Date.parse(b.published_at) : 0;
+    return dateB - dateA;
+  });
+
+  const best = sorted[0];
+  const key = best.key.trim();
+
+  return {
+    name: best.name?.trim() || "Trailer",
+    youtubeKey: key,
+    thumbnailUrl: `https://img.youtube.com/vi/${key}/hqdefault.jpg`,
+    youtubeUrl: `https://www.youtube.com/watch?v=${key}`,
+  };
+}
+
 export function mapRecommendations(
   response: TmdbRecommendations | null | undefined,
   mediaType: TmdbMediaType,
@@ -473,6 +513,7 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
       "movie",
       movie.id,
     ),
+    trailer: mapTrailer(movie.videos),
   };
 }
 
@@ -499,5 +540,6 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     cast: mapTopCast(show.credits),
     crew: mapMainCrew(show.credits),
     recommendations: mapRecommendations(show.recommendations, "tv", show.id),
+    trailer: mapTrailer(show.videos),
   };
 }

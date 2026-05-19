@@ -152,6 +152,27 @@ export interface WatchAvailability {
   buy: StreamingProvider[];
 }
 
+export interface TmdbVideo {
+  id: string;
+  key: string;
+  name: string;
+  site: string;
+  type: string;
+  official?: boolean;
+  published_at?: string;
+}
+
+export interface TmdbVideos {
+  results?: TmdbVideo[];
+}
+
+export interface TitleTrailer {
+  name: string;
+  youtubeKey: string;
+  thumbnailUrl: string;
+  youtubeUrl: string;
+}
+
 export interface TitleDetail {
   id: number;
   mediaType: TmdbMediaType;
@@ -174,6 +195,7 @@ export interface TitleDetail {
   cast: CastMember[];
   crew: CrewCredit[];
   recommendations: SearchTitle[];
+  trailer: TitleTrailer | null;
 }
 
 interface TmdbGenre {
@@ -215,6 +237,7 @@ export interface TmdbMovieDetails {
   };
   credits?: TmdbCredits;
   recommendations?: TmdbRecommendations;
+  videos?: TmdbVideos;
 }
 
 export interface TmdbTvDetails {
@@ -239,4 +262,5 @@ export interface TmdbTvDetails {
   };
   credits?: TmdbCredits;
   recommendations?: TmdbRecommendations;
+  videos?: TmdbVideos;
 }

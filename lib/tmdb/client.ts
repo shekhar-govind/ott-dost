@@ -41,7 +41,7 @@ export async function getTitleDetails(
   id: number,
 ): Promise<TmdbMovieDetails | TmdbTvDetails> {
   const params = buildParams({
-    append_to_response: "watch/providers,credits,recommendations",
+    append_to_response: "watch/providers,credits,recommendations,videos",
   });
 
   const response = await fetchTmdb(
