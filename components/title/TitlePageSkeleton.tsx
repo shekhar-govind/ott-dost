@@ -1,4 +1,5 @@
 import { TitlePeopleSkeleton } from "./TitlePeopleSkeleton";
+import { TitleRecommendationsSkeleton } from "./TitleRecommendationsSkeleton";
 import { TitleWatchSkeleton } from "./TitleWatchSkeleton";
 
 /**
@@ -53,6 +54,7 @@ export function TitlePageSkeleton() {
       </article>
       <TitleWatchSkeleton />
       <TitlePeopleSkeleton />
+      <TitleRecommendationsSkeleton />
     </>
   );
 }

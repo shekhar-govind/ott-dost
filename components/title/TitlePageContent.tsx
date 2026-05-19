@@ -3,6 +3,7 @@ import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath, slugifyTitle } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
 import { TitlePeopleSection } from "./TitlePeopleSection";
+import { TitleRecommendations } from "./TitleRecommendations";
 import { TitleSummary } from "./TitleSummary";
 import { TitleWatchCard } from "./TitleWatchCard";
 
@@ -37,6 +38,7 @@ export async function TitlePageContent({
       <TitleSummary detail={detail} variant="page" />
       <TitleWatchCard availability={detail.watchAvailability} />
       <TitlePeopleSection cast={detail.cast} crew={detail.crew} />
+      <TitleRecommendations items={detail.recommendations} />
     </>
   );
 }

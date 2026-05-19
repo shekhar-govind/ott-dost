@@ -126,6 +126,26 @@ export interface TmdbCredits {
   crew?: TmdbCrewMember[];
 }
 
+export interface TmdbRecommendationResult {
+  id: number;
+  media_type?: TmdbMediaType;
+  title?: string;
+  name?: string;
+  original_title?: string;
+  original_name?: string;
+  overview?: string;
+  poster_path?: string | null;
+  release_date?: string;
+  first_air_date?: string;
+  vote_average?: number;
+  vote_count?: number;
+  original_language?: string;
+}
+
+export interface TmdbRecommendations {
+  results?: TmdbRecommendationResult[];
+}
+
 export interface WatchAvailability {
   stream: StreamingProvider[];
   rent: StreamingProvider[];
@@ -153,6 +173,7 @@ export interface TitleDetail {
   watchAvailability: WatchAvailability;
   cast: CastMember[];
   crew: CrewCredit[];
+  recommendations: SearchTitle[];
 }
 
 interface TmdbGenre {
@@ -193,6 +214,7 @@ export interface TmdbMovieDetails {
     results?: Record<string, TmdbWatchProvidersResult>;
   };
   credits?: TmdbCredits;
+  recommendations?: TmdbRecommendations;
 }
 
 export interface TmdbTvDetails {
@@ -216,4 +238,5 @@ export interface TmdbTvDetails {
     results?: Record<string, TmdbWatchProvidersResult>;
   };
   credits?: TmdbCredits;
+  recommendations?: TmdbRecommendations;
 }

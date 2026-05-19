@@ -10,6 +10,8 @@ import type {
   TmdbDiscoverTvResult,
   TmdbMediaType,
   TmdbMovieDetails,
+  TmdbRecommendationResult,
+  TmdbRecommendations,
   TmdbSearchResult,
   TmdbTvDetails,
   TmdbWatchProvidersApiResponse,
@@ -307,6 +309,55 @@ export function mapWatchAvailability(
 }
 
 const TOP_CAST_LIMIT = 10;
+const RECOMMENDATIONS_LIMIT = 12;
+
+export function toSearchTitleFromRecommendation(
+  item: TmdbRecommendationResult,
+  mediaType: TmdbMediaType,
+): SearchTitle {
+  const releaseDate = item.release_date ?? item.first_air_date ?? null;
+  const { rating, voteCount } = tmdbUserRating(
+    item.vote_average,
+    item.vote_count,
+  );
+  const resolvedMediaType =
+    item.media_type === "movie" || item.media_type === "tv"
+      ? item.media_type
+      : mediaType;
+
+  return {
+    id: item.id,
+    mediaType: resolvedMediaType,
+    title: getDisplayTitle(item),
+    year: getYearFromDate(releaseDate ?? undefined),
+    releaseDate,
+    overview: item.overview ?? "",
+    posterUrl: getPosterUrl(item.poster_path),
+    rating,
+    voteCount,
+    languageLabel: formatOriginalLanguage(item.original_language),
+    streamProviders: [],
+    genres: [],
+  };
+}
+
+export function mapRecommendations(
+  response: TmdbRecommendations | null | undefined,
+  mediaType: TmdbMediaType,
+  excludeId: number,
+): SearchTitle[] {
+  const results = response?.results ?? [];
+  const items: SearchTitle[] = [];
+
+  for (const raw of results) {
+    if (!raw?.id || raw.id === excludeId) continue;
+    items.push(toSearchTitleFromRecommendation(raw, mediaType));
+    if (items.length >= RECOMMENDATIONS_LIMIT) break;
+  }
+
+  return items;
+}
+
 const MAIN_CREW_LIMIT = 8;
 const MAX_NAMES_PER_JOB = 3;
 
@@ -417,6 +468,11 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
     watchAvailability: mapWatchAvailability(movie),
     cast: mapTopCast(movie.credits),
     crew: mapMainCrew(movie.credits),
+    recommendations: mapRecommendations(
+      movie.recommendations,
+      "movie",
+      movie.id,
+    ),
   };
 }
 
@@ -442,5 +498,6 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     watchAvailability: mapWatchAvailability(show),
     cast: mapTopCast(show.credits),
     crew: mapMainCrew(show.credits),
+    recommendations: mapRecommendations(show.recommendations, "tv", show.id),
   };
 }
