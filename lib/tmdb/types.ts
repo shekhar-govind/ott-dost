@@ -93,6 +93,25 @@ export interface BrowsePage {
   hasMore: boolean;
 }
 
+export interface CastMember {
+  id: number;
+  name: string;
+  character: string;
+  profileUrl: string | null;
+}
+
+export interface TmdbCastMember {
+  id: number;
+  name: string;
+  character?: string;
+  order?: number;
+  profile_path?: string | null;
+}
+
+export interface TmdbCredits {
+  cast?: TmdbCastMember[];
+}
+
 export interface WatchAvailability {
   stream: StreamingProvider[];
   rent: StreamingProvider[];
@@ -118,6 +137,7 @@ export interface TitleDetail {
   genres: string[];
   status: string | null;
   watchAvailability: WatchAvailability;
+  cast: CastMember[];
 }
 
 interface TmdbGenre {
@@ -157,6 +177,7 @@ export interface TmdbMovieDetails {
   "watch/providers"?: {
     results?: Record<string, TmdbWatchProvidersResult>;
   };
+  credits?: TmdbCredits;
 }
 
 export interface TmdbTvDetails {
@@ -179,4 +200,5 @@ export interface TmdbTvDetails {
   "watch/providers"?: {
     results?: Record<string, TmdbWatchProvidersResult>;
   };
+  credits?: TmdbCredits;
 }

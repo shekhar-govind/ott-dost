@@ -1,8 +1,10 @@
 import { TMDB_IMAGE_BASE } from "./constants";
 import type {
+  CastMember,
   SearchTitle,
   StreamingProvider,
   TitleDetail,
+  TmdbCredits,
   TmdbDiscoverMovieResult,
   TmdbDiscoverTvResult,
   TmdbMediaType,
@@ -303,6 +305,24 @@ export function mapWatchAvailability(
   };
 }
 
+const TOP_CAST_LIMIT = 10;
+
+export function mapTopCast(credits?: TmdbCredits | null): CastMember[] {
+  const cast = credits?.cast;
+  if (!cast?.length) return [];
+
+  return [...cast]
+    .filter((member) => member.name?.trim())
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+    .slice(0, TOP_CAST_LIMIT)
+    .map((member) => ({
+      id: member.id,
+      name: member.name.trim(),
+      character: member.character?.trim() ?? "",
+      profileUrl: getPosterUrl(member.profile_path, "w185"),
+    }));
+}
+
 export function hasWatchAvailability(availability: WatchAvailability): boolean {
   return (
     availability.stream.length > 0 ||
@@ -332,6 +352,7 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
     genres: movie.genres.map((genre) => genre.name),
     status: movie.status ?? null,
     watchAvailability: mapWatchAvailability(movie),
+    cast: mapTopCast(movie.credits),
   };
 }
 
@@ -355,5 +376,6 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     genres: show.genres.map((genre) => genre.name),
     status: show.status || null,
     watchAvailability: mapWatchAvailability(show),
+    cast: mapTopCast(show.credits),
   };
 }

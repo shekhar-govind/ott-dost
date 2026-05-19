@@ -2,6 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath, slugifyTitle } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
+import { TitleCastRow } from "./TitleCastRow";
 import { TitleSummary } from "./TitleSummary";
 
 interface TitlePageContentProps {
@@ -30,5 +31,10 @@ export async function TitlePageContent({
     permanentRedirect(buildTitlePath(mediaType, id, detail.title));
   }
 
-  return <TitleSummary detail={detail} variant="page" />;
+  return (
+    <>
+      <TitleSummary detail={detail} variant="page" />
+      <TitleCastRow cast={detail.cast} />
+    </>
+  );
 }

@@ -1,9 +1,11 @@
+import { TitleCastSkeleton } from "./TitleCastSkeleton";
+
 /**
- * Mirrors {@link TitleSummary} layout for instant route feedback while the
- * title page RSC payload streams in.
+ * Mirrors title page layout for instant route feedback while the RSC payload streams in.
  */
 export function TitlePageSkeleton() {
   return (
+    <>
     <article
       className="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm"
       aria-busy="true"
@@ -61,5 +63,7 @@ export function TitlePageSkeleton() {
         </div>
       </div>
     </article>
+    <TitleCastSkeleton />
+    </>
   );
 }
