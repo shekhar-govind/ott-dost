@@ -110,16 +110,13 @@ export interface TitleDetail {
   releaseDate: string | null;
   overview: string;
   posterUrl: string | null;
+  backdropUrl: string | null;
   rating: number | null;
   voteCount: number | null;
   languageLabel: string | null;
   runtime: string | null;
   genres: string[];
   status: string | null;
-  /** TV only */
-  episodeCount: number | null;
-  /** TV only */
-  networkNames: string[];
   watchAvailability: WatchAvailability;
 }
 
@@ -141,11 +138,6 @@ export interface TmdbWatchProvidersResult {
   buy?: TmdbWatchProvider[];
 }
 
-export interface TmdbNetwork {
-  id: number;
-  name: string;
-}
-
 export interface TmdbMovieDetails {
   id: number;
   title: string;
@@ -153,6 +145,7 @@ export interface TmdbMovieDetails {
   tagline?: string;
   overview: string;
   poster_path: string | null;
+  backdrop_path?: string | null;
   release_date?: string;
   /** ISO 639-1 */
   original_language?: string;
@@ -173,15 +166,14 @@ export interface TmdbTvDetails {
   tagline?: string;
   overview: string;
   poster_path: string | null;
+  backdrop_path?: string | null;
   first_air_date?: string;
   /** ISO 639-1 */
   original_language?: string;
   vote_average: number;
   vote_count: number;
   number_of_seasons: number;
-  number_of_episodes?: number;
   episode_run_time: number[];
-  networks?: TmdbNetwork[];
   genres: TmdbGenre[];
   status: string;
   "watch/providers"?: {

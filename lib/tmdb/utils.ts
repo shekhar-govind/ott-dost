@@ -60,7 +60,7 @@ export function formatOriginalLanguage(
 
 export function getPosterUrl(
   posterPath: string | null | undefined,
-  size: "w92" | "w185" | "w500" = "w92",
+  size: "w92" | "w185" | "w500" | "w780" = "w92",
 ): string | null {
   if (!posterPath) return null;
   return `${TMDB_IMAGE_BASE}/${size}${posterPath}`;
@@ -213,31 +213,6 @@ export function getTagline(tagline: string | null | undefined): string | null {
   return trimmed || null;
 }
 
-export function formatEpisodeCount(
-  count: number | null | undefined,
-): string | null {
-  if (count == null || !Number.isFinite(count) || count <= 0) return null;
-  return count === 1 ? "1 episode" : `${count} episodes`;
-}
-
-export function mapNetworkNames(
-  networks: { name: string }[] | null | undefined,
-): string[] {
-  if (!networks?.length) return [];
-
-  const seen = new Set<string>();
-  const names: string[] = [];
-
-  for (const network of networks) {
-    const name = network.name?.trim();
-    if (!name || seen.has(name)) continue;
-    seen.add(name);
-    names.push(name);
-  }
-
-  return names;
-}
-
 export function formatVoteCount(count: number | null | undefined): string | null {
   if (count == null || !Number.isFinite(count) || count <= 0) return null;
   const formatted = new Intl.NumberFormat("en-IN", {
@@ -349,27 +324,19 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
     releaseDate,
     overview: movie.overview,
     posterUrl: getPosterUrl(movie.poster_path, "w500"),
+    backdropUrl: getPosterUrl(movie.backdrop_path, "w780"),
     rating: movie.vote_average > 0 ? movie.vote_average : null,
     voteCount: movie.vote_count > 0 ? movie.vote_count : null,
     languageLabel: formatOriginalLanguage(movie.original_language),
     runtime: formatRuntime(movie.runtime),
     genres: movie.genres.map((genre) => genre.name),
     status: movie.status ?? null,
-    episodeCount: null,
-    networkNames: [],
     watchAvailability: mapWatchAvailability(movie),
   };
 }
 
 export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
   const releaseDate = show.first_air_date ?? null;
-  const episodeCount =
-    show.number_of_episodes != null &&
-    Number.isFinite(show.number_of_episodes) &&
-    show.number_of_episodes > 0
-      ? show.number_of_episodes
-      : null;
-
   return {
     id: show.id,
     mediaType: "tv",
@@ -380,14 +347,13 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     releaseDate,
     overview: show.overview,
     posterUrl: getPosterUrl(show.poster_path, "w500"),
+    backdropUrl: getPosterUrl(show.backdrop_path, "w780"),
     rating: show.vote_average > 0 ? show.vote_average : null,
     voteCount: show.vote_count > 0 ? show.vote_count : null,
     languageLabel: formatOriginalLanguage(show.original_language),
     runtime: formatTvRuntime(show),
     genres: show.genres.map((genre) => genre.name),
     status: show.status || null,
-    episodeCount,
-    networkNames: mapNetworkNames(show.networks),
     watchAvailability: mapWatchAvailability(show),
   };
 }
