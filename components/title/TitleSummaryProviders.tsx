@@ -17,7 +17,6 @@ export function TitleSummaryProviders({ availability }: TitleSummaryProvidersPro
         <p className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-600">
           Not available on any OTT platform in India right now.
         </p>
-        <WatchOptionsLink link={availability.link} />
       </div>
     );
   }
@@ -41,24 +40,7 @@ export function TitleSummaryProviders({ availability }: TitleSummaryProvidersPro
       )}
 
       {buy.length > 0 && <ProviderGroup label="Buy on" providers={buy} />}
-
-      <WatchOptionsLink link={availability.link} />
     </div>
-  );
-}
-
-function WatchOptionsLink({ link }: { link: string | null }) {
-  if (!link) return null;
-
-  return (
-    <a
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="mt-3 inline-flex text-sm font-medium text-zinc-700 underline-offset-2 hover:underline"
-    >
-      See all watch options
-    </a>
   );
 }
 

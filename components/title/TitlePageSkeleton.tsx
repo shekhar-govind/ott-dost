@@ -18,6 +18,8 @@ export function TitlePageSkeleton() {
         <div className="min-w-0 flex-1 space-y-3">
           <header className="space-y-2">
             <div className="h-7 w-[min(100%,14rem)] animate-pulse rounded-md bg-zinc-100 motion-reduce:animate-none sm:h-8" />
+            <div className="h-3.5 w-40 max-w-full animate-pulse rounded bg-zinc-100/80 motion-reduce:animate-none" />
+            <div className="h-3 w-56 max-w-full animate-pulse rounded bg-zinc-100/70 motion-reduce:animate-none" />
             <div className="h-3 w-48 max-w-full animate-pulse rounded bg-zinc-100/90 motion-reduce:animate-none" />
           </header>
 
@@ -48,6 +50,7 @@ export function TitlePageSkeleton() {
                 />
               ))}
             </div>
+            <div className="mt-3 h-3 w-52 max-w-full animate-pulse rounded bg-zinc-100/80 motion-reduce:animate-none" />
           </div>
         </div>
       </div>

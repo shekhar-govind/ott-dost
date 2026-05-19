@@ -193,6 +193,51 @@ export function getMediaTypeLabel(mediaType: TmdbMediaType): string {
   return mediaType === "movie" ? "Movie" : "TV Series";
 }
 
+export function getAlternateTitle(
+  title: string,
+  originalTitle: string | null | undefined,
+): string | null {
+  const original = originalTitle?.trim();
+  if (!original) return null;
+  if (
+    original.localeCompare(title.trim(), undefined, { sensitivity: "accent" }) ===
+    0
+  ) {
+    return null;
+  }
+  return original;
+}
+
+export function getTagline(tagline: string | null | undefined): string | null {
+  const trimmed = tagline?.trim();
+  return trimmed || null;
+}
+
+export function formatEpisodeCount(
+  count: number | null | undefined,
+): string | null {
+  if (count == null || !Number.isFinite(count) || count <= 0) return null;
+  return count === 1 ? "1 episode" : `${count} episodes`;
+}
+
+export function mapNetworkNames(
+  networks: { name: string }[] | null | undefined,
+): string[] {
+  if (!networks?.length) return [];
+
+  const seen = new Set<string>();
+  const names: string[] = [];
+
+  for (const network of networks) {
+    const name = network.name?.trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+
+  return names;
+}
+
 export function formatVoteCount(count: number | null | undefined): string | null {
   if (count == null || !Number.isFinite(count) || count <= 0) return null;
   const formatted = new Intl.NumberFormat("en-IN", {
@@ -276,12 +321,10 @@ export function mapWatchAvailability(
 ): WatchAvailability {
   const region = details["watch/providers"]?.results?.[WATCH_REGION];
 
-  const link = region?.link?.trim();
   return {
     stream: mapProviderList(region?.flatrate ?? []),
     rent: mapProviderList(region?.rent ?? []),
     buy: mapProviderList(region?.buy ?? []),
-    link: link || null,
   };
 }
 
@@ -300,6 +343,8 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
     id: movie.id,
     mediaType: "movie",
     title: movie.title,
+    originalTitle: getAlternateTitle(movie.title, movie.original_title),
+    tagline: getTagline(movie.tagline),
     year: getYearFromDate(releaseDate ?? undefined),
     releaseDate,
     overview: movie.overview,
@@ -310,17 +355,27 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
     runtime: formatRuntime(movie.runtime),
     genres: movie.genres.map((genre) => genre.name),
     status: movie.status ?? null,
+    episodeCount: null,
+    networkNames: [],
     watchAvailability: mapWatchAvailability(movie),
   };
 }
 
 export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
   const releaseDate = show.first_air_date ?? null;
+  const episodeCount =
+    show.number_of_episodes != null &&
+    Number.isFinite(show.number_of_episodes) &&
+    show.number_of_episodes > 0
+      ? show.number_of_episodes
+      : null;
 
   return {
     id: show.id,
     mediaType: "tv",
     title: show.name,
+    originalTitle: getAlternateTitle(show.name, show.original_name),
+    tagline: getTagline(show.tagline),
     year: getYearFromDate(releaseDate ?? undefined),
     releaseDate,
     overview: show.overview,
@@ -331,6 +386,8 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     runtime: formatTvRuntime(show),
     genres: show.genres.map((genre) => genre.name),
     status: show.status || null,
+    episodeCount,
+    networkNames: mapNetworkNames(show.networks),
     watchAvailability: mapWatchAvailability(show),
   };
 }

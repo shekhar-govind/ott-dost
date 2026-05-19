@@ -97,14 +97,15 @@ export interface WatchAvailability {
   stream: StreamingProvider[];
   rent: StreamingProvider[];
   buy: StreamingProvider[];
-  /** TMDB/JustWatch region page for India when present */
-  link: string | null;
 }
 
 export interface TitleDetail {
   id: number;
   mediaType: TmdbMediaType;
   title: string;
+  /** When different from `title` (localized vs original) */
+  originalTitle: string | null;
+  tagline: string | null;
   year: string | null;
   releaseDate: string | null;
   overview: string;
@@ -115,6 +116,10 @@ export interface TitleDetail {
   runtime: string | null;
   genres: string[];
   status: string | null;
+  /** TV only */
+  episodeCount: number | null;
+  /** TV only */
+  networkNames: string[];
   watchAvailability: WatchAvailability;
 }
 
@@ -136,9 +141,16 @@ export interface TmdbWatchProvidersResult {
   buy?: TmdbWatchProvider[];
 }
 
+export interface TmdbNetwork {
+  id: number;
+  name: string;
+}
+
 export interface TmdbMovieDetails {
   id: number;
   title: string;
+  original_title?: string;
+  tagline?: string;
   overview: string;
   poster_path: string | null;
   release_date?: string;
@@ -157,6 +169,8 @@ export interface TmdbMovieDetails {
 export interface TmdbTvDetails {
   id: number;
   name: string;
+  original_name?: string;
+  tagline?: string;
   overview: string;
   poster_path: string | null;
   first_air_date?: string;
@@ -165,7 +179,9 @@ export interface TmdbTvDetails {
   vote_average: number;
   vote_count: number;
   number_of_seasons: number;
+  number_of_episodes?: number;
   episode_run_time: number[];
+  networks?: TmdbNetwork[];
   genres: TmdbGenre[];
   status: string;
   "watch/providers"?: {

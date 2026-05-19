@@ -1,6 +1,7 @@
-import { buildListMetaLine } from "@/lib/tmdb/utils";
 import type { TitleDetail } from "@/lib/tmdb/types";
+import { TitleSummaryHeader } from "./TitleSummaryHeader";
 import { TitleSummaryProviders } from "./TitleSummaryProviders";
+import { TitleSummaryTvFacts } from "./TitleSummaryTvFacts";
 
 interface TitleSummaryProps {
   detail: TitleDetail;
@@ -12,40 +13,13 @@ export function TitleSummary({
   detail,
   variant = "panel",
 }: TitleSummaryProps) {
-  const titleClass =
-    "text-pretty text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl";
-  const metaLine = [
-    buildListMetaLine({
-      mediaType: detail.mediaType,
-      rating: detail.rating,
-      voteCount: detail.voteCount,
-      releaseDate: detail.releaseDate,
-      languageLabel: detail.languageLabel,
-    }),
-    detail.runtime,
-    detail.status,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
   return (
     <article className="mt-8 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
         <Poster posterUrl={detail.posterUrl} title={detail.title} />
 
         <div className="min-w-0 flex-1">
-          <header className="min-w-0">
-            {variant === "page" ? (
-              <h1 className={titleClass}>{detail.title}</h1>
-            ) : (
-              <h3 className={titleClass}>{detail.title}</h3>
-            )}
-            {metaLine ? (
-              <p className="mt-px text-pretty text-[11px] leading-tight tabular-nums text-zinc-400">
-                {metaLine}
-              </p>
-            ) : null}
-          </header>
+          <TitleSummaryHeader detail={detail} variant={variant} />
 
           {detail.genres.length > 0 && (
             <ul className="mt-3 flex flex-wrap gap-2">
@@ -70,6 +44,7 @@ export function TitleSummary({
 
           <div className="mt-5 border-t border-zinc-100 pt-5">
             <TitleSummaryProviders availability={detail.watchAvailability} />
+            <TitleSummaryTvFacts detail={detail} />
           </div>
         </div>
       </div>
