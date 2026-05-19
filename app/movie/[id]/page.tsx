@@ -8,7 +8,6 @@ interface PageProps {
 }
 
 export const metadata: Metadata = {
-  robots: { index: false, follow: true },
   title: "OTT Dost",
 };
 

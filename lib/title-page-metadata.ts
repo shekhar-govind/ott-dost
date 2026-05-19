@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
-import { buildTitlePath, slugifyTitle } from "@/lib/title-url";
+import { buildTitlePath } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
 
 function clip(text: string, max: number): string {
@@ -24,7 +24,6 @@ export async function buildTitlePageMetadata(
     return { title: "Title not found | OTT Dost" };
   }
 
-  const canonicalSlug = slugifyTitle(detail.title);
   const canonicalPath = buildTitlePath(mediaType, id, detail.title);
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
@@ -49,6 +48,7 @@ export async function buildTitlePageMetadata(
       type: "website",
       ...(detail.posterUrl ? { images: [{ url: detail.posterUrl }] } : {}),
     },
-    robots: slugParam === canonicalSlug ? undefined : { index: false },
+    // Beta: was only noindex for non-canonical URLs; block all until launch.
+    robots: { index: false, follow: false },
   };
 }
