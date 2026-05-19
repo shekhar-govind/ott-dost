@@ -54,17 +54,15 @@ export function SearchBox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const closeDropdownForItem = useCallback(
-    (item: SearchTitle) => {
-      onQueryChange(item.title);
-      setIsOpen(false);
-    },
-    [onQueryChange],
-  );
+  const closeDropdownForItem = useCallback(() => {
+    onQueryChange("");
+    onClear?.();
+    setIsOpen(false);
+  }, [onClear, onQueryChange]);
 
   const handlePickItem = useCallback(
     (item: SearchTitle) => {
-      closeDropdownForItem(item);
+      closeDropdownForItem();
       saveRouteScrollPosition(getRouteUrl());
       router.push(titlePathFromSearchTitle(item));
     },
