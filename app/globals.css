@@ -9,3 +9,24 @@
     overflow-x: clip;
   }
 }
+
+@layer utilities {
+  .browse-row-shimmer {
+    animation: browse-row-shimmer 1.05s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .browse-row-shimmer {
+      animation: none;
+    }
+  }
+}
+
+@keyframes browse-row-shimmer {
+  0% {
+    transform: translateX(-20%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
