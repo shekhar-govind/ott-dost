@@ -18,6 +18,7 @@ export function TitleSummary({
     buildListMetaLine({
       mediaType: detail.mediaType,
       rating: detail.rating,
+      voteCount: detail.voteCount,
       releaseDate: detail.releaseDate,
       languageLabel: detail.languageLabel,
     }),

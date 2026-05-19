@@ -97,6 +97,8 @@ export interface WatchAvailability {
   stream: StreamingProvider[];
   rent: StreamingProvider[];
   buy: StreamingProvider[];
+  /** TMDB/JustWatch region page for India when present */
+  link: string | null;
 }
 
 export interface TitleDetail {

@@ -193,16 +193,26 @@ export function getMediaTypeLabel(mediaType: TmdbMediaType): string {
   return mediaType === "movie" ? "Movie" : "TV Series";
 }
 
-/** Meta row shared by list cards and title summary: type · rating · date · language */
+export function formatVoteCount(count: number | null | undefined): string | null {
+  if (count == null || !Number.isFinite(count) || count <= 0) return null;
+  const formatted = new Intl.NumberFormat("en-IN", {
+    notation: "compact",
+  }).format(count);
+  return `${formatted} ratings`;
+}
+
+/** Meta row shared by list cards and title summary: type · rating · votes · date · language */
 export function buildListMetaLine(parts: {
   mediaType: TmdbMediaType;
   rating: number | null;
+  voteCount?: number | null;
   releaseDate: string | null;
   languageLabel: string | null;
 }): string {
   return [
     getMediaTypeLabel(parts.mediaType),
     ...(parts.rating !== null ? [`${parts.rating.toFixed(1)} / 10`] : []),
+    formatVoteCount(parts.voteCount),
     formatReleaseDate(parts.releaseDate),
     parts.languageLabel,
   ]
@@ -266,10 +276,12 @@ export function mapWatchAvailability(
 ): WatchAvailability {
   const region = details["watch/providers"]?.results?.[WATCH_REGION];
 
+  const link = region?.link?.trim();
   return {
     stream: mapProviderList(region?.flatrate ?? []),
     rent: mapProviderList(region?.rent ?? []),
     buy: mapProviderList(region?.buy ?? []),
+    link: link || null,
   };
 }
 
