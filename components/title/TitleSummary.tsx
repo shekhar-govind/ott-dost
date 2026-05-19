@@ -40,7 +40,7 @@ export function TitleSummary({
               <h3 className={titleClass}>{detail.title}</h3>
             )}
             {metaLine ? (
-              <p className="mt-px min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-tight tabular-nums text-zinc-400">
+              <p className="mt-px text-pretty text-[11px] leading-tight tabular-nums text-zinc-400">
                 {metaLine}
               </p>
             ) : null}
