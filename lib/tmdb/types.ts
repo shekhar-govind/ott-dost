@@ -108,8 +108,22 @@ export interface TmdbCastMember {
   profile_path?: string | null;
 }
 
+export interface TmdbCrewMember {
+  id: number;
+  name: string;
+  job?: string;
+  department?: string;
+  profile_path?: string | null;
+}
+
+export interface CrewCredit {
+  job: string;
+  names: string;
+}
+
 export interface TmdbCredits {
   cast?: TmdbCastMember[];
+  crew?: TmdbCrewMember[];
 }
 
 export interface WatchAvailability {
@@ -138,6 +152,7 @@ export interface TitleDetail {
   status: string | null;
   watchAvailability: WatchAvailability;
   cast: CastMember[];
+  crew: CrewCredit[];
 }
 
 interface TmdbGenre {

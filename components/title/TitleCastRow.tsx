@@ -1,10 +1,33 @@
 import type { CastMember } from "@/lib/tmdb/types";
 
-interface TitleCastRowProps {
+interface TitleCastScrollerProps {
   cast: CastMember[];
 }
 
-export function TitleCastRow({ cast }: TitleCastRowProps) {
+export function TitleCastScroller({ cast }: TitleCastScrollerProps) {
+  if (cast.length === 0) return null;
+
+  return (
+    <ul className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {cast.map((person) => (
+        <li key={person.id} className="w-[4.75rem] shrink-0 sm:w-24">
+          <CastPhoto person={person} />
+          <p className="mt-2 truncate text-xs font-medium text-zinc-900">
+            {person.name}
+          </p>
+          {person.character ? (
+            <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500">
+              {person.character}
+            </p>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Standalone cast section (e.g. panel layouts). */
+export function TitleCastRow({ cast }: TitleCastScrollerProps) {
   if (cast.length === 0) return null;
 
   return (
@@ -15,21 +38,9 @@ export function TitleCastRow({ cast }: TitleCastRowProps) {
       >
         Cast
       </h2>
-      <ul className="mt-3 flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {cast.map((person) => (
-          <li key={person.id} className="w-[4.75rem] shrink-0 sm:w-24">
-            <CastPhoto person={person} />
-            <p className="mt-2 truncate text-xs font-medium text-zinc-900">
-              {person.name}
-            </p>
-            {person.character ? (
-              <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500">
-                {person.character}
-              </p>
-            ) : null}
-          </li>
-        ))}
-      </ul>
+      <div className="mt-3">
+        <TitleCastScroller cast={cast} />
+      </div>
     </section>
   );
 }

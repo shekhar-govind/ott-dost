@@ -2,8 +2,9 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath, slugifyTitle } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
-import { TitleCastRow } from "./TitleCastRow";
+import { TitlePeopleSection } from "./TitlePeopleSection";
 import { TitleSummary } from "./TitleSummary";
+import { TitleWatchCard } from "./TitleWatchCard";
 
 interface TitlePageContentProps {
   mediaType: TmdbMediaType;
@@ -34,7 +35,8 @@ export async function TitlePageContent({
   return (
     <>
       <TitleSummary detail={detail} variant="page" />
-      <TitleCastRow cast={detail.cast} />
+      <TitleWatchCard availability={detail.watchAvailability} />
+      <TitlePeopleSection cast={detail.cast} crew={detail.crew} />
     </>
   );
 }

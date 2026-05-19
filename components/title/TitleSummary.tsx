@@ -79,9 +79,11 @@ function TitleSummaryBody({
         <p className="mt-4 text-sm text-zinc-500">No synopsis available.</p>
       )}
 
-      <div className="mt-5 border-t border-zinc-100 pt-5">
-        <TitleSummaryProviders availability={detail.watchAvailability} />
-      </div>
+      {variant === "panel" ? (
+        <div className="mt-5 border-t border-zinc-100 pt-5">
+          <TitleSummaryProviders availability={detail.watchAvailability} />
+        </div>
+      ) : null}
     </>
   );
 }

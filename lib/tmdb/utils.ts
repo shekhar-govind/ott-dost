@@ -1,6 +1,7 @@
 import { TMDB_IMAGE_BASE } from "./constants";
 import type {
   CastMember,
+  CrewCredit,
   SearchTitle,
   StreamingProvider,
   TitleDetail,
@@ -306,6 +307,31 @@ export function mapWatchAvailability(
 }
 
 const TOP_CAST_LIMIT = 10;
+const MAIN_CREW_LIMIT = 8;
+const MAX_NAMES_PER_JOB = 3;
+
+const CREW_JOB_PRIORITY = [
+  "Director",
+  "Co-Director",
+  "Screenplay",
+  "Writer",
+  "Screenwriter",
+  "Story",
+  "Novel",
+  "Producer",
+  "Executive Producer",
+  "Co-Producer",
+  "Composer",
+  "Original Music Composer",
+  "Director of Photography",
+  "Editor",
+];
+
+function crewJobSortKey(job: string): number {
+  const lower = job.toLowerCase();
+  const idx = CREW_JOB_PRIORITY.findIndex((label) => label.toLowerCase() === lower);
+  return idx === -1 ? 500 : idx;
+}
 
 export function mapTopCast(credits?: TmdbCredits | null): CastMember[] {
   const cast = credits?.cast;
@@ -321,6 +347,43 @@ export function mapTopCast(credits?: TmdbCredits | null): CastMember[] {
       character: member.character?.trim() ?? "",
       profileUrl: getPosterUrl(member.profile_path, "w185"),
     }));
+}
+
+export function mapMainCrew(credits?: TmdbCredits | null): CrewCredit[] {
+  const crew = credits?.crew;
+  if (!crew?.length) return [];
+
+  const namesByJob = new Map<string, string[]>();
+
+  for (const member of crew) {
+    const job = member.job?.trim();
+    const name = member.name?.trim();
+    if (!job || !name) continue;
+
+    const names = namesByJob.get(job) ?? [];
+    if (!names.includes(name)) {
+      names.push(name);
+    }
+    namesByJob.set(job, names);
+  }
+
+  return [...namesByJob.entries()]
+    .sort(([jobA], [jobB]) => {
+      const byPriority = crewJobSortKey(jobA) - crewJobSortKey(jobB);
+      return byPriority !== 0 ? byPriority : jobA.localeCompare(jobB);
+    })
+    .slice(0, MAIN_CREW_LIMIT)
+    .map(([job, names]) => {
+      const listed = names.slice(0, MAX_NAMES_PER_JOB);
+      const suffix =
+        names.length > MAX_NAMES_PER_JOB
+          ? ` +${names.length - MAX_NAMES_PER_JOB} more`
+          : "";
+      return {
+        job,
+        names: `${listed.join(", ")}${suffix}`,
+      };
+    });
 }
 
 export function hasWatchAvailability(availability: WatchAvailability): boolean {
@@ -353,6 +416,7 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
     status: movie.status ?? null,
     watchAvailability: mapWatchAvailability(movie),
     cast: mapTopCast(movie.credits),
+    crew: mapMainCrew(movie.credits),
   };
 }
 
@@ -377,5 +441,6 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     status: show.status || null,
     watchAvailability: mapWatchAvailability(show),
     cast: mapTopCast(show.credits),
+    crew: mapMainCrew(show.credits),
   };
 }
