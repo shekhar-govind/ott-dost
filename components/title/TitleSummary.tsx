@@ -18,7 +18,7 @@ export function TitleSummary({
 
   if (backdropUrl) {
     return (
-      <article className="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+      <article className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
         <TitleSummaryBackdrop backdropUrl={backdropUrl} title={detail.title} />
 
         <div className="relative z-10 px-4 pb-4 sm:px-6 sm:pb-6">
@@ -35,7 +35,7 @@ export function TitleSummary({
   }
 
   return (
-    <article className="mt-8 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+    <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
         <Poster posterUrl={detail.posterUrl} title={detail.title} />
 

@@ -15,9 +15,16 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
+const TITLE_DETAIL_PATH = /^\/(?:movie|tv)\/\d+\/[^/]+$/;
+
+function usesSearchShell(pathname: string): boolean {
+  return pathname === "/" || TITLE_DETAIL_PATH.test(pathname);
+}
+
 export function AppMainShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const showSearchShell = usesSearchShell(pathname);
   const isDesignPreview = pathname.startsWith("/design/");
   const [query, setQuery] = useState("");
   /** Routes the user has left at least once (skip restore on first visit). */
@@ -153,8 +160,16 @@ export function AppMainShell({ children }: { children: ReactNode }) {
     return <main className="flex w-full flex-1 flex-col">{children}</main>;
   }
 
+  const mainClassName =
+    "mx-auto flex w-full max-w-xl flex-1 flex-col px-4 sm:max-w-2xl sm:px-6 lg:max-w-3xl lg:px-8 " +
+    (showSearchShell ? "py-10 sm:py-16 lg:py-20" : "py-8 sm:py-12");
+
+  if (!showSearchShell) {
+    return <main className={mainClassName}>{children}</main>;
+  }
+
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-4 py-10 sm:max-w-2xl sm:px-6 sm:py-16 lg:max-w-3xl lg:px-8 lg:py-20">
+    <main className={mainClassName}>
       <SiteSearchPanel
         query={query}
         onQueryChange={setQuery}

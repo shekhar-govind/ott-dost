@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { AppMainShell } from "@/components/layout/AppMainShell";
 import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader";
+import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="flex min-h-dvh flex-col bg-zinc-50 text-zinc-900 antialiased">
         <ConditionalSiteHeader />
         <AppMainShell>{children}</AppMainShell>
+        <ConditionalSiteFooter />
       </body>
     </html>
   );

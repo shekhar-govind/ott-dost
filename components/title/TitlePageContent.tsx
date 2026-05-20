@@ -2,6 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath, slugifyTitle } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
+import { TitleBackHomeLink } from "./TitleBackHomeLink";
 import { TitlePeopleSection } from "./TitlePeopleSection";
 import { TitleRecommendations } from "./TitleRecommendations";
 import { TitleSummary } from "./TitleSummary";
@@ -36,7 +37,10 @@ export async function TitlePageContent({
 
   return (
     <>
-      <TitleSummary detail={detail} variant="page" />
+      <div className="mt-3 space-y-3">
+        <TitleBackHomeLink />
+        <TitleSummary detail={detail} variant="page" />
+      </div>
       {detail.trailer ? <TitleTrailer trailer={detail.trailer} /> : null}
       <TitleWatchCard availability={detail.watchAvailability} />
       <TitlePeopleSection cast={detail.cast} crew={detail.crew} />
