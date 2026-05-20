@@ -73,8 +73,20 @@ export default function PrivacyPage() {
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-zinc-800">Analytics</h2>
         <p>
-          We may add privacy-friendly analytics later to understand general usage.
-          If we do, this page will be updated to describe what is measured.
+          We use{" "}
+          <a
+            href="https://vercel.com/docs/analytics"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900"
+          >
+            Vercel Web Analytics
+          </a>{" "}
+          to understand general usage (for example which pages are visited, where
+          traffic comes from, and device or browser types). This helps us improve
+          the site. Vercel Analytics does not use cookies for basic page-view
+          tracking and does not build a personal profile of you across other
+          websites.
         </p>
       </section>
 
