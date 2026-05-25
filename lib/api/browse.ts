@@ -1,12 +1,34 @@
-import {
-  browseDebug,
-  logBrowseApiResponse,
-  summarizeBrowseItem,
-} from "@/lib/browse/debug";
+import { browseDebug } from "@/lib/browse/debug";
 import type { BrowseFilters } from "@/lib/browse/filters";
 import { serializeBrowseFilters } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
-import type { BrowsePage } from "@/lib/tmdb/types";
+import type { BrowsePage, StreamingProvider, TmdbMediaType } from "@/lib/tmdb/types";
+
+export interface BrowseWatchProvidersBatchItem {
+  id: number;
+  mediaType: TmdbMediaType;
+}
+
+export async function fetchBrowseWatchProviders(
+  items: BrowseWatchProvidersBatchItem[],
+  signal?: AbortSignal,
+): Promise<Record<string, StreamingProvider[]>> {
+  if (items.length === 0) return {};
+
+  const response = await fetch("/api/browse/watch-providers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error("Watch providers request failed");
+  }
+
+  const data = (await response.json()) as { providers: Record<string, StreamingProvider[]> };
+  return data.providers ?? {};
+}
 
 export async function fetchBrowsePage(
   page: number,
@@ -35,16 +57,7 @@ export async function fetchBrowsePage(
     throw new Error("Browse request failed");
   }
 
-  const data = (await response.json()) as BrowsePage;
-  logBrowseApiResponse("response", {
-    page: data.page,
-    totalPages: data.totalPages,
-    itemCount: data.items.length,
-    hasMore: data.hasMore,
-    items: data.items.map(summarizeBrowseItem),
-  });
-  browseDebug("Browse API response", data);
-  return data;
+  return (await response.json()) as BrowsePage;
 }
 
 export async function fetchBrowseFilterMeta(

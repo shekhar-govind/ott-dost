@@ -1,8 +1,4 @@
-import {
-  browseDebug,
-  logBrowseApiResponse,
-  summarizeBrowseItem,
-} from "@/lib/browse/debug";
+import { browseDebug } from "@/lib/browse/debug";
 import { isBrowseLanguageAll } from "@/lib/browse/languages";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
 import {
@@ -64,28 +60,14 @@ export async function GET(request: NextRequest) {
       .sort(compareByReleaseDateDesc)
       .slice(0, PAGE_SIZE);
 
-    const items = candidates;
-
-    browseDebug("Browse API returning items", {
-      page,
-      itemCount: items.length,
-      items: items.map(summarizeBrowseItem),
-    });
-
     const hasMore = page < discoverResponse.total_pages;
-    const payload = {
-      items,
+
+    return NextResponse.json({
+      items: candidates,
       page,
       totalPages: discoverResponse.total_pages,
       hasMore,
-    };
-
-    logBrowseApiResponse("response", {
-      ...payload,
-      items: items.map(summarizeBrowseItem),
     });
-
-    return NextResponse.json(payload);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Browse failed";
 

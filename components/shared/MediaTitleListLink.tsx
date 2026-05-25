@@ -3,7 +3,8 @@
 import { ListItemPoster } from "@/components/shared/ListItemPoster";
 import { MediaListItemBody } from "@/components/shared/MediaListItemBody";
 import { titlePathFromSearchTitle } from "@/lib/title-url";
-import type { SearchTitle } from "@/lib/tmdb/types";
+import type { BrowseStreamLoadState } from "@/hooks/useBrowseStreamProviders";
+import type { SearchTitle, StreamingProvider } from "@/lib/tmdb/types";
 import Link from "next/link";
 import { useLinkStatus } from "next/link";
 import type { MouseEventHandler, TouchEventHandler } from "react";
@@ -34,6 +35,10 @@ const searchLinkClass = cn(
 interface MediaTitleListLinkProps {
   item: SearchTitle;
   variant: MediaTitleListLinkVariant;
+  streamProviders?: StreamingProvider[];
+  streamLoadState?: BrowseStreamLoadState;
+  streamIsLoading?: boolean;
+  onRetryStreamProviders?: () => void;
   /** Search row: keyboard/highlight state */
   isActive?: boolean;
   onMouseEnter?: MouseEventHandler<HTMLAnchorElement>;
@@ -44,9 +49,17 @@ interface MediaTitleListLinkProps {
 function LinkRowSurface({
   item,
   variant,
+  streamProviders,
+  streamLoadState,
+  streamIsLoading,
+  onRetryStreamProviders,
 }: {
   item: SearchTitle;
   variant: MediaTitleListLinkVariant;
+  streamProviders?: StreamingProvider[];
+  streamLoadState?: BrowseStreamLoadState;
+  streamIsLoading?: boolean;
+  onRetryStreamProviders?: () => void;
 }) {
   const { pending } = useLinkStatus();
 
@@ -76,7 +89,14 @@ function LinkRowSurface({
       >
         <ListItemPoster posterUrl={item.posterUrl} title={item.title} />
       </span>
-      <MediaListItemBody item={item} />
+      <MediaListItemBody
+        item={item}
+        variant={variant === "browse" ? "browse" : "default"}
+        streamProviders={streamProviders}
+        streamLoadState={streamLoadState}
+        streamIsLoading={streamIsLoading}
+        onRetryStreamProviders={onRetryStreamProviders}
+      />
     </span>
   );
 }
@@ -84,6 +104,10 @@ function LinkRowSurface({
 export function MediaTitleListLink({
   item,
   variant,
+  streamProviders,
+  streamLoadState,
+  streamIsLoading,
+  onRetryStreamProviders,
   isActive = false,
   onMouseEnter,
   onTouchStart,
@@ -106,7 +130,14 @@ export function MediaTitleListLink({
       onTouchStart={onTouchStart}
       onClick={onClick}
     >
-      <LinkRowSurface item={item} variant={variant} />
+      <LinkRowSurface
+        item={item}
+        variant={variant}
+        streamProviders={streamProviders}
+        streamLoadState={streamLoadState}
+        streamIsLoading={streamIsLoading}
+        onRetryStreamProviders={onRetryStreamProviders}
+      />
     </Link>
   );
 }

@@ -1,18 +1,30 @@
-import type { SearchTitle } from "@/lib/tmdb/types";
+import { BrowseStreamRow } from "@/components/shared/BrowseStreamRow";
+import type { BrowseStreamLoadState } from "@/hooks/useBrowseStreamProviders";
+import type { SearchTitle, StreamingProvider } from "@/lib/tmdb/types";
 import { buildListMetaLine } from "@/lib/tmdb/utils";
 import { StreamOnLabel } from "./StreamOnLabel";
 
 interface MediaListItemBodyProps {
   item: SearchTitle;
+  variant?: "browse" | "default";
+  streamProviders?: StreamingProvider[];
+  streamLoadState?: BrowseStreamLoadState;
+  streamIsLoading?: boolean;
+  onRetryStreamProviders?: () => void;
   /**
    * When true, show the stream row even if empty (e.g. “not on OTT”).
-   * Browse omits this row; title detail uses {@link TitleSummaryProviders} instead.
+   * Browse uses a fixed slot via {@link BrowseStreamRow}; title detail uses {@link TitleSummaryProviders}.
    */
   showStreamWhenEmpty?: boolean;
 }
 
 export function MediaListItemBody({
   item,
+  variant = "default",
+  streamProviders,
+  streamLoadState = "pending",
+  streamIsLoading = false,
+  onRetryStreamProviders,
   showStreamWhenEmpty = false,
 }: MediaListItemBodyProps) {
   const metaLine = buildListMetaLine({
@@ -24,8 +36,9 @@ export function MediaListItemBody({
 
   const overview = item.overview?.trim();
 
-  const showStream =
-    item.streamProviders.length > 0 || showStreamWhenEmpty;
+  const resolvedProviders = streamProviders ?? item.streamProviders;
+  const showDefaultStream =
+    resolvedProviders.length > 0 || showStreamWhenEmpty;
 
   return (
     <div className="min-w-0 flex-1">
@@ -45,8 +58,15 @@ export function MediaListItemBody({
           {item.genres.join(" · ")}
         </p>
       ) : null}
-      {showStream ? (
-        <StreamOnLabel providers={item.streamProviders} density="compact" />
+      {variant === "browse" ? (
+        <BrowseStreamRow
+          providers={resolvedProviders}
+          loadState={streamLoadState}
+          isLoading={streamIsLoading}
+          onRetry={onRetryStreamProviders}
+        />
+      ) : showDefaultStream ? (
+        <StreamOnLabel providers={resolvedProviders} density="compact" />
       ) : null}
     </div>
   );

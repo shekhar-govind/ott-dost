@@ -12,10 +12,11 @@ import {
 } from "@/lib/browse/filters";
 import { browseItemKey } from "@/lib/browse/items";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { sanitizeBrowseFiltersForMediaType } from "./filters/browse-filter-utils";
 import { BrowseFilterSheet } from "./filters/BrowseFilterSheet";
 import { BrowseFiltersToolbar } from "./filters/BrowseFiltersToolbar";
+import { BrowseStreamProvidersProvider } from "./BrowseStreamProvidersContext";
 import { BrowseListItem } from "./BrowseListItem";
 import { BrowsePagination } from "./BrowsePagination";
 
@@ -82,6 +83,10 @@ export function BrowseList({
 
   const visuallyHidden = !enabled && preserveStateWhenDisabled;
   const filtersActive = hasNonDefaultBrowseFilters(filters);
+  const streamFilterCacheKey = useMemo(
+    () => serializeBrowseFilters(filters),
+    [filters],
+  );
 
   if (!enabled && !preserveStateWhenDisabled) return null;
 
@@ -131,11 +136,17 @@ export function BrowseList({
             : "No titles with OTT availability on this page."}
         </p>
       ) : (
-        <ul className="space-y-1.5">
-          {items.map((item) => (
-            <BrowseListItem key={browseItemKey(item)} item={item} />
-          ))}
-        </ul>
+        <BrowseStreamProvidersProvider
+          enabled={enabled}
+          items={items}
+          filterCacheKey={streamFilterCacheKey}
+        >
+          <ul className="space-y-1.5">
+            {items.map((item) => (
+              <BrowseListItem key={browseItemKey(item)} item={item} />
+            ))}
+          </ul>
+        </BrowseStreamProvidersProvider>
       )}
 
       {!isDesktop && (
@@ -176,7 +187,7 @@ function BrowseListSkeleton() {
       {Array.from({ length: 5 }).map((_, index) => (
         <li
           key={index}
-          className="min-h-[4.75rem] animate-pulse rounded-lg border border-zinc-100 bg-zinc-100"
+          className="min-h-[6.5rem] animate-pulse rounded-lg border border-zinc-100 bg-zinc-100"
         />
       ))}
     </ul>

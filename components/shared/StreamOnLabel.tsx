@@ -4,11 +4,13 @@ interface StreamOnLabelProps {
   providers: StreamingProvider[];
   /** Tighter logo-only row (browse cards); default adds a bit more breathing room. */
   density?: "default" | "compact";
+  className?: string;
 }
 
 export function StreamOnLabel({
   providers,
   density = "default",
+  className,
 }: StreamOnLabelProps) {
   if (providers.length === 0) {
     return (
@@ -27,7 +29,7 @@ export function StreamOnLabel({
   const isCompact = density === "compact";
 
   return (
-    <div className={isCompact ? "mt-1.5" : "mt-1"}>
+    <div className={className ?? (isCompact ? "mt-1.5" : "mt-1")}>
       <div
         className={`flex min-w-0 items-center gap-1.5 ${isCompact ? "" : "gap-2"}`}
       >

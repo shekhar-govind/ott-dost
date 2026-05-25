@@ -18,20 +18,3 @@ export function browseDebug(label: string, data?: unknown): void {
   console.debug(`${PREFIX} ${label}`, data);
 }
 
-/** Always logs in development (browser + server terminal). */
-export function logBrowseApiResponse(label: string, data: unknown): void {
-  if (process.env.NODE_ENV === "production") return;
-  console.log(`${PREFIX} ${label}`, data);
-}
-
-export function summarizeBrowseItem(item: {
-  id: number;
-  mediaType: string;
-  title: string;
-}) {
-  return {
-    id: item.id,
-    mediaType: item.mediaType,
-    title: item.title,
-  };
-}
