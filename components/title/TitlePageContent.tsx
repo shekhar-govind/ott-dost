@@ -3,7 +3,8 @@ import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath, slugifyTitle } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
 import { TitleBackHomeLink } from "./TitleBackHomeLink";
-import { TitleShareData } from "./TitleShareData";
+import { buildTitleSharePayload } from "@/lib/build-title-share-payload";
+import { TitleSharePayloadSetter } from "@/components/share/TitleSharePayloadSetter";
 import { TitlePeopleSection } from "./TitlePeopleSection";
 import { TitleRecommendations } from "./TitleRecommendations";
 import { TitleSummary } from "./TitleSummary";
@@ -36,9 +37,11 @@ export async function TitlePageContent({
     permanentRedirect(buildTitlePath(mediaType, id, detail.title));
   }
 
+  const sharePayload = buildTitleSharePayload(detail);
+
   return (
     <>
-      <TitleShareData detail={detail} />
+      <TitleSharePayloadSetter payload={sharePayload} />
       <div className="mt-3 space-y-3">
         <TitleBackHomeLink />
         <TitleSummary detail={detail} variant="page" />

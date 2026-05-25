@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { AppMainShell } from "@/components/layout/AppMainShell";
 import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader";
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
+import { SharePayloadProvider } from "@/components/share/SharePayloadProvider";
 import { getSiteBaseUrl } from "@/lib/build-title-share-payload";
 import "./globals.css";
 
@@ -36,9 +37,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="flex min-h-dvh flex-col bg-zinc-50 text-zinc-900 antialiased">
-        <ConditionalSiteHeader />
-        <AppMainShell>{children}</AppMainShell>
-        <ConditionalSiteFooter />
+        <SharePayloadProvider>
+          <ConditionalSiteHeader />
+          <AppMainShell>{children}</AppMainShell>
+          <ConditionalSiteFooter />
+        </SharePayloadProvider>
         <Analytics />
       </body>
     </html>
