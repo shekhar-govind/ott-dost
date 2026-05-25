@@ -88,13 +88,16 @@ export function BrowseList({
     [filters],
   );
 
+  const browseListTitle =
+    filters.mediaType === "tv" ? "Browse TV shows" : "Browse movies";
+
   if (!enabled && !preserveStateWhenDisabled) return null;
 
   return (
     <section
       className={`mt-8 w-full ${visuallyHidden ? "hidden" : ""}`}
       aria-hidden={visuallyHidden}
-      aria-label="Latest movies and TV shows"
+      aria-label={browseListTitle}
     >
       <BrowseFiltersToolbar
         filters={filters}
@@ -106,7 +109,7 @@ export function BrowseList({
 
       <div className="mb-4 flex items-start justify-between gap-3">
         <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
-          Latest movies and TV shows
+          {browseListTitle}
         </h3>
         <button
           type="button"
