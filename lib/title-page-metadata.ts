@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { buildWatchHeadline } from "@/lib/build-title-share-payload";
+import {
+  buildTitleSharePreviewText,
+  buildWatchHeadline,
+  getSiteBaseUrl,
+} from "@/lib/build-title-share-payload";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
@@ -26,25 +30,27 @@ export async function buildTitlePageMetadata(
   }
 
   const canonicalPath = buildTitlePath(mediaType, id, detail.title);
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
+  const baseUrl = getSiteBaseUrl();
+  const pageUrl = baseUrl ? `${baseUrl}${canonicalPath}` : canonicalPath;
 
   const watchHeadline = buildWatchHeadline(detail);
   const title = `${watchHeadline} — where to watch in India | OTT Dost`;
+  const sharePreview = buildTitleSharePreviewText(detail);
 
   const descriptionSource =
-    detail.overview?.trim() ||
-    `${watchHeadline} — streaming, rent, and buy options in India on OTT Dost.`;
+    detail.overview?.trim() || `${sharePreview}. Find on OTT Dost.`;
 
   return {
     title,
     description: clip(descriptionSource, 155),
     alternates: {
-      canonical: baseUrl ? `${baseUrl}${canonicalPath}` : canonicalPath,
+      canonical: pageUrl,
     },
     openGraph: {
-      title,
-      description: clip(descriptionSource, 200),
+      title: watchHeadline,
+      description: clip(sharePreview, 200),
+      siteName: "OTT Dost",
+      url: pageUrl,
       type: "website",
       ...(detail.posterUrl
         ? {
@@ -61,8 +67,8 @@ export async function buildTitlePageMetadata(
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description: clip(descriptionSource, 200),
+      title: watchHeadline,
+      description: clip(sharePreview, 200),
       ...(detail.posterUrl ? { images: [detail.posterUrl] } : {}),
     },
     // Beta: was only noindex for non-canonical URLs; block all until launch.

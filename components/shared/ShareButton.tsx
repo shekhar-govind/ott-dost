@@ -15,7 +15,7 @@ export function ShareButton({ payload: payloadProp, className }: ShareButtonProp
   const visibleLabel = status === "copied" ? "Copied" : "Share";
 
   const defaultAriaLabel = payload?.title
-    ? `Share ${payload.title.replace(/^Watch\s+/, "").replace(/\s*—\s*OTT Dost$/, "")}`
+    ? `Share ${payload.title.replace(/^Watch\s+/, "")}`
     : "Share this page";
 
   const ariaLabel =

@@ -27,9 +27,10 @@ function buildShareData(payload?: SharePayload): ShareData {
   };
 }
 
-function buildClipboardText(data: ShareData): string {
-  return [data.title, data.text, data.url]
-    .filter(Boolean)
+function buildClipboardText(data: ShareData, payload?: SharePayload): string {
+  const body = payload?.clipboardText ?? data.text;
+  return [body, data.url]
+    .filter((part): part is string => Boolean(part))
     .join(`\n${SHARE_TEXT_SEPARATOR}\n`);
 }
 
@@ -50,31 +51,32 @@ async function fetchPosterFile(imageUrl: string): Promise<File | null> {
   }
 }
 
-async function withPosterFile(
+function canShareData(data: ShareData): boolean {
+  return (
+    typeof navigator === "undefined" ||
+    typeof navigator.canShare !== "function" ||
+    navigator.canShare(data)
+  );
+}
+
+async function buildNativeShareData(
   data: ShareData,
   imageUrl: string | undefined,
 ): Promise<ShareData> {
-  if (!imageUrl || typeof navigator.canShare !== "function") {
-    return data;
-  }
+  const file = imageUrl ? await fetchPosterFile(imageUrl) : null;
 
-  const file = await fetchPosterFile(imageUrl);
-  if (!file) return data;
+  const candidates: ShareData[] = file
+    ? [
+        { title: data.title, text: data.text, url: data.url, files: [file] },
+        { title: data.title, text: data.text, url: data.url },
+        { title: data.title, text: data.text, files: [file] },
+      ]
+    : [{ title: data.title, text: data.text, url: data.url }];
 
-  const withFiles: ShareData = {
-    title: data.title,
-    text: data.text,
-    files: [file],
-  };
-
-  // Prefer poster file without URL — some agents attach the page logo when URL is set.
-  if (navigator.canShare(withFiles)) {
-    return withFiles;
-  }
-
-  const withFilesAndUrl: ShareData = { ...withFiles, url: data.url };
-  if (navigator.canShare(withFilesAndUrl)) {
-    return withFilesAndUrl;
+  for (const candidate of candidates) {
+    if (canShareData(candidate)) {
+      return candidate;
+    }
   }
 
   return data;
@@ -95,7 +97,7 @@ export function useShare() {
 
       if (typeof navigator !== "undefined" && navigator.share) {
         try {
-          const shareData = await withPosterFile(data, payload?.imageUrl);
+          const shareData = await buildNativeShareData(data, payload?.imageUrl);
           await navigator.share(shareData);
           setStatus("idle");
           return;
@@ -107,7 +109,7 @@ export function useShare() {
       }
 
       try {
-        await navigator.clipboard.writeText(buildClipboardText(data));
+        await navigator.clipboard.writeText(buildClipboardText(data, payload));
         setStatus("copied");
         clearStatusSoon();
       } catch {

@@ -50,6 +50,11 @@ function formatAvailabilityLine(detail: TitleDetail): string {
   return "Find where to watch in India";
 }
 
+/** One-line subtitle for the mobile share drawer preview. */
+export function buildTitleSharePreviewText(detail: TitleDetail): string {
+  return `${BRAND} · ${formatAvailabilityLine(detail)}`;
+}
+
 export function buildTitleShareText(detail: TitleDetail): string {
   const watchHeadline = buildWatchHeadline(detail);
   const overview = detail.overview?.trim();
@@ -75,8 +80,9 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
       : undefined;
 
   return {
-    title: `${watchHeadline} — ${BRAND}`,
-    text: buildTitleShareText(detail),
+    title: watchHeadline,
+    text: buildTitleSharePreviewText(detail),
+    clipboardText: buildTitleShareText(detail),
     url,
     imageUrl: posterProxyPath,
   };

@@ -4,9 +4,13 @@ import { Analytics } from "@vercel/analytics/react";
 import { AppMainShell } from "@/components/layout/AppMainShell";
 import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader";
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
+import { getSiteBaseUrl } from "@/lib/build-title-share-payload";
 import "./globals.css";
 
+const metadataBase = new URL(getSiteBaseUrl() || "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase,
   title: "OTT Dost",
   description: "Find where to watch movies and shows in India",
   icons: {
