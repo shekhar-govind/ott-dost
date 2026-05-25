@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type { SharePayload } from "@/lib/share-payload";
+import { SHARE_TEXT_SEPARATOR, type SharePayload } from "@/lib/share-payload";
 
 export type { SharePayload } from "@/lib/share-payload";
 
@@ -28,7 +28,9 @@ function buildShareData(payload?: SharePayload): ShareData {
 }
 
 function buildClipboardText(data: ShareData): string {
-  return [data.title, data.text, data.url].filter(Boolean).join("\n\n");
+  return [data.title, data.text, data.url]
+    .filter(Boolean)
+    .join(`\n${SHARE_TEXT_SEPARATOR}\n`);
 }
 
 async function fetchPosterFile(imageUrl: string): Promise<File | null> {

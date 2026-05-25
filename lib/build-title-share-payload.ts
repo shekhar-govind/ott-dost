@@ -1,4 +1,4 @@
-import type { SharePayload } from "@/lib/share-payload";
+import { SHARE_TEXT_SEPARATOR, type SharePayload } from "@/lib/share-payload";
 import { buildSharePosterProxyPath } from "@/lib/share-poster-url";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TitleDetail } from "@/lib/tmdb/types";
@@ -19,6 +19,10 @@ export function buildWatchHeadline(detail: TitleDetail): string {
 }
 
 const BRAND = "OTT Dost";
+
+function joinShareBlocks(blocks: string[]): string {
+  return blocks.filter(Boolean).join(`\n${SHARE_TEXT_SEPARATOR}\n`);
+}
 
 function formatProviderList(names: string[], max = 5): string {
   const slice = names.slice(0, max);
@@ -55,7 +59,7 @@ export function buildTitleShareText(detail: TitleDetail): string {
     lines.push(clip(overview, 200));
   }
 
-  return lines.join("\n\n");
+  return joinShareBlocks(lines);
 }
 
 export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
