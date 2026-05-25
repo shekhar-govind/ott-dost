@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { SiteLogo } from "./SiteLogo";
 
 const TMDB_URL = "https://www.themoviedb.org/";
 
@@ -45,17 +46,7 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-zinc-200/90 bg-gradient-to-b from-zinc-50/40 to-zinc-50">
       <div className="mx-auto w-full max-w-xl px-4 pt-10 pb-8 sm:max-w-2xl sm:px-6 lg:max-w-3xl lg:px-8">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 space-y-1.5">
-            <Link
-              href="/"
-              className="inline-block text-sm font-semibold tracking-tight text-zinc-900 transition-colors hover:text-zinc-600"
-            >
-              OTT Dost
-            </Link>
-            <p className="max-w-xs text-pretty text-xs leading-relaxed text-zinc-500">
-              Find where to watch movies and TV shows in India.
-            </p>
-          </div>
+          <SiteLogo size="footer" />
 
           <nav
             className="flex shrink-0 items-center gap-5 sm:pt-0.5"

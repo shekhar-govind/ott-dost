@@ -9,6 +9,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "OTT Dost",
   description: "Find where to watch movies and shows in India",
+  icons: {
+    icon: [{ url: "/ott-dost-logo.png", type: "image/png" }],
+    apple: [{ url: "/ott-dost-logo.png", type: "image/png" }],
+  },
   // Beta: remove or relax when the site should be publicly indexable.
   robots: {
     index: false,
