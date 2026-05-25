@@ -192,6 +192,297 @@ function SidebarGroup({
   );
 }
 
+function ChevronDownIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path
+        fillRule="evenodd"
+        d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+function MediaTypeSegment({ movieActive = true }: { movieActive?: boolean }) {
+  return (
+    <div
+      className="flex rounded-full border border-zinc-200 bg-white p-0.5 text-[11px] sm:text-xs"
+      role="group"
+      aria-label="Content type (mock)"
+    >
+      <span
+        className={`rounded-full px-2.5 py-1 font-medium sm:px-3 ${
+          movieActive ? "bg-zinc-900 text-white" : "text-zinc-500"
+        }`}
+      >
+        Movies
+      </span>
+      <span
+        className={`rounded-full px-2.5 py-1 font-medium sm:px-3 ${
+          movieActive ? "text-zinc-500" : "bg-zinc-900 text-white"
+        }`}
+      >
+        TV
+      </span>
+    </div>
+  );
+}
+
+/** Production-style solid trigger (today). */
+function CurrentFiltersTrigger({ badge }: { badge?: number }) {
+  return (
+    <button
+      type="button"
+      className="inline-flex items-center rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white"
+    >
+      Filters
+      {badge != null && badge > 0 ? (
+        <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white/20 px-1 text-[10px]">
+          {badge}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+/** Recommended: outline secondary + “More filters” + chevron (opens sheet). */
+function RecommendedFiltersTrigger({
+  badge,
+  expanded = false,
+}: {
+  badge?: number;
+  expanded?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-400 hover:bg-zinc-50"
+    >
+      <span>More filters</span>
+      <ChevronDownIcon
+        className={`h-3.5 w-3.5 shrink-0 text-zinc-500 transition ${expanded ? "rotate-180" : ""}`}
+      />
+      {badge != null && badge > 0 ? (
+        <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-zinc-900 px-1 text-[10px] font-semibold text-white">
+          {badge}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function MockFilterSheetOverlay() {
+  return (
+    <div className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-zinc-200 bg-white px-4 pb-5 pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+      <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-zinc-300" />
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm font-semibold text-zinc-900">Filters</p>
+        <span className="text-sm font-semibold text-zinc-900">Apply</span>
+      </div>
+      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+        Language
+      </p>
+      <div className="mb-4 flex flex-wrap gap-1.5">
+        <Chip active>All</Chip>
+        <Chip>हिं</Chip>
+        <Chip>മല</Chip>
+      </div>
+      <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+        Streaming on
+      </p>
+      <div className="grid grid-cols-4 gap-2">
+        {["N", "P", "D+", "Z"].map((logo, i) => (
+          <div
+            key={logo}
+            className={`flex h-11 items-center justify-center rounded-xl border text-xs font-bold ${
+              i === 0
+                ? "border-zinc-900 bg-zinc-50 ring-2 ring-zinc-900"
+                : "border-zinc-200 bg-white text-zinc-600"
+            }`}
+          >
+            {logo}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ToolbarComparePanel() {
+  return (
+    <div className="mx-auto w-full max-w-lg space-y-6 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-5">
+      <div>
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+          Current
+        </p>
+        <p className="mb-3 text-xs text-zinc-500">
+          Same weight as Movies/TV — reads like another toggle, not “open panel”.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <CurrentFiltersTrigger />
+          <MediaTypeSegment />
+        </div>
+      </div>
+      <div className="border-t border-zinc-200 pt-6">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+          Recommended (option 1 + 3)
+        </p>
+        <p className="mb-3 text-xs text-zinc-500">
+          Outline + “More filters” + chevron ▾ — primary control stays Movies/TV.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <RecommendedFiltersTrigger />
+          <MediaTypeSegment />
+        </div>
+      </div>
+      <div className="border-t border-zinc-200 pt-6">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+          With active refinements
+        </p>
+        <p className="mb-3 text-xs text-zinc-500">
+          Badge moves to dark pill on outline button; chips unchanged below.
+        </p>
+        <div className="space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <RecommendedFiltersTrigger badge={3} />
+            <MediaTypeSegment />
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            <Chip active>Hindi ×</Chip>
+            <Chip active>Netflix ×</Chip>
+            <Chip active>2020–2026 ×</Chip>
+            <span className="shrink-0 py-1 text-xs font-medium text-zinc-500">Clear</span>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-zinc-200 pt-6">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+          Sheet open (chevron rotates)
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <RecommendedFiltersTrigger badge={3} expanded />
+          <MediaTypeSegment />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RecHomeMobile({
+  label,
+  showChips,
+  sheetOpen,
+}: {
+  label: string;
+  showChips?: boolean;
+  sheetOpen?: boolean;
+}) {
+  return (
+    <PhoneFrame
+      label={label}
+      overlay={sheetOpen ? <MockFilterSheetOverlay /> : undefined}
+    >
+      <div className={`px-4 pt-3 ${sheetOpen ? "pb-44" : "pb-4"}`}>
+        <MiniHeader />
+        <Hero />
+        <MockSearch />
+        <div className="mt-4 space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <RecommendedFiltersTrigger badge={showChips ? 3 : undefined} expanded={sheetOpen} />
+            <MediaTypeSegment />
+          </div>
+          {showChips ? (
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+              <Chip active>Hindi ×</Chip>
+              <Chip active>Netflix ×</Chip>
+              <Chip active>2020–2026 ×</Chip>
+              <span className="shrink-0 py-1 text-xs font-medium text-zinc-500">Clear</span>
+            </div>
+          ) : null}
+        </div>
+        <section className="mt-6">
+          <div className="mb-3 flex justify-between">
+            <h3 className="text-sm font-semibold text-zinc-900">Browse movies</h3>
+            <span className="text-xs text-zinc-500">Refresh</span>
+          </div>
+          <MockBrowseList count={2} />
+        </section>
+      </div>
+    </PhoneFrame>
+  );
+}
+
+function RecHomeDesktop({
+  label,
+  showChips,
+  sheetOpen,
+}: {
+  label: string;
+  showChips?: boolean;
+  sheetOpen?: boolean;
+}) {
+  return (
+    <DesktopFrame
+      label={label}
+      overlay={
+        sheetOpen ? (
+          <div className="absolute inset-0 flex items-start justify-center bg-zinc-900/50 pt-10">
+            <div className="mx-4 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-5 shadow-lg">
+              <p className="mb-4 text-lg font-semibold text-zinc-900">Filters</p>
+              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                Language
+              </p>
+              <div className="mb-4 flex flex-wrap gap-1.5">
+                <Chip active>All</Chip>
+                <Chip>हिं</Chip>
+              </div>
+              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                Streaming on
+              </p>
+              <div className="grid grid-cols-4 gap-2">
+                {["N", "P", "D+", "Z"].map((logo) => (
+                  <div
+                    key={logo}
+                    className="flex h-10 items-center justify-center rounded-xl border border-zinc-200 text-xs font-bold text-zinc-600"
+                  >
+                    {logo}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : undefined
+      }
+    >
+      <div className="mx-auto max-w-xl">
+        <Hero />
+        <MockSearch />
+        <div className="mt-4 space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <RecommendedFiltersTrigger badge={showChips ? 3 : undefined} expanded={sheetOpen} />
+            <MediaTypeSegment />
+          </div>
+          {showChips ? (
+            <div className="flex gap-1.5">
+              <Chip active>Hindi ×</Chip>
+              <Chip active>Netflix ×</Chip>
+              <span className="py-1 text-xs font-medium text-zinc-500">Clear</span>
+            </div>
+          ) : null}
+        </div>
+        <MockBrowseList count={2} />
+      </div>
+    </DesktopFrame>
+  );
+}
+
 function Option1Mobile() {
   return (
     <PhoneFrame
@@ -663,6 +954,50 @@ export default function FilterMockupsPage() {
           <p className="mt-2 mb-8 text-sm text-zinc-500">Your current UI before filters are added</p>
           <div className="grid gap-8 lg:grid-cols-2">
             <ReferenceMobile />
+          </div>
+        </section>
+
+        <section className="border-b border-zinc-200 py-12">
+          <div className="mb-8 max-w-3xl">
+            <p className="text-sm font-semibold text-emerald-700">Recommended</p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
+              More filters — outline + chevron
+            </h2>
+            <p className="mt-2 text-sm text-zinc-600">
+              Combines <strong className="font-semibold text-zinc-800">option 1</strong> (clear
+              affordance: “More filters” + ▾) and{" "}
+              <strong className="font-semibold text-zinc-800">option 3</strong> (outline button so
+              Movies/TV stays the only filled control). Badge stays when refinements are active;
+              chevron rotates when the sheet is open.
+            </p>
+            <ul className="mt-4 list-inside list-disc space-y-1 text-sm text-zinc-600">
+              <li>
+                <span className="font-medium text-zinc-800">Idle:</span> white outline pill, no
+                badge
+              </li>
+              <li>
+                <span className="font-medium text-zinc-800">Refinements on:</span> dark count badge
+                on the outline button; chips row unchanged
+              </li>
+              <li>
+                <span className="font-medium text-zinc-800">Tap:</span> bottom sheet (mobile) /
+                centered panel (desktop) — same as today
+              </li>
+            </ul>
+          </div>
+
+          <div className="mb-10">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Side-by-side trigger
+            </p>
+            <ToolbarComparePanel />
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-4">
+            <RecHomeMobile label="Mobile · default" />
+            <RecHomeMobile label="Mobile · filters + chips" showChips />
+            <RecHomeMobile label="Mobile · sheet open" showChips sheetOpen />
+            <RecHomeDesktop label="Desktop · sheet open" showChips sheetOpen />
           </div>
         </section>
 

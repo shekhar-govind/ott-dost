@@ -102,6 +102,7 @@ export function BrowseList({
       <BrowseFiltersToolbar
         filters={filters}
         meta={meta}
+        filtersSheetOpen={sheetOpen}
         onOpenFilters={() => setSheetOpen(true)}
         onFiltersChange={commitBrowseFilters}
         onClearFilters={clearFilters}

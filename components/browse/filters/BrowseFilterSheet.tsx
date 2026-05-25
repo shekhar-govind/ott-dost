@@ -118,6 +118,7 @@ export function BrowseFilterSheet({
 
   const panel = (
     <div
+      id="browse-filter-sheet"
       ref={panelRef}
       role="dialog"
       aria-modal="true"
