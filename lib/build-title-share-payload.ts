@@ -13,14 +13,49 @@ export function getSiteBaseUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
 }
 
-function formatWatchLine(detail: TitleDetail): string {
-  const names = detail.watchAvailability.stream.map((p) => p.name);
-  if (names.length > 0) {
-    const list = names.slice(0, 4).join(", ");
-    const more = names.length > 4 ? ` +${names.length - 4} more` : "";
-    return `Stream on ${list}${more} in India`;
+export function buildWatchHeadline(detail: TitleDetail): string {
+  const name = detail.year ? `${detail.title} (${detail.year})` : detail.title;
+  return `Watch ${name}`;
+}
+
+const BRAND = "OTT Dost";
+
+function formatProviderList(names: string[], max = 5): string {
+  const slice = names.slice(0, max);
+  const more = names.length > max ? ` +${names.length - max} more` : "";
+  return `${slice.join(", ")}${more}`;
+}
+
+function formatAvailabilityLine(detail: TitleDetail): string {
+  const { stream, rent, buy } = detail.watchAvailability;
+  const streamNames = stream.map((p) => p.name);
+  if (streamNames.length > 0) {
+    return `Stream on ${formatProviderList(streamNames)} in India`;
   }
-  return "Find where to watch in India on OTT Dost";
+
+  const rentNames = rent.map((p) => p.name);
+  if (rentNames.length > 0) {
+    return `Rent on ${formatProviderList(rentNames)} in India`;
+  }
+
+  const buyNames = buy.map((p) => p.name);
+  if (buyNames.length > 0) {
+    return `Buy on ${formatProviderList(buyNames)} in India`;
+  }
+
+  return "Find where to watch in India";
+}
+
+export function buildTitleShareText(detail: TitleDetail): string {
+  const watchHeadline = buildWatchHeadline(detail);
+  const overview = detail.overview?.trim();
+
+  const lines = [watchHeadline, BRAND, formatAvailabilityLine(detail)];
+  if (overview) {
+    lines.push(clip(overview, 200));
+  }
+
+  return lines.join("\n\n");
 }
 
 export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
@@ -28,16 +63,7 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
   const baseUrl = getSiteBaseUrl();
   const url = baseUrl ? `${baseUrl}${path}` : path;
 
-  const headline = detail.year
-    ? `${detail.title} (${detail.year})`
-    : detail.title;
-  const mediaLabel = detail.mediaType === "movie" ? "Movie" : "TV show";
-
-  const overview = detail.overview?.trim();
-  const textParts = [
-    `${mediaLabel} · ${formatWatchLine(detail)}`,
-    overview ? clip(overview, 220) : null,
-  ].filter((line): line is string => Boolean(line));
+  const watchHeadline = buildWatchHeadline(detail);
 
   const posterProxyPath =
     detail.posterUrl != null
@@ -45,8 +71,8 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
       : undefined;
 
   return {
-    title: `Watch ${headline} — OTT Dost`,
-    text: textParts.join("\n\n"),
+    title: `${watchHeadline} — ${BRAND}`,
+    text: buildTitleShareText(detail),
     url,
     imageUrl: posterProxyPath,
   };

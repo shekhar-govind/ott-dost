@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildWatchHeadline } from "@/lib/build-title-share-payload";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
@@ -28,12 +29,12 @@ export async function buildTitlePageMetadata(
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
 
-  const headline = `${detail.title}${detail.year ? ` (${detail.year})` : ""}`;
-  const title = `Watch ${headline} — where to watch in India | OTT Dost`;
+  const watchHeadline = buildWatchHeadline(detail);
+  const title = `${watchHeadline} — where to watch in India | OTT Dost`;
 
   const descriptionSource =
     detail.overview?.trim() ||
-    `${detail.title}: streaming, rent, and buy options in India on OTT Dost.`;
+    `${watchHeadline} — streaming, rent, and buy options in India on OTT Dost.`;
 
   return {
     title,
@@ -52,7 +53,7 @@ export async function buildTitlePageMetadata(
                 url: detail.posterUrl,
                 width: 500,
                 height: 750,
-                alt: `${detail.title} poster`,
+                alt: `${watchHeadline} poster`,
               },
             ],
           }
