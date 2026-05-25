@@ -58,7 +58,23 @@ function firstSentence(text: string): string {
 
 const SHARE_OVERVIEW_MAX = 200;
 
-/** First overview sentence for native share `text`, with an ellipsis after it. */
+/** Divider between headline and overview in native share `text`. */
+export const SHARE_TEXT_OVERVIEW_DIVIDER = "---";
+
+function buildTitleShareHeadline(detail: TitleDetail): string {
+  const name = detail.year ? `${detail.title} (${detail.year})` : detail.title;
+  return `${name} - where to watch in India${SHARE_PIPE}${BRAND}`;
+}
+
+/** Native share `text`: headline, ---, first overview sentence (with ellipsis). */
+export function buildTitleShareTextField(detail: TitleDetail): string {
+  const headline = buildTitleShareHeadline(detail);
+  const overview = buildTitleShareOverviewText(detail);
+  if (!overview) return headline;
+  return `${headline}\n${SHARE_TEXT_OVERVIEW_DIVIDER}\n${overview}`;
+}
+
+/** First overview sentence for native share, with an ellipsis after it. */
 export function buildTitleShareOverviewText(detail: TitleDetail): string | undefined {
   const overview = detail.overview?.trim();
   if (!overview) return undefined;
@@ -103,7 +119,7 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
 
   return {
     title: buildShareTitleLine(detail),
-    text: buildTitleShareOverviewText(detail),
+    text: buildTitleShareTextField(detail),
     clipboardText: buildTitleShareClipboardText(detail, shareUrl),
     url,
     imageUrl: posterImageUrl,

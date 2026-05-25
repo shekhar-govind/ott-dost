@@ -10,7 +10,10 @@ export type SharePayload = {
    * (e.g. email subject); also prepended to `text` at share time for Android/iOS/web.
    */
   title?: string;
-  /** Overview sentence; combined with `title` in ShareData.text when sharing. */
+  /**
+   * Native share body, e.g. "{title} ({year}) - where to watch in India | OTT Dost",
+   * "---", then first overview sentence.
+   */
   text?: string;
   /** Full formatted body for clipboard copy. */
   clipboardText?: string;
