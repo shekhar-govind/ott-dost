@@ -26,4 +26,6 @@ export interface BrowseFilterMeta {
   /** TMDB `/watch/providers/tv` ids valid for discover `with_watch_providers`. */
   tvProviders: BrowseOttProvider[];
   languages: BrowseLanguageOption[];
+  indianLanguages: BrowseLanguageOption[];
+  internationalLanguages: BrowseLanguageOption[];
 }

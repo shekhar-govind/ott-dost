@@ -36,18 +36,28 @@ export const INDIAN_OFFICIAL_LANGUAGE_CODES = [
 
 export const ENGLISH_LANGUAGE_CODE = "en";
 
-const INDIAN_BROWSE_LANGUAGE_CODES = new Set<string>([
-  ENGLISH_LANGUAGE_CODE,
-  ...INDIAN_OFFICIAL_LANGUAGE_CODES,
-]);
+const INDIAN_BROWSE_LANGUAGE_CODES = new Set<string>(INDIAN_OFFICIAL_LANGUAGE_CODES);
 
 export function isIndianBrowseLanguageCode(code: string): boolean {
   return INDIAN_BROWSE_LANGUAGE_CODES.has(code.trim().toLowerCase());
 }
 
-/** Valid language filter for URL parsing (`all` or ISO 639-1). */
+/** Non-Indian languages shown as browse filter chips (International section). */
+export const EXTRA_BROWSE_LANGUAGE_CODES = ["en", "es", "ko", "ja"] as const;
+
+export function isExtraBrowseLanguageCode(code: string): boolean {
+  const normalized = code.trim().toLowerCase();
+  return (EXTRA_BROWSE_LANGUAGE_CODES as readonly string[]).includes(normalized);
+}
+
+export function isBrowseLanguageChipCode(code: string): boolean {
+  const normalized = code.trim().toLowerCase();
+  return isIndianBrowseLanguageCode(normalized) || isExtraBrowseLanguageCode(normalized);
+}
+
+/** Valid language filter for URL parsing (`all` or a chip language code). */
 export function isAllowedBrowseLanguageCode(code: string): boolean {
   const normalized = code.trim().toLowerCase();
   if (normalized === BROWSE_LANGUAGE_ALL) return true;
-  return /^[a-z]{2}$/.test(normalized);
+  return isBrowseLanguageChipCode(normalized);
 }

@@ -39,7 +39,6 @@ export function LanguageFilterDropdown({
   const listboxId = useId();
   const searchId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -101,11 +100,7 @@ export function LanguageFilterDropdown({
   }, [open]);
 
   useEffect(() => {
-    if (open) {
-      searchRef.current?.focus();
-    } else {
-      setQuery("");
-    }
+    if (!open) setQuery("");
   }, [open]);
 
   const selectOption = (code: string) => {
@@ -167,7 +162,6 @@ export function LanguageFilterDropdown({
               Search languages
             </label>
             <input
-              ref={searchRef}
               id={searchId}
               type="search"
               value={query}
@@ -175,6 +169,7 @@ export function LanguageFilterDropdown({
               onKeyDown={onSearchKeyDown}
               placeholder="Search languages…"
               autoComplete="off"
+              enterKeyHint="search"
               className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-zinc-300 focus:bg-white"
             />
           </div>

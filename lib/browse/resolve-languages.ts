@@ -1,5 +1,7 @@
 import {
-  ENGLISH_LANGUAGE_CODE,
+  EXTRA_BROWSE_LANGUAGE_CODES,
+  isBrowseLanguageChipCode,
+  isExtraBrowseLanguageCode,
   isIndianBrowseLanguageCode,
 } from "./indian-language-codes";
 import type { BrowseLanguageOption } from "./types";
@@ -50,8 +52,6 @@ function compareIndianBrowseLanguageOptions(
   a: BrowseLanguageOption,
   b: BrowseLanguageOption,
 ): number {
-  if (a.code === ENGLISH_LANGUAGE_CODE) return -1;
-  if (b.code === ENGLISH_LANGUAGE_CODE) return 1;
   return a.romanName.localeCompare(b.romanName);
 }
 
@@ -69,47 +69,66 @@ function mapTmdbLanguageToBrowseOption(
   return { code, nativeName, romanName };
 }
 
-/**
- * Map TMDB languages to browse chips: Indian official languages first, then all
- * other ISO 639-1 languages from TMDB configuration.
- */
-export function mapTmdbLanguagesToBrowseOptions(
+const EXTRA_BROWSE_LANGUAGE_ORDER = new Map<string, number>(
+  EXTRA_BROWSE_LANGUAGE_CODES.map((code, index) => [code, index]),
+);
+
+function compareExtraBrowseLanguageOptions(
+  a: BrowseLanguageOption,
+  b: BrowseLanguageOption,
+): number {
+  const orderA = EXTRA_BROWSE_LANGUAGE_ORDER.get(a.code) ?? 99;
+  const orderB = EXTRA_BROWSE_LANGUAGE_ORDER.get(b.code) ?? 99;
+  return orderA - orderB;
+}
+
+export function buildBrowseLanguageChipSections(
   languages: TmdbConfigurationLanguage[],
-): BrowseLanguageOption[] {
-  const indian: BrowseLanguageOption[] = [];
-  const other: BrowseLanguageOption[] = [];
+): {
+  languages: BrowseLanguageOption[];
+  indianLanguages: BrowseLanguageOption[];
+  internationalLanguages: BrowseLanguageOption[];
+} {
+  const indianLanguages: BrowseLanguageOption[] = [];
+  const internationalLanguages: BrowseLanguageOption[] = [];
   const seen = new Set<string>();
 
   for (const lang of languages) {
     const option = mapTmdbLanguageToBrowseOption(lang);
     if (!option || seen.has(option.code)) continue;
+    if (!isBrowseLanguageChipCode(option.code)) continue;
     seen.add(option.code);
 
     if (isIndianBrowseLanguageCode(option.code)) {
-      indian.push(option);
-    } else {
-      other.push(option);
+      indianLanguages.push(option);
+    } else if (isExtraBrowseLanguageCode(option.code)) {
+      internationalLanguages.push(option);
     }
   }
 
-  indian.sort(compareIndianBrowseLanguageOptions);
-  other.sort((a, b) => a.romanName.localeCompare(b.romanName));
+  indianLanguages.sort(compareIndianBrowseLanguageOptions);
+  internationalLanguages.sort(compareExtraBrowseLanguageOptions);
 
-  return [...indian, ...other];
+  return {
+    languages: [...indianLanguages, ...internationalLanguages],
+    indianLanguages,
+    internationalLanguages,
+  };
+}
+
+/** @deprecated Use {@link buildBrowseLanguageChipSections} */
+export function mapTmdbLanguagesToBrowseOptions(
+  languages: TmdbConfigurationLanguage[],
+): BrowseLanguageOption[] {
+  return buildBrowseLanguageChipSections(languages).languages;
 }
 
 export function splitBrowseLanguageSections(languages: BrowseLanguageOption[]): {
   indian: BrowseLanguageOption[];
   other: BrowseLanguageOption[];
 } {
-  const splitIndex = languages.findIndex(
-    (language) => !isIndianBrowseLanguageCode(language.code),
-  );
-  if (splitIndex === -1) {
-    return { indian: languages, other: [] };
-  }
   return {
-    indian: languages.slice(0, splitIndex),
-    other: languages.slice(splitIndex),
+    indian: languages.filter((language) => isIndianBrowseLanguageCode(language.code)),
+    other: languages.filter((language) => isExtraBrowseLanguageCode(language.code)),
   };
 }

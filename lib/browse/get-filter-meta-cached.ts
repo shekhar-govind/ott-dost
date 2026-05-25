@@ -7,6 +7,6 @@ const SECONDS_PER_DAY = 86_400;
 /** Shared across all users; refreshed at most once per day on the server. */
 export const getBrowseFilterMetaCached = unstable_cache(
   async (): Promise<BrowseFilterMeta> => resolveBrowseFilterMeta(),
-  ["browse-filter-meta", "languages-all-v1", "tmdb-discover-watch-providers-v1", "hotstar-alias-fix"],
+  ["browse-filter-meta", "languages-chips-v3", "tmdb-discover-watch-providers-v1", "hotstar-alias-fix"],
   { revalidate: SECONDS_PER_DAY },
 );

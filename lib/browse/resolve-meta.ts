@@ -1,4 +1,4 @@
-import { mapTmdbLanguagesToBrowseOptions } from "./resolve-languages";
+import { buildBrowseLanguageChipSections } from "./resolve-languages";
 import { resolveBrowseOttProviderMeta } from "./ott-providers";
 import type { BrowseFilterMeta } from "./types";
 import { getTmdbConfigurationLanguages } from "@/lib/tmdb/configuration";
@@ -18,11 +18,15 @@ export async function resolveBrowseFilterMeta(): Promise<BrowseFilterMeta> {
     getTmdbConfigurationLanguages(),
   ]);
 
+  const languageSections = buildBrowseLanguageChipSections(tmdbLanguages);
+
   return {
     movieGenres: mapGenreOptions(movieGenreMap),
     tvGenres: mapGenreOptions(tvGenreMap),
     movieProviders: ottProviders.movieProviders,
     tvProviders: ottProviders.tvProviders,
-    languages: mapTmdbLanguagesToBrowseOptions(tmdbLanguages),
+    languages: languageSections.languages,
+    indianLanguages: languageSections.indianLanguages,
+    internationalLanguages: languageSections.internationalLanguages,
   };
 }

@@ -10,7 +10,10 @@ import {
   getBrowseDatePresets,
   isCustomBrowseDateRangeInvalid,
 } from "@/lib/browse/date-presets";
-import { splitBrowseLanguageSections } from "@/lib/browse/resolve-languages";
+import {
+  BROWSE_LANGUAGE_ALL,
+  getLanguageChipLabel,
+} from "@/lib/browse/languages";
 import { browseDebug } from "@/lib/browse/debug";
 import { filtersAreEqual, type BrowseFilters } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
@@ -20,12 +23,11 @@ import {
   genreOptionsForMediaType,
   providerOptionsForMediaType,
   sanitizeBrowseFiltersForMediaType,
-  setBrowseLanguageFilter,
+  selectLanguage,
   toggleGenre,
   toggleProvider,
 } from "./browse-filter-utils";
 import { FilterChip } from "./FilterChip";
-import { LanguageFilterDropdown } from "./LanguageFilterDropdown";
 import { OttProviderFilterTile } from "./OttProviderFilterTile";
 
 interface BrowseFilterSheetProps {
@@ -71,8 +73,8 @@ export function BrowseFilterSheet({
 
   if (!open) return null;
 
-  const { indian: indianLanguages, other: otherLanguages } =
-    splitBrowseLanguageSections(meta.languages);
+  const indianLanguages = meta.indianLanguages;
+  const internationalLanguages = meta.internationalLanguages;
   const providers = providerOptionsForMediaType(meta, draft.mediaType);
   const genreOptions = genreOptionsForMediaType(meta, draft.mediaType);
   const datePresets = getBrowseDatePresets();
@@ -164,15 +166,39 @@ export function BrowseFilterSheet({
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500">
             Language
           </p>
-          <LanguageFilterDropdown
-            value={draft.language}
-            indianLanguages={indianLanguages}
-            otherLanguages={otherLanguages}
-            allLanguages={meta.languages}
-            onChange={(code) =>
-              setDraft((prev) => setBrowseLanguageFilter(prev, code))
-            }
-          />
+          <div className="flex flex-wrap gap-1.5">
+            {meta.languages.length === 0 ? (
+              <p className="text-xs text-zinc-400">Loading languages…</p>
+            ) : null}
+            <FilterChip
+              label="All"
+              active={draft.language === BROWSE_LANGUAGE_ALL}
+              onClick={() =>
+                setDraft((prev) => selectLanguage(prev, BROWSE_LANGUAGE_ALL))
+              }
+            />
+            {indianLanguages.map((language) => (
+              <FilterChip
+                key={language.code}
+                label={getLanguageChipLabel(language)}
+                active={draft.language === language.code}
+                onClick={() => setDraft((prev) => selectLanguage(prev, language.code))}
+              />
+            ))}
+            {internationalLanguages.length > 0 ? (
+              <span className="w-full basis-full text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+                International
+              </span>
+            ) : null}
+            {internationalLanguages.map((language) => (
+              <FilterChip
+                key={language.code}
+                label={getLanguageChipLabel(language)}
+                active={draft.language === language.code}
+                onClick={() => setDraft((prev) => selectLanguage(prev, language.code))}
+              />
+            ))}
+          </div>
         </section>
 
         <section>

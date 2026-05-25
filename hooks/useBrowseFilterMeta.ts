@@ -2,7 +2,9 @@
 
 import { fetchBrowseFilterMeta } from "@/lib/api/browse";
 import { browseDebug } from "@/lib/browse/debug";
+import { isExtraBrowseLanguageCode } from "@/lib/browse/indian-language-codes";
 import { normalizeBrowseLanguageOptions } from "@/lib/browse/languages";
+import { splitBrowseLanguageSections } from "@/lib/browse/resolve-languages";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
 import { useEffect, useState } from "react";
 
@@ -12,6 +14,8 @@ const EMPTY_META: BrowseFilterMeta = {
   movieProviders: [],
   tvProviders: [],
   languages: [],
+  indianLanguages: [],
+  internationalLanguages: [],
 };
 
 export function useBrowseFilterMeta(enabled: boolean) {
@@ -30,9 +34,19 @@ export function useBrowseFilterMeta(enabled: boolean) {
           movieProviders: loadedMeta.movieProviders.length,
           tvProviders: loadedMeta.tvProviders.length,
         });
+        const languages = normalizeBrowseLanguageOptions(loadedMeta.languages);
+        const indianLanguages = loadedMeta.indianLanguages?.length
+          ? normalizeBrowseLanguageOptions(loadedMeta.indianLanguages)
+          : splitBrowseLanguageSections(languages).indian;
+        const internationalLanguages = loadedMeta.internationalLanguages?.length
+          ? normalizeBrowseLanguageOptions(loadedMeta.internationalLanguages)
+          : splitBrowseLanguageSections(languages).other;
+
         setMeta({
           ...loadedMeta,
-          languages: normalizeBrowseLanguageOptions(loadedMeta.languages),
+          languages,
+          indianLanguages,
+          internationalLanguages,
         });
       })
       .catch(() => {
