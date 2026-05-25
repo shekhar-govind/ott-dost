@@ -7,7 +7,7 @@ export const SHARE_PIPE = " | ";
 export type SharePayload = {
   /** Short headline for the native share sheet preview. */
   title?: string;
-  /** Compact subtitle for the share sheet, e.g. "Watch {title} | OTT Dost". */
+  /** Native share subtitle: first overview sentence, clipped with an ellipsis when long. */
   text?: string;
   /** Full formatted body for clipboard copy. */
   clipboardText?: string;

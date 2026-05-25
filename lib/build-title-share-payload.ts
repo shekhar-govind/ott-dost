@@ -41,8 +41,17 @@ export function appendShareUrlToShareBody(body: string, url: string): string {
   return parts.join(sep);
 }
 
-function joinShareBlocks(blocks: string[]): string {
-  return blocks.filter(Boolean).join(`\n${SHARE_TEXT_SEPARATOR}\n`);
+function firstSentence(text: string): string {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  const match = normalized.match(/^[^.!?]+[.!?]?/);
+  return match ? match[0].trim() : normalized;
+}
+
+/** First overview sentence for native share `text`, clipped with an ellipsis when long. */
+export function buildTitleShareOverviewText(detail: TitleDetail): string | undefined {
+  const overview = detail.overview?.trim();
+  if (!overview) return undefined;
+  return clip(firstSentence(overview), 200);
 }
 
 /** Compact line for OG / share subtitle: "Watch {title} | OTT Dost". */
@@ -50,18 +59,12 @@ export function buildTitleSharePreviewText(detail: TitleDetail): string {
   return buildWatchBrandLine(detail);
 }
 
-export function buildTitleShareText(
+/** Clipboard body: brand headline and page link only (no overview). */
+export function buildTitleShareClipboardText(
   detail: TitleDetail,
   shareUrl: string,
 ): string {
-  const overview = detail.overview?.trim();
-
-  const lines = [appendShareUrlToHeadline(buildWatchBrandLine(detail), shareUrl)];
-  if (overview) {
-    lines.push(clip(overview, 200));
-  }
-
-  return joinShareBlocks(lines);
+  return appendShareUrlToHeadline(buildWatchBrandLine(detail), shareUrl);
 }
 
 export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
@@ -77,8 +80,8 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
 
   return {
     title: buildWatchBrandLine(detail),
-    text: buildWatchBrandLine(detail),
-    clipboardText: buildTitleShareText(detail, shareUrl),
+    text: buildTitleShareOverviewText(detail),
+    clipboardText: buildTitleShareClipboardText(detail, shareUrl),
     url,
     imageUrl: posterProxyPath,
   };
