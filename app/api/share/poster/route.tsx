@@ -5,7 +5,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-const CANVAS = 1200;
+/** Match TMDB poster aspect (2:3) so the image fills the frame edge-to-edge. */
+const CANVAS_WIDTH = 1200;
+const CANVAS_HEIGHT = 1800;
 
 function parseMediaType(value: string | null): TmdbMediaType | null {
   if (value === "movie" || value === "tv") return value;
@@ -32,8 +34,7 @@ export async function GET(request: NextRequest) {
           width: "100%",
           height: "100%",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          overflow: "hidden",
           background: "#27272a",
         }}
       >
@@ -41,16 +42,16 @@ export async function GET(request: NextRequest) {
           src={detail.posterUrl}
           alt=""
           style={{
-            maxHeight: "100%",
-            maxWidth: "100%",
-            objectFit: "contain",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
           }}
         />
       </div>
     ),
     {
-      width: CANVAS,
-      height: CANVAS,
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
       headers: {
         "Cache-Control": "public, max-age=86400, immutable",
       },
