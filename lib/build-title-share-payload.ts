@@ -3,6 +3,7 @@ import {
   SHARE_TEXT_SEPARATOR,
   type SharePayload,
 } from "@/lib/share-payload";
+import { buildSharePosterProxyPath } from "@/lib/share-poster-url";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TitleDetail } from "@/lib/tmdb/types";
 
@@ -69,10 +70,16 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
   const url = baseUrl ? `${baseUrl}${path}` : path;
   const shareUrl = url.startsWith("http") ? url : "";
 
+  const posterProxyPath =
+    detail.posterUrl != null
+      ? buildSharePosterProxyPath(detail.mediaType, detail.id)
+      : undefined;
+
   return {
     title: buildWatchBrandLine(detail),
     text: buildWatchBrandLine(detail),
     clipboardText: buildTitleShareText(detail, shareUrl),
     url,
+    imageUrl: posterProxyPath,
   };
 }

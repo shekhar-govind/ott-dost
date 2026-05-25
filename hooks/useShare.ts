@@ -44,6 +44,60 @@ function buildClipboardText(data: ShareData, payload?: SharePayload): string {
   return appendShareUrlToShareBody(body, data.url);
 }
 
+async function fetchPosterFile(imageUrl: string): Promise<File | null> {
+  const resolved = resolveShareUrl(imageUrl);
+
+  try {
+    const res = await fetch(resolved);
+    if (!res.ok) return null;
+
+    const blob = await res.blob();
+    const ext = blob.type.includes("png") ? "png" : "jpg";
+    return new File([blob], `poster.${ext}`, {
+      type: blob.type || "image/jpeg",
+    });
+  } catch {
+    return null;
+  }
+}
+
+function canShareData(data: ShareData): boolean {
+  return (
+    typeof navigator === "undefined" ||
+    typeof navigator.canShare !== "function" ||
+    navigator.canShare(data)
+  );
+}
+
+async function buildNativeShareData(
+  data: ShareData,
+  imageUrl: string | undefined,
+): Promise<ShareData> {
+  const file = imageUrl ? await fetchPosterFile(imageUrl) : null;
+  const candidates: ShareData[] = [];
+
+  if (file) {
+    if (data.url) {
+      candidates.push({
+        title: data.title,
+        text: data.text,
+        url: data.url,
+        files: [file],
+      });
+    }
+    candidates.push({ title: data.title, text: data.text, files: [file] });
+  }
+  candidates.push(data);
+
+  for (const candidate of candidates) {
+    if (canShareData(candidate)) {
+      return candidate;
+    }
+  }
+
+  return data;
+}
+
 export function useShare() {
   const [status, setStatus] = useState<ShareStatus>("idle");
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,7 +113,8 @@ export function useShare() {
 
       if (typeof navigator !== "undefined" && navigator.share) {
         try {
-          await navigator.share(data);
+          const shareData = await buildNativeShareData(data, payload?.imageUrl);
+          await navigator.share(shareData);
           setStatus("idle");
           return;
         } catch (err) {
