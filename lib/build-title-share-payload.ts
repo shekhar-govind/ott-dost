@@ -1,4 +1,5 @@
 import type { SharePayload } from "@/lib/share-payload";
+import { buildSharePosterProxyPath } from "@/lib/share-poster-url";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TitleDetail } from "@/lib/tmdb/types";
 
@@ -38,10 +39,15 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
     overview ? clip(overview, 220) : null,
   ].filter((line): line is string => Boolean(line));
 
+  const posterProxyPath =
+    detail.posterUrl != null
+      ? buildSharePosterProxyPath(detail.mediaType, detail.id)
+      : undefined;
+
   return {
-    title: `${headline} — OTT Dost`,
+    title: `Watch ${headline} — OTT Dost`,
     text: textParts.join("\n\n"),
     url,
-    imageUrl: detail.posterUrl ?? undefined,
+    imageUrl: posterProxyPath,
   };
 }

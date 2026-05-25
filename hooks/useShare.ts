@@ -31,6 +31,23 @@ function buildClipboardText(data: ShareData): string {
   return [data.title, data.text, data.url].filter(Boolean).join("\n\n");
 }
 
+async function fetchPosterFile(imageUrl: string): Promise<File | null> {
+  const resolved = resolveShareUrl(imageUrl);
+
+  try {
+    const res = await fetch(resolved);
+    if (!res.ok) return null;
+
+    const blob = await res.blob();
+    const ext = blob.type.includes("png") ? "png" : "jpg";
+    return new File([blob], `poster.${ext}`, {
+      type: blob.type || "image/jpeg",
+    });
+  } catch {
+    return null;
+  }
+}
+
 async function withPosterFile(
   data: ShareData,
   imageUrl: string | undefined,
@@ -39,22 +56,23 @@ async function withPosterFile(
     return data;
   }
 
-  try {
-    const res = await fetch(imageUrl);
-    if (!res.ok) return data;
+  const file = await fetchPosterFile(imageUrl);
+  if (!file) return data;
 
-    const blob = await res.blob();
-    const ext = blob.type.includes("png") ? "png" : "jpg";
-    const file = new File([blob], `poster.${ext}`, {
-      type: blob.type || "image/jpeg",
-    });
-    const withFiles: ShareData = { ...data, files: [file] };
+  const withFiles: ShareData = {
+    title: data.title,
+    text: data.text,
+    files: [file],
+  };
 
-    if (navigator.canShare(withFiles)) {
-      return withFiles;
-    }
-  } catch {
-    /* CORS or unsupported — share without image file */
+  // Prefer poster file without URL — some agents attach the page logo when URL is set.
+  if (navigator.canShare(withFiles)) {
+    return withFiles;
+  }
+
+  const withFilesAndUrl: ShareData = { ...withFiles, url: data.url };
+  if (navigator.canShare(withFilesAndUrl)) {
+    return withFilesAndUrl;
   }
 
   return data;

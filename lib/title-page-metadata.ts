@@ -28,9 +28,8 @@ export async function buildTitlePageMetadata(
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
 
-  const title = `${detail.title}${
-    detail.year ? ` (${detail.year})` : ""
-  } — where to watch in India | OTT Dost`;
+  const headline = `${detail.title}${detail.year ? ` (${detail.year})` : ""}`;
+  const title = `Watch ${headline} — where to watch in India | OTT Dost`;
 
   const descriptionSource =
     detail.overview?.trim() ||
@@ -46,7 +45,24 @@ export async function buildTitlePageMetadata(
       title,
       description: clip(descriptionSource, 200),
       type: "website",
-      ...(detail.posterUrl ? { images: [{ url: detail.posterUrl }] } : {}),
+      ...(detail.posterUrl
+        ? {
+            images: [
+              {
+                url: detail.posterUrl,
+                width: 500,
+                height: 750,
+                alt: `${detail.title} poster`,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: clip(descriptionSource, 200),
+      ...(detail.posterUrl ? { images: [detail.posterUrl] } : {}),
     },
     // Beta: was only noindex for non-canonical URLs; block all until launch.
     robots: { index: false, follow: false },
