@@ -39,8 +39,8 @@ export function OttProviderFilterTile({
           {provider.shortLabel}
         </span>
       )}
-      <span className="mt-1 line-clamp-1 w-full text-center text-[9px] font-medium leading-tight text-zinc-500">
-        {provider.name.split(" ")[0]}
+      <span className="mt-1 line-clamp-2 w-full text-center text-[9px] font-medium leading-tight text-zinc-500">
+        {provider.name}
       </span>
     </button>
   );
