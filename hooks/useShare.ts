@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { appendShareUrlToShareBody } from "@/lib/build-title-share-payload";
+import { withNativeShareText } from "@/lib/share-native-text";
 import type { SharePayload } from "@/lib/share-payload";
 
 export type { SharePayload } from "@/lib/share-payload";
@@ -38,7 +39,11 @@ function buildShareData(payload?: SharePayload): ShareData {
 }
 
 function buildClipboardText(data: ShareData, payload?: SharePayload): string {
-  const body = payload?.clipboardText ?? data.text;
+  const body =
+    payload?.clipboardText ??
+    withNativeShareText(data).text ??
+    data.title ??
+    "";
   if (!body) return data.url ?? "";
   if (!data.url || shareTextIncludesUrl(body, data.url)) return body;
   return appendShareUrlToShareBody(body, data.url);
@@ -73,21 +78,22 @@ async function buildNativeShareData(
   data: ShareData,
   imageUrl: string | undefined,
 ): Promise<ShareData> {
+  const share = withNativeShareText(data);
   const file = imageUrl ? await fetchPosterFile(imageUrl) : null;
   const candidates: ShareData[] = [];
 
   if (file) {
-    if (data.url) {
+    if (share.url) {
       candidates.push({
-        title: data.title,
-        text: data.text,
-        url: data.url,
+        title: share.title,
+        text: share.text,
+        url: share.url,
         files: [file],
       });
     }
-    candidates.push({ title: data.title, text: data.text, files: [file] });
+    candidates.push({ title: share.title, text: share.text, files: [file] });
   }
-  candidates.push(data);
+  candidates.push(share);
 
   for (const candidate of candidates) {
     if (canShareData(candidate)) {
@@ -95,7 +101,7 @@ async function buildNativeShareData(
     }
   }
 
-  return data;
+  return share;
 }
 
 export function useShare() {

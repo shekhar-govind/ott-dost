@@ -5,9 +5,12 @@ export const SHARE_TEXT_SEPARATOR = "──────────────�
 export const SHARE_PIPE = " | ";
 
 export type SharePayload = {
-  /** Short headline for the native share sheet preview. */
+  /**
+   * Headline (e.g. "Watch {title} | OTT Dost"). Kept for targets that map it
+   * (e.g. email subject); also prepended to `text` at share time for Android/iOS/web.
+   */
   title?: string;
-  /** Native share subtitle: first overview sentence, clipped with an ellipsis when long. */
+  /** Overview sentence; combined with `title` in ShareData.text when sharing. */
   text?: string;
   /** Full formatted body for clipboard copy. */
   clipboardText?: string;
