@@ -1,4 +1,8 @@
-import { SHARE_TEXT_SEPARATOR, type SharePayload } from "@/lib/share-payload";
+import {
+  SHARE_PIPE,
+  SHARE_TEXT_SEPARATOR,
+  type SharePayload,
+} from "@/lib/share-payload";
 import { buildSharePosterProxyPath } from "@/lib/share-poster-url";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TitleDetail } from "@/lib/tmdb/types";
@@ -21,22 +25,41 @@ export function buildWatchHeadline(detail: TitleDetail): string {
 const BRAND = "OTT Dost";
 
 export function buildWatchBrandLine(detail: TitleDetail): string {
-  return `${buildWatchHeadline(detail)} | ${BRAND}`;
+  return `${buildWatchHeadline(detail)}${SHARE_PIPE}${BRAND}`;
+}
+
+export function appendShareUrlToHeadline(headline: string, url: string): string {
+  if (!url || headline.includes(url)) return headline;
+  return `${headline}${SHARE_PIPE}${url}`;
+}
+
+export function appendShareUrlToShareBody(body: string, url: string): string {
+  const sep = `\n${SHARE_TEXT_SEPARATOR}\n`;
+  const parts = body.split(sep);
+  if (parts.length === 0) return appendShareUrlToHeadline(body, url);
+  parts[0] = appendShareUrlToHeadline(parts[0], url);
+  return parts.join(sep);
 }
 
 function joinShareBlocks(blocks: string[]): string {
   return blocks.filter(Boolean).join(`\n${SHARE_TEXT_SEPARATOR}\n`);
 }
 
-/** Text for the mobile share drawer (Watch headline + brand). */
-export function buildTitleSharePreviewText(detail: TitleDetail): string {
-  return buildWatchBrandLine(detail);
+/** Text for the mobile share drawer (Watch headline + brand + link when known). */
+export function buildTitleSharePreviewText(
+  detail: TitleDetail,
+  shareUrl: string,
+): string {
+  return appendShareUrlToHeadline(buildWatchBrandLine(detail), shareUrl);
 }
 
-export function buildTitleShareText(detail: TitleDetail): string {
+export function buildTitleShareText(
+  detail: TitleDetail,
+  shareUrl: string,
+): string {
   const overview = detail.overview?.trim();
 
-  const lines = [buildWatchBrandLine(detail)];
+  const lines = [appendShareUrlToHeadline(buildWatchBrandLine(detail), shareUrl)];
   if (overview) {
     lines.push(clip(overview, 200));
   }
@@ -48,6 +71,7 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
   const path = buildTitlePath(detail.mediaType, detail.id, detail.title);
   const baseUrl = getSiteBaseUrl();
   const url = baseUrl ? `${baseUrl}${path}` : path;
+  const shareUrl = url.startsWith("http") ? url : "";
 
   const posterProxyPath =
     detail.posterUrl != null
@@ -56,8 +80,8 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
 
   return {
     title: buildWatchBrandLine(detail),
-    text: buildTitleSharePreviewText(detail),
-    clipboardText: buildTitleShareText(detail),
+    text: buildTitleSharePreviewText(detail, shareUrl),
+    clipboardText: buildTitleShareText(detail, shareUrl),
     url,
     imageUrl: posterProxyPath,
   };

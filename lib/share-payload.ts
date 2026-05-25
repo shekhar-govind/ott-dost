@@ -1,6 +1,9 @@
 /** Plain-text line divider for share / clipboard messages. */
 export const SHARE_TEXT_SEPARATOR = "────────────────";
 
+/** Pipe separator between share headline segments. */
+export const SHARE_PIPE = " | ";
+
 export type SharePayload = {
   /** Short headline for the native share sheet preview. */
   title?: string;

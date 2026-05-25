@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { SHARE_TEXT_SEPARATOR, type SharePayload } from "@/lib/share-payload";
+import { appendShareUrlToShareBody } from "@/lib/build-title-share-payload";
+import type { SharePayload } from "@/lib/share-payload";
 
 export type { SharePayload } from "@/lib/share-payload";
 
@@ -18,7 +19,9 @@ function resolveShareUrl(url: string | undefined): string {
 function buildShareData(payload?: SharePayload): ShareData {
   const url = resolveShareUrl(payload?.url);
   const title = payload?.title ?? document.title;
-  const text = payload?.text;
+  const rawText = payload?.text;
+  const text =
+    rawText && url ? appendShareUrlToShareBody(rawText, url) : rawText;
 
   return {
     url,
@@ -29,9 +32,9 @@ function buildShareData(payload?: SharePayload): ShareData {
 
 function buildClipboardText(data: ShareData, payload?: SharePayload): string {
   const body = payload?.clipboardText ?? data.text;
-  return [body, data.url]
-    .filter((part): part is string => Boolean(part))
-    .join(`\n${SHARE_TEXT_SEPARATOR}\n`);
+  if (!body) return data.url ?? "";
+  if (!data.url) return body;
+  return appendShareUrlToShareBody(body, data.url);
 }
 
 async function fetchPosterFile(imageUrl: string): Promise<File | null> {

@@ -36,7 +36,10 @@ export async function buildTitlePageMetadata(
 
   const watchHeadline = buildWatchHeadline(detail);
   const title = `${watchHeadline} — where to watch in India | OTT Dost`;
-  const sharePreview = buildTitleSharePreviewText(detail);
+  const sharePreview = buildTitleSharePreviewText(
+    detail,
+    pageUrl.startsWith("http") ? pageUrl : "",
+  );
 
   const descriptionSource =
     detail.overview?.trim() || `${sharePreview.replace("\n", " — ")}`;
