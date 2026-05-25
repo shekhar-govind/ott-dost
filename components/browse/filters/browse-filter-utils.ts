@@ -1,9 +1,10 @@
 import { browseDebug } from "@/lib/browse/debug";
-import type { BrowseFilters } from "@/lib/browse/filters";
+import type { BrowseFilters, BrowseMediaType } from "@/lib/browse/filters";
 import { defaultBrowseLanguage } from "@/lib/browse/languages";
 import {
   dedupeOttProviderIds,
   findOttPlatformGroup,
+  findOttProviderOption,
   ottProviderIdsMatch,
 } from "@/lib/browse/ott-platform-normalization";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
@@ -20,6 +21,43 @@ export function providerOptionsForMediaType(
   mediaType: BrowseFilters["mediaType"],
 ) {
   return mediaType === "tv" ? meta.tvProviders : meta.movieProviders;
+}
+
+/** Drop genre and OTT ids that are not valid for the current media type. */
+export function sanitizeBrowseFiltersForMediaType(
+  filters: BrowseFilters,
+  meta: BrowseFilterMeta,
+): BrowseFilters {
+  const genreOptions = genreOptionsForMediaType(meta, filters.mediaType);
+  const providerOptions = providerOptionsForMediaType(meta, filters.mediaType);
+
+  const genreIds = filters.genreIds.filter((genreId) =>
+    genreOptions.some((genre) => genre.id === genreId),
+  );
+  const providerIds = dedupeOttProviderIds(
+    filters.providerIds.filter(
+      (providerId) => findOttProviderOption(providerOptions, providerId) !== undefined,
+    ),
+  );
+
+  if (
+    genreIds.length === filters.genreIds.length &&
+    providerIds.length === filters.providerIds.length &&
+    providerIds.every((id, index) => id === filters.providerIds[index])
+  ) {
+    return filters;
+  }
+
+  return { ...filters, genreIds, providerIds };
+}
+
+export function applyBrowseMediaTypeChange(
+  filters: BrowseFilters,
+  mediaType: BrowseMediaType,
+  meta: BrowseFilterMeta,
+): BrowseFilters {
+  if (filters.mediaType === mediaType) return filters;
+  return sanitizeBrowseFiltersForMediaType({ ...filters, mediaType }, meta);
 }
 
 export function removeBrowseFilterChip(

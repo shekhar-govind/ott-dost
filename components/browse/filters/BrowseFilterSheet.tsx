@@ -19,6 +19,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import {
   genreOptionsForMediaType,
   providerOptionsForMediaType,
+  sanitizeBrowseFiltersForMediaType,
   toggleGenre,
   selectLanguage,
   toggleProvider,
@@ -107,7 +108,7 @@ export function BrowseFilterSheet({
       })),
       appliedProviderIds: appliedFilters.providerIds,
     });
-    onApply(draft);
+    onApply(sanitizeBrowseFiltersForMediaType(draft, meta));
     onClose();
   };
 

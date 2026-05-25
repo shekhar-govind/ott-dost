@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:reset": "bash scripts/dev-reset.sh",
+    "reset:cache": "rm -rf .next",
     "build": "next build",
     "start": "next start"
   },

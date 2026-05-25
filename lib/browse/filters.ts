@@ -81,6 +81,7 @@ export function normalizeBrowseMediaType(
   value: string | null | undefined,
 ): BrowseMediaType {
   if (value === "tv") return "tv";
+  if (value === "movie") return "movie";
   return DEFAULT_BROWSE_MEDIA_TYPE;
 }
 
@@ -104,9 +105,7 @@ export function serializeBrowseFilters(filters: BrowseFilters): string {
     params.set("lang", filters.language);
   }
 
-  if (filters.mediaType !== defaults.mediaType) {
-    params.set("type", filters.mediaType);
-  }
+  params.set("type", filters.mediaType);
 
   if (filters.genreIds.length > 0) {
     params.set("genre", filters.genreIds.join(","));
@@ -139,14 +138,13 @@ export function languageMatchesDefault(language: string): boolean {
   return language === defaultBrowseLanguage();
 }
 
-export function countActiveBrowseFilters(filters: BrowseFilters): number {
+/** Sheet filters only (language, genre, date, OTT) — excludes content type. */
+export function countBrowseRefinementFilters(filters: BrowseFilters): number {
   let count = 0;
-  const defaults = DEFAULT_BROWSE_FILTERS;
 
   if (!languageMatchesDefault(filters.language)) {
     count += 1;
   }
-  if (filters.mediaType !== defaults.mediaType) count += 1;
   if (filters.genreIds.length > 0) count += 1;
   if (filters.dateFrom || filters.dateTo) count += 1;
   if (filters.providerIds.length > 0) count += 1;
@@ -154,8 +152,13 @@ export function countActiveBrowseFilters(filters: BrowseFilters): number {
   return count;
 }
 
+/** Badge on the Filters button; content type is always counted. */
+export function countActiveBrowseFilters(filters: BrowseFilters): number {
+  return 1 + countBrowseRefinementFilters(filters);
+}
+
 export function hasNonDefaultBrowseFilters(filters: BrowseFilters): boolean {
-  return countActiveBrowseFilters(filters) > 0;
+  return countBrowseRefinementFilters(filters) > 0;
 }
 
 function resolveDatePresetIdForSerialize(filters: BrowseFilters): string | null {

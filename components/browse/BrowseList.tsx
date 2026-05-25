@@ -5,9 +5,15 @@ import { useBrowseFilters } from "@/hooks/useBrowseFilters";
 import { useBrowseList } from "@/hooks/useBrowseList";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { hasNonDefaultBrowseFilters } from "@/lib/browse/filters";
+import {
+  filtersAreEqual,
+  hasNonDefaultBrowseFilters,
+  serializeBrowseFilters,
+} from "@/lib/browse/filters";
 import { browseItemKey } from "@/lib/browse/items";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { sanitizeBrowseFiltersForMediaType } from "./filters/browse-filter-utils";
 import { BrowseFilterSheet } from "./filters/BrowseFilterSheet";
 import { BrowseFiltersToolbar } from "./filters/BrowseFiltersToolbar";
 import { BrowseListItem } from "./BrowseListItem";
@@ -26,7 +32,26 @@ export function BrowseList({
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [sheetOpen, setSheetOpen] = useState(false);
   const { filters, setFilters, clearFilters } = useBrowseFilters();
+  const searchParams = useSearchParams();
   const { meta } = useBrowseFilterMeta(enabled);
+
+  useEffect(() => {
+    const metaLoaded =
+      meta.movieGenres.length > 0 ||
+      meta.tvGenres.length > 0 ||
+      meta.movieProviders.length > 0 ||
+      meta.tvProviders.length > 0;
+    if (!metaLoaded) return;
+
+    const sanitized = sanitizeBrowseFiltersForMediaType(filters, meta);
+    const canonicalQuery = serializeBrowseFilters(sanitized);
+    const needsSanitize = !filtersAreEqual(sanitized, filters);
+    const needsUrlSync = canonicalQuery !== searchParams.toString();
+
+    if (needsSanitize || needsUrlSync) {
+      setFilters(sanitized);
+    }
+  }, [filters, meta, searchParams, setFilters]);
 
   const {
     items,

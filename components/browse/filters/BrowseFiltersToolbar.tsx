@@ -8,6 +8,7 @@ import {
 } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
 import {
+  applyBrowseMediaTypeChange,
   genreOptionsForMediaType,
   providerOptionsForMediaType,
   removeBrowseFilterChip,
@@ -70,10 +71,9 @@ export function BrowseFiltersToolbar({
               key={segment.value}
               type="button"
               onClick={() =>
-                onFiltersChange({
-                  ...filters,
-                  mediaType: segment.value,
-                })
+                onFiltersChange(
+                  applyBrowseMediaTypeChange(filters, segment.value, meta),
+                )
               }
               className={`rounded-full px-2.5 py-1 font-medium transition sm:px-3 ${
                 filters.mediaType === segment.value
