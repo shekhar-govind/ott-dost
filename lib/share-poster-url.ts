@@ -7,3 +7,12 @@ export function buildSharePosterProxyPath(
 ): string {
   return `/api/share/poster?mediaType=${mediaType}&id=${id}`;
 }
+
+export function buildSharePosterAbsoluteUrl(
+  mediaType: TmdbMediaType,
+  id: number,
+  baseUrl: string,
+): string {
+  const root = baseUrl.replace(/\/$/, "");
+  return `${root}${buildSharePosterProxyPath(mediaType, id)}`;
+}

@@ -4,6 +4,7 @@ import {
   buildWatchHeadline,
   getSiteBaseUrl,
 } from "@/lib/build-title-share-payload";
+import { buildSharePosterAbsoluteUrl } from "@/lib/share-poster-url";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
@@ -38,7 +39,12 @@ export async function buildTitlePageMetadata(
   const sharePreview = buildTitleSharePreviewText(detail);
 
   const descriptionSource =
-    detail.overview?.trim() || `${sharePreview}. Find on OTT Dost.`;
+    detail.overview?.trim() || `${sharePreview.replace("\n", " — ")}`;
+
+  const sharePosterUrl =
+    detail.posterUrl && baseUrl
+      ? buildSharePosterAbsoluteUrl(mediaType, id, baseUrl)
+      : null;
 
   return {
     title,
@@ -52,13 +58,13 @@ export async function buildTitlePageMetadata(
       siteName: "OTT Dost",
       url: pageUrl,
       type: "website",
-      ...(detail.posterUrl
+      ...(sharePosterUrl
         ? {
             images: [
               {
-                url: detail.posterUrl,
-                width: 500,
-                height: 750,
+                url: sharePosterUrl,
+                width: 1200,
+                height: 1200,
                 alt: `${watchHeadline} poster`,
               },
             ],
@@ -69,7 +75,7 @@ export async function buildTitlePageMetadata(
       card: "summary_large_image",
       title: watchHeadline,
       description: clip(sharePreview, 200),
-      ...(detail.posterUrl ? { images: [detail.posterUrl] } : {}),
+      ...(sharePosterUrl ? { images: [sharePosterUrl] } : {}),
     },
     // Beta: was only noindex for non-canonical URLs; block all until launch.
     robots: { index: false, follow: false },

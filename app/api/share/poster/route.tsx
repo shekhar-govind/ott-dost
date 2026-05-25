@@ -1,6 +1,11 @@
+import { ImageResponse } from "next/og";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
 import { NextRequest, NextResponse } from "next/server";
+
+export const runtime = "edge";
+
+const CANVAS = 1200;
 
 function parseMediaType(value: string | null): TmdbMediaType | null {
   if (value === "movie" || value === "tv") return value;
@@ -20,22 +25,35 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Poster not found" }, { status: 404 });
   }
 
-  try {
-    const upstream = await fetch(detail.posterUrl);
-    if (!upstream.ok) {
-      return NextResponse.json({ error: "Poster unavailable" }, { status: 502 });
-    }
-
-    const contentType = upstream.headers.get("content-type") ?? "image/jpeg";
-    const body = await upstream.arrayBuffer();
-
-    return new NextResponse(body, {
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#27272a",
+        }}
+      >
+        <img
+          src={detail.posterUrl}
+          alt=""
+          style={{
+            maxHeight: "100%",
+            maxWidth: "100%",
+            objectFit: "contain",
+          }}
+        />
+      </div>
+    ),
+    {
+      width: CANVAS,
+      height: CANVAS,
       headers: {
-        "Content-Type": contentType,
         "Cache-Control": "public, max-age=86400, immutable",
       },
-    });
-  } catch {
-    return NextResponse.json({ error: "Poster fetch failed" }, { status: 502 });
-  }
+    },
+  );
 }
