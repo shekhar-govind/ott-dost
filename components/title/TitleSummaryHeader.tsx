@@ -17,6 +17,7 @@ export function TitleSummaryHeader({ detail, variant }: TitleSummaryHeaderProps)
       voteCount: detail.voteCount,
       releaseDate: detail.releaseDate,
       languageLabel: detail.languageLabel,
+      ageRating: detail.ageRating,
     }),
     detail.runtime,
     detail.status,

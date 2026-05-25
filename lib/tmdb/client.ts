@@ -40,8 +40,10 @@ export async function getTitleDetails(
   mediaType: TmdbMediaType,
   id: number,
 ): Promise<TmdbMovieDetails | TmdbTvDetails> {
+  const ageRatingAppend =
+    mediaType === "movie" ? "release_dates" : "content_ratings";
   const params = buildParams({
-    append_to_response: "watch/providers,credits,recommendations,videos",
+    append_to_response: `watch/providers,credits,recommendations,videos,${ageRatingAppend}`,
   });
 
   const response = await fetchTmdb(

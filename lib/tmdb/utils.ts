@@ -21,6 +21,9 @@ import type {
 } from "./types";
 
 const WATCH_REGION = "IN";
+const INDIA_REGION = "IN";
+/** TMDB release type: theatrical */
+const THEATRICAL_RELEASE_TYPE = 3;
 
 export function getTmdbApiKey(): string {
   const key = process.env.TMDB_API_KEY;
@@ -228,13 +231,61 @@ export function formatVoteCount(count: number | null | undefined): string | null
   return `${formatted} ratings`;
 }
 
-/** Meta row shared by list cards and title summary: type · rating · votes · date · language */
+export function extractIndiaAgeRating(
+  mediaType: TmdbMediaType,
+  details: TmdbMovieDetails | TmdbTvDetails,
+): string | null {
+  if (mediaType === "movie") {
+    return extractMovieIndiaCertification(details as TmdbMovieDetails);
+  }
+  return extractTvIndiaContentRating(details as TmdbTvDetails);
+}
+
+function extractMovieIndiaCertification(movie: TmdbMovieDetails): string | null {
+  const india = movie.release_dates?.results?.find(
+    (entry) => entry.iso_3166_1 === INDIA_REGION,
+  );
+  if (!india?.release_dates?.length) return null;
+
+  const withCert = india.release_dates.filter((entry) =>
+    entry.certification?.trim(),
+  );
+  if (!withCert.length) return null;
+
+  const theatrical = [...withCert]
+    .reverse()
+    .find((entry) => entry.type === THEATRICAL_RELEASE_TYPE);
+  const chosen = theatrical ?? withCert[withCert.length - 1];
+  return formatIndiaAgeRating(chosen.certification!.trim());
+}
+
+function extractTvIndiaContentRating(show: TmdbTvDetails): string | null {
+  const india = show.content_ratings?.results?.find(
+    (entry) => entry.iso_3166_1 === INDIA_REGION,
+  );
+  const rating = india?.rating?.trim();
+  return rating ? formatIndiaAgeRating(rating) : null;
+}
+
+/** Normalize TMDB India certification strings for display (CBFC-style). */
+export function formatIndiaAgeRating(value: string): string {
+  const normalized = value.trim();
+  if (!normalized) return normalized;
+
+  const upper = normalized.toUpperCase();
+  if (upper === "U/A") return "UA";
+
+  return normalized;
+}
+
+/** Meta row shared by list cards and title summary: type · rating · votes · date · language · age */
 export function buildListMetaLine(parts: {
   mediaType: TmdbMediaType;
   rating: number | null;
   voteCount?: number | null;
   releaseDate: string | null;
   languageLabel: string | null;
+  ageRating?: string | null;
 }): string {
   return [
     getMediaTypeLabel(parts.mediaType),
@@ -242,6 +293,7 @@ export function buildListMetaLine(parts: {
     formatVoteCount(parts.voteCount),
     formatReleaseDate(parts.releaseDate),
     parts.languageLabel,
+    parts.ageRating,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -501,6 +553,7 @@ export function toTitleDetailFromMovie(movie: TmdbMovieDetails): TitleDetail {
     backdropUrl: getPosterUrl(movie.backdrop_path, "w780"),
     rating: movie.vote_average > 0 ? movie.vote_average : null,
     voteCount: movie.vote_count > 0 ? movie.vote_count : null,
+    ageRating: extractIndiaAgeRating("movie", movie),
     languageLabel: formatOriginalLanguage(movie.original_language),
     runtime: formatRuntime(movie.runtime),
     genres: movie.genres.map((genre) => genre.name),
@@ -532,6 +585,7 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     backdropUrl: getPosterUrl(show.backdrop_path, "w780"),
     rating: show.vote_average > 0 ? show.vote_average : null,
     voteCount: show.vote_count > 0 ? show.vote_count : null,
+    ageRating: extractIndiaAgeRating("tv", show),
     languageLabel: formatOriginalLanguage(show.original_language),
     runtime: formatTvRuntime(show),
     genres: show.genres.map((genre) => genre.name),

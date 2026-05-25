@@ -187,6 +187,8 @@ export interface TitleDetail {
   backdropUrl: string | null;
   rating: number | null;
   voteCount: number | null;
+  /** India certification from TMDB (e.g. U, UA, A) when available */
+  ageRating: string | null;
   languageLabel: string | null;
   runtime: string | null;
   genres: string[];
@@ -216,6 +218,30 @@ export interface TmdbWatchProvidersResult {
   buy?: TmdbWatchProvider[];
 }
 
+export interface TmdbReleaseDateEntry {
+  certification?: string;
+  release_date?: string;
+  type?: number;
+}
+
+export interface TmdbReleaseDatesByCountry {
+  iso_3166_1: string;
+  release_dates: TmdbReleaseDateEntry[];
+}
+
+export interface TmdbReleaseDates {
+  results?: TmdbReleaseDatesByCountry[];
+}
+
+export interface TmdbContentRating {
+  iso_3166_1: string;
+  rating: string;
+}
+
+export interface TmdbContentRatings {
+  results?: TmdbContentRating[];
+}
+
 export interface TmdbMovieDetails {
   id: number;
   title: string;
@@ -232,6 +258,7 @@ export interface TmdbMovieDetails {
   runtime: number | null;
   genres: TmdbGenre[];
   status?: string;
+  release_dates?: TmdbReleaseDates;
   "watch/providers"?: {
     results?: Record<string, TmdbWatchProvidersResult>;
   };
@@ -257,6 +284,7 @@ export interface TmdbTvDetails {
   episode_run_time: number[];
   genres: TmdbGenre[];
   status: string;
+  content_ratings?: TmdbContentRatings;
   "watch/providers"?: {
     results?: Record<string, TmdbWatchProvidersResult>;
   };
