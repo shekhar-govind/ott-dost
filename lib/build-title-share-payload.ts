@@ -24,44 +24,17 @@ function joinShareBlocks(blocks: string[]): string {
   return blocks.filter(Boolean).join(`\n${SHARE_TEXT_SEPARATOR}\n`);
 }
 
-function formatProviderList(names: string[], max = 5): string {
-  const slice = names.slice(0, max);
-  const more = names.length > max ? ` +${names.length - max} more` : "";
-  return `${slice.join(", ")}${more}`;
-}
-
-function formatAvailabilityLine(detail: TitleDetail): string {
-  const { stream, rent, buy } = detail.watchAvailability;
-  const streamNames = stream.map((p) => p.name);
-  if (streamNames.length > 0) {
-    return `Stream on ${formatProviderList(streamNames)} in India`;
-  }
-
-  const rentNames = rent.map((p) => p.name);
-  if (rentNames.length > 0) {
-    return `Rent on ${formatProviderList(rentNames)} in India`;
-  }
-
-  const buyNames = buy.map((p) => p.name);
-  if (buyNames.length > 0) {
-    return `Buy on ${formatProviderList(buyNames)} in India`;
-  }
-
-  return "Find where to watch in India";
-}
-
-/** Text for the mobile share drawer (Watch headline + existing preview line). */
+/** Text for the mobile share drawer (Watch headline + brand). */
 export function buildTitleSharePreviewText(detail: TitleDetail): string {
   const watchHeadline = buildWatchHeadline(detail);
-  const metaLine = `${BRAND} · ${formatAvailabilityLine(detail)}`;
-  return `${watchHeadline}\n${metaLine}`;
+  return `${watchHeadline}\n${BRAND}`;
 }
 
 export function buildTitleShareText(detail: TitleDetail): string {
   const watchHeadline = buildWatchHeadline(detail);
   const overview = detail.overview?.trim();
 
-  const lines = [watchHeadline, BRAND, formatAvailabilityLine(detail)];
+  const lines = [watchHeadline, BRAND];
   if (overview) {
     lines.push(clip(overview, 200));
   }
