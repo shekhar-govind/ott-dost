@@ -3,7 +3,11 @@ import {
   SHARE_TEXT_SEPARATOR,
   type SharePayload,
 } from "@/lib/share-payload";
-import { buildSharePosterProxyPath } from "@/lib/share-poster-url";
+import {
+  buildSharePosterAbsoluteUrl,
+  buildSharePosterProxyPath,
+  SHARE_POSTER_TMDB_SIZE,
+} from "@/lib/share-poster-url";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TitleDetail } from "@/lib/tmdb/types";
 
@@ -28,6 +32,11 @@ export function buildWatchBrandLine(detail: TitleDetail): string {
   return `${buildWatchHeadline(detail)}${SHARE_PIPE}${BRAND}`;
 }
 
+/** Native share title: "Watch {title} | OTT Dost" (no year). */
+export function buildShareTitleLine(detail: TitleDetail): string {
+  return `Watch ${detail.title}${SHARE_PIPE}${BRAND}`;
+}
+
 export function appendShareUrlToHeadline(headline: string, url: string): string {
   if (!url || headline.includes(url)) return headline;
   return `${headline}${SHARE_PIPE}${url}`;
@@ -47,11 +56,18 @@ function firstSentence(text: string): string {
   return match ? match[0].trim() : normalized;
 }
 
-/** First overview sentence for native share `text`, clipped with an ellipsis when long. */
+const SHARE_OVERVIEW_MAX = 200;
+
+/** First overview sentence for native share `text`, with an ellipsis after it. */
 export function buildTitleShareOverviewText(detail: TitleDetail): string | undefined {
   const overview = detail.overview?.trim();
   if (!overview) return undefined;
-  return clip(firstSentence(overview), 200);
+
+  const sentence = firstSentence(overview);
+  if (sentence.length > SHARE_OVERVIEW_MAX) {
+    return clip(sentence, SHARE_OVERVIEW_MAX);
+  }
+  return `${sentence}…`;
 }
 
 /** Compact line for OG / share subtitle: "Watch {title} | OTT Dost". */
@@ -64,7 +80,7 @@ export function buildTitleShareClipboardText(
   detail: TitleDetail,
   shareUrl: string,
 ): string {
-  return appendShareUrlToHeadline(buildWatchBrandLine(detail), shareUrl);
+  return appendShareUrlToHeadline(buildShareTitleLine(detail), shareUrl);
 }
 
 export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
@@ -73,16 +89,23 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
   const url = baseUrl ? `${baseUrl}${path}` : path;
   const shareUrl = url.startsWith("http") ? url : "";
 
-  const posterProxyPath =
+  const posterImageUrl =
     detail.posterUrl != null
-      ? buildSharePosterProxyPath(detail.mediaType, detail.id)
+      ? baseUrl
+        ? buildSharePosterAbsoluteUrl(
+            detail.mediaType,
+            detail.id,
+            baseUrl,
+            SHARE_POSTER_TMDB_SIZE,
+          )
+        : buildSharePosterProxyPath(detail.mediaType, detail.id)
       : undefined;
 
   return {
-    title: buildWatchBrandLine(detail),
+    title: buildShareTitleLine(detail),
     text: buildTitleShareOverviewText(detail),
     clipboardText: buildTitleShareClipboardText(detail, shareUrl),
     url,
-    imageUrl: posterProxyPath,
+    imageUrl: posterImageUrl,
   };
 }

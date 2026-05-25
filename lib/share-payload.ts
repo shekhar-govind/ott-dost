@@ -12,6 +12,6 @@ export type SharePayload = {
   /** Full formatted body for clipboard copy. */
   clipboardText?: string;
   url?: string;
-  /** Same-origin poster path for Web Share `files` (e.g. `/api/share/poster?...`). */
+  /** Same-origin w185 poster URL fetched into Web Share `files` on click. */
   imageUrl?: string;
 };
