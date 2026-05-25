@@ -63,8 +63,8 @@ export async function buildTitlePageMetadata(
             images: [
               {
                 url: sharePosterUrl,
-                width: 1200,
-                height: 1800,
+                width: 500,
+                height: 750,
                 alt: `${watchHeadline} poster`,
               },
             ],
