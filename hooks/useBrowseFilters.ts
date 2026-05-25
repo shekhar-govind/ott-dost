@@ -2,7 +2,14 @@
 
 import { browseDebug } from "@/lib/browse/debug";
 import {
+  clearSavedBrowseFilters,
+  isBareBrowseUrl,
+  loadSavedBrowseFilters,
+  persistBrowseFilters,
+} from "@/lib/browse/filter-persistence";
+import {
   DEFAULT_BROWSE_FILTERS,
+  filtersAreEqual,
   parseBrowseFilters,
   serializeBrowseFilters,
   type BrowseFilters,
@@ -44,9 +51,29 @@ export function useBrowseFilters() {
     [pathname, router],
   );
 
+  /** Apply filters and remember them — only for explicit user actions. */
+  const commitBrowseFilters = useCallback(
+    (next: BrowseFilters) => {
+      persistBrowseFilters(next);
+      setFilters(next);
+    },
+    [setFilters],
+  );
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+    if (!isBareBrowseUrl(searchParams)) return;
+
+    const saved = loadSavedBrowseFilters();
+    if (saved && !filtersAreEqual(saved, filters)) {
+      setFilters(saved);
+    }
+  }, [pathname, searchParams, filters, setFilters]);
+
   const clearFilters = useCallback(() => {
+    clearSavedBrowseFilters();
     setFilters(DEFAULT_BROWSE_FILTERS);
   }, [setFilters]);
 
-  return { filters, setFilters, clearFilters };
+  return { filters, setFilters, commitBrowseFilters, clearFilters };
 }

@@ -31,7 +31,8 @@ export function BrowseList({
 }: BrowseListProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [sheetOpen, setSheetOpen] = useState(false);
-  const { filters, setFilters, clearFilters } = useBrowseFilters();
+  const { filters, setFilters, commitBrowseFilters, clearFilters } =
+    useBrowseFilters();
   const searchParams = useSearchParams();
   const { meta } = useBrowseFilterMeta(enabled);
 
@@ -94,7 +95,7 @@ export function BrowseList({
         filters={filters}
         meta={meta}
         onOpenFilters={() => setSheetOpen(true)}
-        onFiltersChange={setFilters}
+        onFiltersChange={commitBrowseFilters}
         onClearFilters={clearFilters}
       />
 
@@ -163,7 +164,7 @@ export function BrowseList({
         appliedFilters={filters}
         meta={meta}
         onClose={() => setSheetOpen(false)}
-        onApply={setFilters}
+        onApply={commitBrowseFilters}
       />
     </section>
   );
