@@ -7,10 +7,9 @@ export const SHARE_PIPE = " | ";
 export type SharePayload = {
   /** Short headline for the native share sheet preview. */
   title?: string;
-  /** Compact subtitle for the share sheet (keep brief; no heavy separators). */
+  /** Compact subtitle for the share sheet, e.g. "Watch {title} | OTT Dost". */
   text?: string;
   /** Full formatted body for clipboard copy. */
   clipboardText?: string;
   url?: string;
-  imageUrl?: string;
 };

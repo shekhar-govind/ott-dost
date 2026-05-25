@@ -23,29 +23,18 @@ function shareTextIncludesUrl(text: string | undefined, url: string): boolean {
 function buildShareData(payload?: SharePayload): ShareData {
   const url = resolveShareUrl(payload?.url);
   const title = payload?.title ?? document.title;
-  const rawText = payload?.text;
-  const text =
-    rawText && url ? appendShareUrlToShareBody(rawText, url) : rawText;
+  const text = payload?.text;
 
   const data: ShareData = {
     title,
     ...(text ? { text } : {}),
   };
 
-  // Keep url only when it is not already in the message (avoids two links in WhatsApp etc.).
-  if (url && !shareTextIncludesUrl(text, url)) {
+  if (url) {
     data.url = url;
   }
 
   return data;
-}
-
-function omitUrlWhenInText(data: ShareData): ShareData {
-  if (!shareTextIncludesUrl(data.text, data.url ?? "")) {
-    return data;
-  }
-  const { url: _url, ...rest } = data;
-  return rest;
 }
 
 function buildClipboardText(data: ShareData, payload?: SharePayload): string {
@@ -53,64 +42,6 @@ function buildClipboardText(data: ShareData, payload?: SharePayload): string {
   if (!body) return data.url ?? "";
   if (!data.url || shareTextIncludesUrl(body, data.url)) return body;
   return appendShareUrlToShareBody(body, data.url);
-}
-
-async function fetchPosterFile(imageUrl: string): Promise<File | null> {
-  const resolved = resolveShareUrl(imageUrl);
-
-  try {
-    const res = await fetch(resolved);
-    if (!res.ok) return null;
-
-    const blob = await res.blob();
-    const ext = blob.type.includes("png") ? "png" : "jpg";
-    return new File([blob], `poster.${ext}`, {
-      type: blob.type || "image/jpeg",
-    });
-  } catch {
-    return null;
-  }
-}
-
-function canShareData(data: ShareData): boolean {
-  return (
-    typeof navigator === "undefined" ||
-    typeof navigator.canShare !== "function" ||
-    navigator.canShare(data)
-  );
-}
-
-async function buildNativeShareData(
-  data: ShareData,
-  imageUrl: string | undefined,
-): Promise<ShareData> {
-  const file = imageUrl ? await fetchPosterFile(imageUrl) : null;
-  const base = omitUrlWhenInText(data);
-  const candidates: ShareData[] = [];
-
-  if (file) {
-    candidates.push({ title: base.title, text: base.text, files: [file] });
-  }
-  if (base.url) {
-    if (file) {
-      candidates.push({
-        title: base.title,
-        text: base.text,
-        url: base.url,
-        files: [file],
-      });
-    }
-    candidates.push({ title: base.title, text: base.text, url: base.url });
-  }
-  candidates.push(base);
-
-  for (const candidate of candidates) {
-    if (canShareData(candidate)) {
-      return candidate;
-    }
-  }
-
-  return base;
 }
 
 export function useShare() {
@@ -128,8 +59,7 @@ export function useShare() {
 
       if (typeof navigator !== "undefined" && navigator.share) {
         try {
-          const shareData = await buildNativeShareData(data, payload?.imageUrl);
-          await navigator.share(shareData);
+          await navigator.share(data);
           setStatus("idle");
           return;
         } catch (err) {

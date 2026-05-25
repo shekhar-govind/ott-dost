@@ -3,7 +3,6 @@ import {
   SHARE_TEXT_SEPARATOR,
   type SharePayload,
 } from "@/lib/share-payload";
-import { buildSharePosterProxyPath } from "@/lib/share-poster-url";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TitleDetail } from "@/lib/tmdb/types";
 
@@ -45,12 +44,9 @@ function joinShareBlocks(blocks: string[]): string {
   return blocks.filter(Boolean).join(`\n${SHARE_TEXT_SEPARATOR}\n`);
 }
 
-/** Text for the mobile share drawer (Watch headline + brand + link when known). */
-export function buildTitleSharePreviewText(
-  detail: TitleDetail,
-  shareUrl: string,
-): string {
-  return appendShareUrlToHeadline(buildWatchBrandLine(detail), shareUrl);
+/** Compact line for OG / share subtitle: "Watch {title} | OTT Dost". */
+export function buildTitleSharePreviewText(detail: TitleDetail): string {
+  return buildWatchBrandLine(detail);
 }
 
 export function buildTitleShareText(
@@ -73,16 +69,10 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
   const url = baseUrl ? `${baseUrl}${path}` : path;
   const shareUrl = url.startsWith("http") ? url : "";
 
-  const posterProxyPath =
-    detail.posterUrl != null
-      ? buildSharePosterProxyPath(detail.mediaType, detail.id)
-      : undefined;
-
   return {
     title: buildWatchBrandLine(detail),
-    text: buildTitleSharePreviewText(detail, shareUrl),
+    text: buildWatchBrandLine(detail),
     clipboardText: buildTitleShareText(detail, shareUrl),
     url,
-    imageUrl: posterProxyPath,
   };
 }
