@@ -16,6 +16,10 @@ function resolveShareUrl(url: string | undefined): string {
   return raw;
 }
 
+function shareTextIncludesUrl(text: string | undefined, url: string): boolean {
+  return Boolean(text && url && text.includes(url));
+}
+
 function buildShareData(payload?: SharePayload): ShareData {
   const url = resolveShareUrl(payload?.url);
   const title = payload?.title ?? document.title;
@@ -23,17 +27,31 @@ function buildShareData(payload?: SharePayload): ShareData {
   const text =
     rawText && url ? appendShareUrlToShareBody(rawText, url) : rawText;
 
-  return {
-    url,
+  const data: ShareData = {
     title,
     ...(text ? { text } : {}),
   };
+
+  // Keep url only when it is not already in the message (avoids two links in WhatsApp etc.).
+  if (url && !shareTextIncludesUrl(text, url)) {
+    data.url = url;
+  }
+
+  return data;
+}
+
+function omitUrlWhenInText(data: ShareData): ShareData {
+  if (!shareTextIncludesUrl(data.text, data.url ?? "")) {
+    return data;
+  }
+  const { url: _url, ...rest } = data;
+  return rest;
 }
 
 function buildClipboardText(data: ShareData, payload?: SharePayload): string {
   const body = payload?.clipboardText ?? data.text;
   if (!body) return data.url ?? "";
-  if (!data.url) return body;
+  if (!data.url || shareTextIncludesUrl(body, data.url)) return body;
   return appendShareUrlToShareBody(body, data.url);
 }
 
@@ -67,14 +85,24 @@ async function buildNativeShareData(
   imageUrl: string | undefined,
 ): Promise<ShareData> {
   const file = imageUrl ? await fetchPosterFile(imageUrl) : null;
+  const base = omitUrlWhenInText(data);
+  const candidates: ShareData[] = [];
 
-  const candidates: ShareData[] = file
-    ? [
-        { title: data.title, text: data.text, url: data.url, files: [file] },
-        { title: data.title, text: data.text, url: data.url },
-        { title: data.title, text: data.text, files: [file] },
-      ]
-    : [{ title: data.title, text: data.text, url: data.url }];
+  if (file) {
+    candidates.push({ title: base.title, text: base.text, files: [file] });
+  }
+  if (base.url) {
+    if (file) {
+      candidates.push({
+        title: base.title,
+        text: base.text,
+        url: base.url,
+        files: [file],
+      });
+    }
+    candidates.push({ title: base.title, text: base.text, url: base.url });
+  }
+  candidates.push(base);
 
   for (const candidate of candidates) {
     if (canShareData(candidate)) {
@@ -82,7 +110,7 @@ async function buildNativeShareData(
     }
   }
 
-  return data;
+  return base;
 }
 
 export function useShare() {
