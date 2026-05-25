@@ -1,5 +1,6 @@
 "use client";
 
+import { usePageSharePayload } from "@/hooks/usePageSharePayload";
 import { useShare, type SharePayload } from "@/hooks/useShare";
 
 type ShareButtonProps = {
@@ -7,17 +8,22 @@ type ShareButtonProps = {
   className?: string;
 };
 
-export function ShareButton({ payload, className }: ShareButtonProps) {
+export function ShareButton({ payload: payloadProp, className }: ShareButtonProps) {
+  const payload = usePageSharePayload(payloadProp);
   const { share, status } = useShare();
 
   const visibleLabel = status === "copied" ? "Copied" : "Share";
+
+  const defaultAriaLabel = payload?.title
+    ? `Share ${payload.title.replace(/\s*—\s*OTT Dost$/, "")}`
+    : "Share this page";
 
   const ariaLabel =
     status === "copied"
       ? "Link copied"
       : status === "error"
         ? "Could not share"
-        : "Share this page";
+        : defaultAriaLabel;
 
   return (
     <div className={`relative shrink-0 ${className ?? ""}`}>
