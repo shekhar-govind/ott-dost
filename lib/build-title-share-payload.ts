@@ -20,21 +20,23 @@ export function buildWatchHeadline(detail: TitleDetail): string {
 
 const BRAND = "OTT Dost";
 
+export function buildWatchBrandLine(detail: TitleDetail): string {
+  return `${buildWatchHeadline(detail)} | ${BRAND}`;
+}
+
 function joinShareBlocks(blocks: string[]): string {
   return blocks.filter(Boolean).join(`\n${SHARE_TEXT_SEPARATOR}\n`);
 }
 
 /** Text for the mobile share drawer (Watch headline + brand). */
 export function buildTitleSharePreviewText(detail: TitleDetail): string {
-  const watchHeadline = buildWatchHeadline(detail);
-  return `${watchHeadline}\n${BRAND}`;
+  return buildWatchBrandLine(detail);
 }
 
 export function buildTitleShareText(detail: TitleDetail): string {
-  const watchHeadline = buildWatchHeadline(detail);
   const overview = detail.overview?.trim();
 
-  const lines = [watchHeadline, BRAND];
+  const lines = [buildWatchBrandLine(detail)];
   if (overview) {
     lines.push(clip(overview, 200));
   }
@@ -47,15 +49,13 @@ export function buildTitleSharePayload(detail: TitleDetail): SharePayload {
   const baseUrl = getSiteBaseUrl();
   const url = baseUrl ? `${baseUrl}${path}` : path;
 
-  const watchHeadline = buildWatchHeadline(detail);
-
   const posterProxyPath =
     detail.posterUrl != null
       ? buildSharePosterProxyPath(detail.mediaType, detail.id)
       : undefined;
 
   return {
-    title: watchHeadline,
+    title: buildWatchBrandLine(detail),
     text: buildTitleSharePreviewText(detail),
     clipboardText: buildTitleShareText(detail),
     url,
