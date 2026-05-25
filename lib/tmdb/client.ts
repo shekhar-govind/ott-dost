@@ -58,7 +58,7 @@ function todayIsoDate(): string {
 
 export async function discoverLatestMovies(
   page: number,
-  originalLanguage: string,
+  originalLanguage: string | null,
   filters: DiscoverFilters,
 ): Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>> {
   const params = buildParams({
@@ -67,8 +67,11 @@ export async function discoverLatestMovies(
     page: String(page),
     include_adult: "false",
     "release_date.lte": resolveDateTo(filters) ?? todayIsoDate(),
-    with_original_language: originalLanguage,
   });
+
+  if (originalLanguage) {
+    params.set("with_original_language", originalLanguage);
+  }
 
   appendDiscoverFilters(params, filters, "movie");
 
@@ -81,7 +84,7 @@ export async function discoverLatestMovies(
 
 export async function discoverLatestTv(
   page: number,
-  originalLanguage: string,
+  originalLanguage: string | null,
   filters: DiscoverFilters,
 ): Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>> {
   const params = buildParams({
@@ -89,8 +92,11 @@ export async function discoverLatestTv(
     page: String(page),
     include_adult: "false",
     "first_air_date.lte": resolveDateTo(filters) ?? todayIsoDate(),
-    with_original_language: originalLanguage,
   });
+
+  if (originalLanguage) {
+    params.set("with_original_language", originalLanguage);
+  }
 
   appendDiscoverFilters(params, filters, "tv");
 

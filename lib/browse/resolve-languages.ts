@@ -46,36 +46,70 @@ function nativeLanguageName(
   return romanName;
 }
 
-function compareBrowseLanguageOptions(a: BrowseLanguageOption, b: BrowseLanguageOption): number {
+function compareIndianBrowseLanguageOptions(
+  a: BrowseLanguageOption,
+  b: BrowseLanguageOption,
+): number {
   if (a.code === ENGLISH_LANGUAGE_CODE) return -1;
   if (b.code === ENGLISH_LANGUAGE_CODE) return 1;
   return a.romanName.localeCompare(b.romanName);
 }
 
+function mapTmdbLanguageToBrowseOption(
+  lang: TmdbConfigurationLanguage,
+): BrowseLanguageOption | null {
+  const code = lang.iso_639_1?.trim().toLowerCase();
+  if (!code || !/^[a-z]{2}$/.test(code)) return null;
+
+  const romanName =
+    lang.english_name?.trim() ||
+    romanLanguageName(code, lang.name?.trim() || code.toUpperCase());
+  const nativeName = nativeLanguageName(code, lang.name?.trim() || "", romanName);
+
+  return { code, nativeName, romanName };
+}
+
 /**
- * Map TMDB languages to browse chips: English + Indian official languages only.
- * Display: native script name (roman name).
+ * Map TMDB languages to browse chips: Indian official languages first, then all
+ * other ISO 639-1 languages from TMDB configuration.
  */
 export function mapTmdbLanguagesToBrowseOptions(
   languages: TmdbConfigurationLanguage[],
 ): BrowseLanguageOption[] {
-  return languages
-    .filter((lang) => {
-      const code = lang.iso_639_1?.trim().toLowerCase();
-      return code && isIndianBrowseLanguageCode(code);
-    })
-    .map((lang) => {
-      const code = lang.iso_639_1.trim().toLowerCase();
-      const romanName =
-        lang.english_name?.trim() ||
-        romanLanguageName(code, lang.name?.trim() || code.toUpperCase());
-      const nativeName = nativeLanguageName(
-        code,
-        lang.name?.trim() || "",
-        romanName,
-      );
+  const indian: BrowseLanguageOption[] = [];
+  const other: BrowseLanguageOption[] = [];
+  const seen = new Set<string>();
 
-      return { code, nativeName, romanName };
-    })
-    .sort(compareBrowseLanguageOptions);
+  for (const lang of languages) {
+    const option = mapTmdbLanguageToBrowseOption(lang);
+    if (!option || seen.has(option.code)) continue;
+    seen.add(option.code);
+
+    if (isIndianBrowseLanguageCode(option.code)) {
+      indian.push(option);
+    } else {
+      other.push(option);
+    }
+  }
+
+  indian.sort(compareIndianBrowseLanguageOptions);
+  other.sort((a, b) => a.romanName.localeCompare(b.romanName));
+
+  return [...indian, ...other];
+}
+
+export function splitBrowseLanguageSections(languages: BrowseLanguageOption[]): {
+  indian: BrowseLanguageOption[];
+  other: BrowseLanguageOption[];
+} {
+  const splitIndex = languages.findIndex(
+    (language) => !isIndianBrowseLanguageCode(language.code),
+  );
+  if (splitIndex === -1) {
+    return { indian: languages, other: [] };
+  }
+  return {
+    indian: languages.slice(0, splitIndex),
+    other: languages.slice(splitIndex),
+  };
 }

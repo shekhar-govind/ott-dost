@@ -3,6 +3,7 @@ import {
   logBrowseApiResponse,
   summarizeBrowseItem,
 } from "@/lib/browse/debug";
+import { isBrowseLanguageAll } from "@/lib/browse/languages";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
 import {
   discoverLatestMovies,
@@ -40,6 +41,9 @@ export async function GET(request: NextRequest) {
   const filters = parseBrowseFiltersFromRequest(request);
   const isMovie = filters.mediaType === "movie";
   const discoverFilters = toDiscoverFilters(filters);
+  const originalLanguage = isBrowseLanguageAll(filters.language)
+    ? null
+    : filters.language;
 
   browseDebug("Browse API received", {
     page,
@@ -51,8 +55,8 @@ export async function GET(request: NextRequest) {
   try {
     const [discoverResponse, genreMap] = await Promise.all([
       isMovie
-        ? discoverLatestMovies(page, filters.language, discoverFilters)
-        : discoverLatestTv(page, filters.language, discoverFilters),
+        ? discoverLatestMovies(page, originalLanguage, discoverFilters)
+        : discoverLatestTv(page, originalLanguage, discoverFilters),
       isMovie ? getMovieGenreMap() : getTvGenreMap(),
     ]);
 

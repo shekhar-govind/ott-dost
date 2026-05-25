@@ -9,11 +9,18 @@ type LegacyBrowseLanguageOption = {
   romanName?: string;
 };
 
-/** Default browse discover language (TMDB `with_original_language`). */
-export const DEFAULT_BROWSE_LANGUAGE = "en";
+/** Omit TMDB `with_original_language` — discover returns every original language. */
+export const BROWSE_LANGUAGE_ALL = "all";
+
+/** Default browse language filter (no `with_original_language` on discover). */
+export const DEFAULT_BROWSE_LANGUAGE = BROWSE_LANGUAGE_ALL;
 
 /** @deprecated Use {@link DEFAULT_BROWSE_LANGUAGE} */
 export const DEFAULT_BROWSE_LANGUAGE_CODES = [DEFAULT_BROWSE_LANGUAGE] as const;
+
+export function isBrowseLanguageAll(language: string): boolean {
+  return language === BROWSE_LANGUAGE_ALL;
+}
 
 export function isBrowseLanguageCode(code: string): boolean {
   return /^[a-z]{2}$/.test(code);

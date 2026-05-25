@@ -11,7 +11,7 @@ export type BrowseMediaType = "movie" | "tv";
 export const DEFAULT_BROWSE_MEDIA_TYPE: BrowseMediaType = "movie";
 
 export interface BrowseFilters {
-  /** ISO 639-1; one TMDB discover call per browse page. */
+  /** `all` omits TMDB `with_original_language`; otherwise ISO 639-1. */
   language: string;
   mediaType: BrowseMediaType;
   genreIds: number[];

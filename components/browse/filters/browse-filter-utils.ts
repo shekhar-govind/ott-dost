@@ -1,6 +1,6 @@
 import { browseDebug } from "@/lib/browse/debug";
 import type { BrowseFilters, BrowseMediaType } from "@/lib/browse/filters";
-import { defaultBrowseLanguage } from "@/lib/browse/languages";
+import { BROWSE_LANGUAGE_ALL, defaultBrowseLanguage } from "@/lib/browse/languages";
 import {
   dedupeOttProviderIds,
   findOttPlatformGroup,
@@ -89,12 +89,24 @@ export function removeBrowseFilterChip(
   return filters;
 }
 
-/** Single-select: tap active language resets to default; otherwise select that language. */
+/** Set the active language filter (`all` or ISO 639-1). */
+export function setBrowseLanguageFilter(
+  filters: BrowseFilters,
+  code: string,
+): BrowseFilters {
+  return { ...filters, language: code };
+}
+
+/** @deprecated Chip UI only — toggles off when the same language is tapped again. */
 export function selectLanguage(filters: BrowseFilters, code: string): BrowseFilters {
+  if (code === BROWSE_LANGUAGE_ALL) {
+    return setBrowseLanguageFilter(filters, BROWSE_LANGUAGE_ALL);
+  }
+
   const nextLanguage =
     filters.language === code ? defaultBrowseLanguage() : code;
 
-  return { ...filters, language: nextLanguage };
+  return setBrowseLanguageFilter(filters, nextLanguage);
 }
 
 export function toggleGenre(filters: BrowseFilters, genreId: number): BrowseFilters {

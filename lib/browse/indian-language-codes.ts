@@ -1,3 +1,5 @@
+import { BROWSE_LANGUAGE_ALL } from "./languages";
+
 /**
  * ISO 639-1 codes for languages with official status in India (Constitution, Eighth Schedule)
  * plus English, which is widely used for Indian film/TV metadata on TMDB.
@@ -43,9 +45,9 @@ export function isIndianBrowseLanguageCode(code: string): boolean {
   return INDIAN_BROWSE_LANGUAGE_CODES.has(code.trim().toLowerCase());
 }
 
-/** Valid ISO 639-1/639-2 shape and on the India + English allowlist (for URL + filters). */
+/** Valid language filter for URL parsing (`all` or ISO 639-1). */
 export function isAllowedBrowseLanguageCode(code: string): boolean {
   const normalized = code.trim().toLowerCase();
-  if (!/^[a-z]{2,3}$/.test(normalized)) return false;
-  return isIndianBrowseLanguageCode(normalized);
+  if (normalized === BROWSE_LANGUAGE_ALL) return true;
+  return /^[a-z]{2}$/.test(normalized);
 }
