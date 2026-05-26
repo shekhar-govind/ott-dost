@@ -57,22 +57,22 @@ export async function getTitleDetails(
   return response.json() as Promise<TmdbMovieDetails | TmdbTvDetails>;
 }
 
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export async function discoverLatestMovies(
   page: number,
   originalLanguage: string | null,
   filters: DiscoverFilters,
 ): Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>> {
-  const params = buildParams({
+  const discoverParams: Record<string, string> = {
     sort_by: "primary_release_date.desc",
     region: "IN",
     page: String(page),
     include_adult: "false",
-    "release_date.lte": resolveDateTo(filters) ?? todayIsoDate(),
-  });
+  };
+  const dateTo = resolveDateTo(filters);
+  if (dateTo) {
+    discoverParams["release_date.lte"] = dateTo;
+  }
+  const params = buildParams(discoverParams);
 
   if (originalLanguage) {
     params.set("with_original_language", originalLanguage);
@@ -92,12 +92,16 @@ export async function discoverLatestTv(
   originalLanguage: string | null,
   filters: DiscoverFilters,
 ): Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>> {
-  const params = buildParams({
+  const discoverParams: Record<string, string> = {
     sort_by: "first_air_date.desc",
     page: String(page),
     include_adult: "false",
-    "first_air_date.lte": resolveDateTo(filters) ?? todayIsoDate(),
-  });
+  };
+  const dateTo = resolveDateTo(filters);
+  if (dateTo) {
+    discoverParams["first_air_date.lte"] = dateTo;
+  }
+  const params = buildParams(discoverParams);
 
   if (originalLanguage) {
     params.set("with_original_language", originalLanguage);
