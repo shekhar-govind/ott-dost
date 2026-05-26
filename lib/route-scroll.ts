@@ -110,11 +110,6 @@ function readScrollY(): number {
   );
 }
 
-/** Current document scroll Y (for lightweight scroll listeners). */
-export function readCurrentDocumentScrollY(): number {
-  return readScrollY();
-}
-
 /** Full load: parse store, merge legacy keys, remove legacy keys. Call once per session tab. */
 function loadStoreWithMigration(): ScrollStore {
   const store = migrateLegacyKeysIntoStore(readStore());

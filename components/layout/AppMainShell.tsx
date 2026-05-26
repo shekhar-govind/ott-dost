@@ -6,7 +6,6 @@ import {
   getRouteUrl,
   initRouteScrollStorage,
   normalizeRouteUrl,
-  readCurrentDocumentScrollY,
   saveRouteScrollPosition,
 } from "@/lib/route-scroll";
 import { usePathname } from "next/navigation";
@@ -26,7 +25,6 @@ export function AppMainShell({ children }: { children: ReactNode }) {
   const isDesignPreview = pathname.startsWith("/design/");
   const [query, setQuery] = useState("");
   const scrollRestorationSetRef = useRef(false);
-  const lastScrollYRef = useRef(0);
 
   const handleClear = () => {
     setQuery("");
@@ -69,31 +67,7 @@ export function AppMainShell({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("pointerdown", preNavigateSave, true);
   }, [pathname]);
 
-  /** Debounced save while on a route (scroll handler only updates a ref). */
-  useEffect(() => {
-    const routeForEffect = getRouteUrl();
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-
-    lastScrollYRef.current = readCurrentDocumentScrollY();
-
-    const onScroll = () => {
-      lastScrollYRef.current = readCurrentDocumentScrollY();
-      if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        saveRouteScrollPosition(routeForEffect, lastScrollYRef.current);
-      }, 120);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-
-    return () => {
-      if (timeout) clearTimeout(timeout);
-      saveRouteScrollPosition(routeForEffect, lastScrollYRef.current);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [pathname]);
-
-  /** Flush scroll when the tab goes away so the last position is not stuck in a pending debounce. */
+  /** Flush scroll when the tab goes away (scroll position is otherwise saved on link press / search pick). */
   useEffect(() => {
     const flush = () => {
       saveRouteScrollPosition();
