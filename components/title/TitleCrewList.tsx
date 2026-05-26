@@ -83,9 +83,26 @@ function CrewMemberLinks({
             href={buildBrowseCrewUrl(mediaType, member.id)}
             personId={member.id}
             personName={member.name}
-            className="text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline"
+            className="group text-zinc-600 transition hover:text-zinc-900"
           >
-            {member.name}
+            <span className="inline-flex items-center gap-1">
+              <span className="underline decoration-zinc-300 underline-offset-2">
+                {member.name}
+              </span>
+              <svg
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden
+                className="h-2.5 w-2.5 shrink-0 text-zinc-400 transition group-hover:text-zinc-600"
+                stroke="currentColor"
+                strokeWidth={1.75}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 15 15 5" />
+                <path d="M7 5h8v8" />
+              </svg>
+            </span>
           </PersonBrowseLink>
         </Fragment>
       ))}

@@ -23,8 +23,25 @@ export function TitleCastScroller({ cast, mediaType }: TitleCastScrollerProps) {
             aria-label={`Browse titles with ${person.name}`}
           >
             <CastPhoto person={person} />
-            <p className="mt-2 truncate text-xs font-medium text-zinc-900 group-hover:text-zinc-700 group-hover:underline">
-              {person.name}
+            <p className="mt-2 text-xs font-medium text-zinc-900 transition group-hover:text-zinc-700">
+              <span className="inline-flex w-full items-center gap-1">
+                <span className="min-w-0 flex-1 truncate underline decoration-zinc-300 underline-offset-2">
+                  {person.name}
+                </span>
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  aria-hidden
+                  className="h-2.5 w-2.5 shrink-0 text-zinc-400 transition group-hover:text-zinc-500"
+                  stroke="currentColor"
+                  strokeWidth={1.75}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 15 15 5" />
+                  <path d="M7 5h8v8" />
+                </svg>
+              </span>
             </p>
             {person.character ? (
               <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500">
