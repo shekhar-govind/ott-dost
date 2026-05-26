@@ -86,6 +86,12 @@ export function removeBrowseFilterChip(
       ),
     };
   }
+  if (chipKey === "cast") {
+    return { ...filters, castPersonId: null };
+  }
+  if (chipKey === "crew") {
+    return { ...filters, crewPersonId: null };
+  }
   return filters;
 }
 

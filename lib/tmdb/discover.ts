@@ -29,6 +29,8 @@ export function appendDiscoverFilters(
   if (watchProviders) {
     params.set("with_watch_providers", watchProviders);
   }
+
+  // Cast/crew filters use /person/{id}/*_credits (see discover-by-person.ts), not discover.
 }
 
 export function resolveDateTo(filters: DiscoverFilters): string | undefined {

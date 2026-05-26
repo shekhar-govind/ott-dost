@@ -2,18 +2,23 @@ import { browseDebug } from "@/lib/browse/debug";
 import type { BrowseFilters } from "@/lib/browse/filters";
 import { serializeBrowseFilters } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
-import type { BrowsePage, StreamingProvider, TmdbMediaType } from "@/lib/tmdb/types";
+import type { BrowseWatchProviderEntry } from "@/lib/browse/watch-provider-entry";
+import type { BrowsePage, TmdbMediaType } from "@/lib/tmdb/types";
 
 export interface BrowseWatchProvidersBatchItem {
   id: number;
   mediaType: TmdbMediaType;
 }
 
+export interface BrowseWatchProvidersBatchResult {
+  entries: Record<string, BrowseWatchProviderEntry>;
+}
+
 export async function fetchBrowseWatchProviders(
   items: BrowseWatchProvidersBatchItem[],
   signal?: AbortSignal,
-): Promise<Record<string, StreamingProvider[]>> {
-  if (items.length === 0) return {};
+): Promise<BrowseWatchProvidersBatchResult> {
+  if (items.length === 0) return { entries: {} };
 
   const response = await fetch("/api/browse/watch-providers", {
     method: "POST",
@@ -26,8 +31,23 @@ export async function fetchBrowseWatchProviders(
     throw new Error("Watch providers request failed");
   }
 
-  const data = (await response.json()) as { providers: Record<string, StreamingProvider[]> };
-  return data.providers ?? {};
+  const data = (await response.json()) as {
+    providers?: Record<string, BrowseWatchProviderEntry["providers"]>;
+    hasRentOrBuy?: Record<string, boolean>;
+  };
+
+  const providers = data.providers ?? {};
+  const hasRentOrBuy = data.hasRentOrBuy ?? {};
+  const entries: Record<string, BrowseWatchProviderEntry> = {};
+
+  for (const key of new Set([...Object.keys(providers), ...Object.keys(hasRentOrBuy)])) {
+    entries[key] = {
+      providers: providers[key] ?? [],
+      hasRentOrBuy: hasRentOrBuy[key] ?? false,
+    };
+  }
+
+  return { entries };
 }
 
 export async function fetchBrowsePage(

@@ -10,11 +10,17 @@ export interface BrowseFilterChip {
   label: string;
 }
 
+export interface BrowsePersonFilterChipLabels {
+  cast?: { status: "loading" } | { status: "ready"; label: string } | null;
+  crew?: { status: "loading" } | { status: "ready"; label: string } | null;
+}
+
 export function buildBrowseFilterChips(
   filters: BrowseFilters,
   genreOptions: BrowseGenreOption[],
   languageOptions: BrowseLanguageOption[],
   providerOptions: BrowseOttProvider[],
+  personLabels?: BrowsePersonFilterChipLabels,
 ): BrowseFilterChip[] {
   const chips: BrowseFilterChip[] = [];
 
@@ -46,6 +52,26 @@ export function buildBrowseFilterChips(
     chips.push({
       key: `ott-${providerId}`,
       label: `${provider?.name ?? "Platform"} ×`,
+    });
+  }
+
+  if (
+    filters.castPersonId &&
+    personLabels?.cast?.status === "ready"
+  ) {
+    chips.push({
+      key: "cast",
+      label: `Cast: ${personLabels.cast.label} ×`,
+    });
+  }
+
+  if (
+    filters.crewPersonId &&
+    personLabels?.crew?.status === "ready"
+  ) {
+    chips.push({
+      key: "crew",
+      label: `Crew: ${personLabels.crew.label} ×`,
     });
   }
 

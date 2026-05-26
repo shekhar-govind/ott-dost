@@ -1,14 +1,13 @@
-import type { StreamingProvider } from "@/lib/tmdb/types";
+import type { BrowseWatchProviderEntry } from "@/lib/browse/watch-provider-entry";
 
 export const WATCH_PROVIDERS_CACHE_STORAGE_KEY = "ott-dost:watch-providers";
 export const WATCH_PROVIDERS_CACHE_MAX_ENTRIES = 200;
 export const WATCH_PROVIDERS_CACHE_MAX_BYTES = 512 * 1024;
 export const WATCH_PROVIDERS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 3;
 
-interface WatchProvidersCacheEntry {
-  providers: StreamingProvider[];
+interface WatchProvidersCacheEntry extends BrowseWatchProviderEntry {
   fetchedAt: number;
   expiresAt: number;
 }
@@ -125,11 +124,11 @@ function enforceLimits(store: WatchProvidersCacheStore): void {
   }
 }
 
-/** Read valid cached providers for keys (misses omitted). */
+/** Read valid cached watch-provider entries for keys (misses omitted). */
 export function getCachedWatchProvidersBatch(
   keys: string[],
-): Map<string, StreamingProvider[]> {
-  const hits = new Map<string, StreamingProvider[]>();
+): Map<string, BrowseWatchProviderEntry> {
+  const hits = new Map<string, BrowseWatchProviderEntry>();
   if (keys.length === 0 || !isBrowser()) return hits;
 
   const now = Date.now();
@@ -139,7 +138,10 @@ export function getCachedWatchProvidersBatch(
   for (const key of keys) {
     const entry = store.entries[key];
     if (!entry || entry.expiresAt <= now) continue;
-    hits.set(key, entry.providers);
+    hits.set(key, {
+      providers: entry.providers ?? [],
+      hasRentOrBuy: entry.hasRentOrBuy ?? false,
+    });
   }
 
   writeStore(store);
@@ -148,7 +150,7 @@ export function getCachedWatchProvidersBatch(
 
 /** Persist providers for titles (empty arrays are stored). */
 export function setCachedWatchProvidersBatch(
-  entries: Record<string, StreamingProvider[]>,
+  entries: Record<string, BrowseWatchProviderEntry>,
 ): void {
   const keys = Object.keys(entries);
   if (keys.length === 0 || !isBrowser()) return;
@@ -158,8 +160,10 @@ export function setCachedWatchProvidersBatch(
   pruneExpiredEntries(store, now);
 
   for (const key of keys) {
+    const entry = entries[key];
     store.entries[key] = {
-      providers: entries[key],
+      providers: entry.providers,
+      hasRentOrBuy: entry.hasRentOrBuy,
       fetchedAt: now,
       expiresAt: now + WATCH_PROVIDERS_CACHE_TTL_MS,
     };

@@ -8,6 +8,9 @@ import type {
   TmdbDiscoverTvResult,
   TmdbMediaType,
   TmdbMovieDetails,
+  TmdbPerson,
+  TmdbPersonMovieCredits,
+  TmdbPersonTvCredits,
   TmdbSearchResponse,
   TmdbTvDetails,
   TmdbWatchProvidersApiResponse,
@@ -133,4 +136,48 @@ export async function getTvWatchProviders(
   );
 
   return response.json() as Promise<TmdbWatchProvidersApiResponse>;
+}
+
+export async function getPersonTvCredits(
+  personId: number,
+): Promise<TmdbPersonTvCredits> {
+  const params = buildParams();
+
+  const response = await fetchTmdb(
+    `${TMDB_API_BASE}/person/${personId}/tv_credits?${params}`,
+    { next: { revalidate: 3600 } },
+  );
+
+  return response.json() as Promise<TmdbPersonTvCredits>;
+}
+
+export async function getPersonMovieCredits(
+  personId: number,
+): Promise<TmdbPersonMovieCredits> {
+  const params = buildParams();
+
+  const response = await fetchTmdb(
+    `${TMDB_API_BASE}/person/${personId}/movie_credits?${params}`,
+    { next: { revalidate: 3600 } },
+  );
+
+  return response.json() as Promise<TmdbPersonMovieCredits>;
+}
+
+export async function getPerson(id: number): Promise<TmdbPerson> {
+  const params = buildParams();
+
+  const response = await fetchTmdb(
+    `${TMDB_API_BASE}/person/${id}?${params}`,
+    { next: { revalidate: 86400 } },
+  );
+
+  const data = (await response.json()) as { id?: number; name?: string };
+  const name = data.name?.trim();
+
+  if (!data.id || !name) {
+    throw new Error("TMDB request failed: 404");
+  }
+
+  return { id: data.id, name };
 }

@@ -10,8 +10,14 @@ interface BrowseListItemProps {
 }
 
 export function BrowseListItem({ item }: BrowseListItemProps) {
-  const { providers, loadState, isStreamLoading, retryStreamProviders, setItemRef } =
-    useBrowseStreamProvidersContext(item);
+  const {
+    providers,
+    hasRentOrBuy,
+    loadState,
+    isStreamLoading,
+    retryStreamProviders,
+    setItemRef,
+  } = useBrowseStreamProvidersContext(item);
 
   return (
     <li
@@ -23,6 +29,7 @@ export function BrowseListItem({ item }: BrowseListItemProps) {
         variant="browse"
         item={item}
         streamProviders={providers}
+        streamHasRentOrBuy={hasRentOrBuy}
         streamLoadState={loadState}
         streamIsLoading={isStreamLoading}
         onRetryStreamProviders={() => retryStreamProviders(item)}

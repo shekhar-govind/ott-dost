@@ -1,5 +1,37 @@
 export type TmdbMediaType = "movie" | "tv";
 
+export interface TmdbPerson {
+  id: number;
+  name: string;
+}
+
+/** Title row from `/person/{id}/movie_credits` or `/person/{id}/tv_credits`. */
+export interface TmdbPersonCreditItem {
+  id: number;
+  name?: string;
+  title?: string;
+  first_air_date?: string;
+  release_date?: string;
+  genre_ids?: number[];
+  poster_path?: string | null;
+  overview?: string;
+  vote_average?: number;
+  vote_count?: number;
+  original_language?: string;
+}
+
+export interface TmdbPersonTvCredits {
+  id: number;
+  cast: TmdbPersonCreditItem[];
+  crew: TmdbPersonCreditItem[];
+}
+
+export interface TmdbPersonMovieCredits {
+  id: number;
+  cast: TmdbPersonCreditItem[];
+  crew: TmdbPersonCreditItem[];
+}
+
 export interface TmdbSearchResult {
   id: number;
   media_type?: TmdbMediaType | "person";
@@ -116,9 +148,16 @@ export interface TmdbCrewMember {
   profile_path?: string | null;
 }
 
+export interface CrewCreditMember {
+  id: number;
+  name: string;
+}
+
 export interface CrewCredit {
   job: string;
-  names: string;
+  members: CrewCreditMember[];
+  /** When more people exist for this job than we show. */
+  extraCount?: number;
 }
 
 export interface TmdbCredits {

@@ -1,12 +1,18 @@
-import type { CrewCredit } from "@/lib/tmdb/types";
+import { buildBrowseCrewUrl } from "@/lib/browse/person-filter-url";
+import type { BrowseMediaType } from "@/lib/browse/filters";
+import type { CrewCredit, CrewCreditMember } from "@/lib/tmdb/types";
+import { Fragment } from "react";
+import { PersonBrowseLink } from "./PersonBrowseLink";
 
 interface TitleCrewCollapsibleProps {
   crew: CrewCredit[];
+  mediaType: BrowseMediaType;
   className?: string;
 }
 
 export function TitleCrewCollapsible({
   crew,
+  mediaType,
   className = "",
 }: TitleCrewCollapsibleProps) {
   if (crew.length === 0) return null;
@@ -28,7 +34,12 @@ export function TitleCrewCollapsible({
             <dt className="shrink-0 text-xs font-medium text-zinc-700 sm:w-36">
               {credit.job}
             </dt>
-            <dd className="min-w-0 text-pretty text-sm text-zinc-600">{credit.names}</dd>
+            <dd className="min-w-0 text-pretty text-sm text-zinc-600">
+              <CrewMemberLinks members={credit.members} mediaType={mediaType} />
+              {credit.extraCount ? (
+                <span className="text-zinc-400">{` +${credit.extraCount} more`}</span>
+              ) : null}
+            </dd>
           </div>
         ))}
       </dl>
@@ -37,7 +48,10 @@ export function TitleCrewCollapsible({
 }
 
 /** Standalone crew section with heading always visible. */
-export function TitleCrewList({ crew }: TitleCrewCollapsibleProps) {
+export function TitleCrewList({
+  crew,
+  mediaType,
+}: TitleCrewCollapsibleProps) {
   if (crew.length === 0) return null;
 
   return (
@@ -48,7 +62,33 @@ export function TitleCrewList({ crew }: TitleCrewCollapsibleProps) {
       >
         Crew
       </h2>
-      <TitleCrewCollapsible crew={crew} className="mt-3" />
+      <TitleCrewCollapsible crew={crew} mediaType={mediaType} className="mt-3" />
     </section>
+  );
+}
+
+function CrewMemberLinks({
+  members,
+  mediaType,
+}: {
+  members: CrewCreditMember[];
+  mediaType: BrowseMediaType;
+}) {
+  return (
+    <>
+      {members.map((member, index) => (
+        <Fragment key={member.id}>
+          {index > 0 ? ", " : null}
+          <PersonBrowseLink
+            href={buildBrowseCrewUrl(mediaType, member.id)}
+            personId={member.id}
+            personName={member.name}
+            className="text-zinc-600 underline-offset-2 transition hover:text-zinc-900 hover:underline"
+          >
+            {member.name}
+          </PersonBrowseLink>
+        </Fragment>
+      ))}
+    </>
   );
 }

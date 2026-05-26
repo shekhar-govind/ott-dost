@@ -1,3 +1,7 @@
+import {
+  browseByPersonCredits,
+  shouldBrowseViaPersonCredits,
+} from "@/lib/browse/discover-by-person";
 import { browseDebug } from "@/lib/browse/debug";
 import { isBrowseLanguageAll } from "@/lib/browse/languages";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
@@ -49,12 +53,31 @@ export async function GET(request: NextRequest) {
   });
 
   try {
-    const [discoverResponse, genreMap] = await Promise.all([
-      isMovie
-        ? discoverLatestMovies(page, originalLanguage, discoverFilters)
-        : discoverLatestTv(page, originalLanguage, discoverFilters),
-      isMovie ? getMovieGenreMap() : getTvGenreMap(),
-    ]);
+    const genreMap = await (isMovie ? getMovieGenreMap() : getTvGenreMap());
+
+    if (shouldBrowseViaPersonCredits(discoverFilters)) {
+      const personBrowse = await browseByPersonCredits(
+        filters.mediaType,
+        page,
+        originalLanguage,
+        discoverFilters,
+        genreMap,
+      );
+
+      browseDebug("Browse API via person credits", {
+        mediaType: filters.mediaType,
+        page: personBrowse.page,
+        castPersonId: discoverFilters.castPersonId,
+        crewPersonId: discoverFilters.crewPersonId,
+        itemCount: personBrowse.items.length,
+      });
+
+      return NextResponse.json(personBrowse);
+    }
+
+    const discoverResponse = isMovie
+      ? await discoverLatestMovies(page, originalLanguage, discoverFilters)
+      : await discoverLatestTv(page, originalLanguage, discoverFilters);
 
     const candidates = mapDiscoverResults(discoverResponse, genreMap, isMovie)
       .sort(compareByReleaseDateDesc)

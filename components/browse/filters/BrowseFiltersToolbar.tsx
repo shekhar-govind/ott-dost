@@ -1,5 +1,6 @@
 "use client";
 
+import { useBrowsePersonFilterNames } from "@/hooks/useBrowsePersonFilterNames";
 import { buildBrowseFilterChips } from "@/lib/browse/labels";
 import {
   countBrowseRefinementFilters,
@@ -7,6 +8,7 @@ import {
   type BrowseMediaType,
 } from "@/lib/browse/filters";
 import type { BrowseFilterMeta } from "@/lib/browse/types";
+import { useMemo } from "react";
 import {
   applyBrowseMediaTypeChange,
   genreOptionsForMediaType,
@@ -55,13 +57,19 @@ export function BrowseFiltersToolbar({
   onClearFilters,
 }: BrowseFiltersToolbarProps) {
   const refinementCount = countBrowseRefinementFilters(filters);
+  const personLabels = useBrowsePersonFilterNames(filters);
   const genreOptions = genreOptionsForMediaType(meta, filters.mediaType);
   const providerOptions = providerOptionsForMediaType(meta, filters.mediaType);
-  const chips = buildBrowseFilterChips(
-    filters,
-    genreOptions,
-    meta.languages,
-    providerOptions,
+  const chips = useMemo(
+    () =>
+      buildBrowseFilterChips(
+        filters,
+        genreOptions,
+        meta.languages,
+        providerOptions,
+        personLabels,
+      ),
+    [filters, genreOptions, meta.languages, providerOptions, personLabels],
   );
 
   return (

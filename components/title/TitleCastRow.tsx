@@ -1,25 +1,37 @@
+import { buildBrowseCastUrl } from "@/lib/browse/person-filter-url";
+import type { BrowseMediaType } from "@/lib/browse/filters";
 import type { CastMember } from "@/lib/tmdb/types";
+import { PersonBrowseLink } from "./PersonBrowseLink";
 
 interface TitleCastScrollerProps {
   cast: CastMember[];
+  mediaType: BrowseMediaType;
 }
 
-export function TitleCastScroller({ cast }: TitleCastScrollerProps) {
+export function TitleCastScroller({ cast, mediaType }: TitleCastScrollerProps) {
   if (cast.length === 0) return null;
 
   return (
     <ul className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {cast.map((person) => (
         <li key={person.id} className="w-[4.75rem] shrink-0 sm:w-24">
-          <CastPhoto person={person} />
-          <p className="mt-2 truncate text-xs font-medium text-zinc-900">
-            {person.name}
-          </p>
-          {person.character ? (
-            <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500">
-              {person.character}
+          <PersonBrowseLink
+            href={buildBrowseCastUrl(mediaType, person.id)}
+            personId={person.id}
+            personName={person.name}
+            className="group block rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2"
+            aria-label={`Browse titles with ${person.name}`}
+          >
+            <CastPhoto person={person} />
+            <p className="mt-2 truncate text-xs font-medium text-zinc-900 group-hover:text-zinc-700 group-hover:underline">
+              {person.name}
             </p>
-          ) : null}
+            {person.character ? (
+              <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500">
+                {person.character}
+              </p>
+            ) : null}
+          </PersonBrowseLink>
         </li>
       ))}
     </ul>
@@ -27,7 +39,10 @@ export function TitleCastScroller({ cast }: TitleCastScrollerProps) {
 }
 
 /** Standalone cast section (e.g. panel layouts). */
-export function TitleCastRow({ cast }: TitleCastScrollerProps) {
+export function TitleCastRow({
+  cast,
+  mediaType,
+}: TitleCastScrollerProps) {
   if (cast.length === 0) return null;
 
   return (
@@ -39,7 +54,7 @@ export function TitleCastRow({ cast }: TitleCastScrollerProps) {
         Cast
       </h2>
       <div className="mt-3">
-        <TitleCastScroller cast={cast} />
+        <TitleCastScroller cast={cast} mediaType={mediaType} />
       </div>
     </section>
   );
@@ -53,14 +68,14 @@ function CastPhoto({ person }: { person: CastMember }) {
         alt=""
         width={96}
         height={96}
-        className="aspect-square w-full rounded-lg object-cover bg-zinc-100"
+        className="aspect-square w-full rounded-lg object-cover bg-zinc-100 transition group-hover:opacity-90"
       />
     );
   }
 
   return (
     <div
-      className="flex aspect-square w-full items-center justify-center rounded-lg bg-zinc-100 text-lg font-medium text-zinc-400"
+      className="flex aspect-square w-full items-center justify-center rounded-lg bg-zinc-100 text-lg font-medium text-zinc-400 transition group-hover:bg-zinc-200"
       aria-hidden
     >
       {person.name.slice(0, 1).toUpperCase()}

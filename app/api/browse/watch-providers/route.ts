@@ -6,7 +6,8 @@ import {
   getTvWatchProviders,
 } from "@/lib/tmdb/client";
 import type { StreamingProvider, TmdbMediaType } from "@/lib/tmdb/types";
-import { getStreamFlatrateProviders } from "@/lib/tmdb/utils";
+import { mapWatchAvailabilityFromWatchProviders } from "@/lib/tmdb/utils";
+import { hasRentOrBuyAvailability } from "@/lib/watch/availability-messages";
 import { NextRequest, NextResponse } from "next/server";
 
 const MAX_BATCH_SIZE = 25;
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
   const items = body.items ?? [];
 
   if (items.length === 0) {
-    return NextResponse.json({ providers: {} });
+    return NextResponse.json({ providers: {}, hasRentOrBuy: {} });
   }
 
   if (items.length > MAX_BATCH_SIZE) {
@@ -72,18 +73,21 @@ export async function POST(request: NextRequest) {
           item.mediaType === "movie"
             ? await getMovieWatchProviders(item.id)
             : await getTvWatchProviders(item.id);
-        const flatrate = getStreamFlatrateProviders(response);
-        const providers = dedupeStreamingProvidersForDisplay(flatrate);
-        return [browseItemKey(item), providers] as const;
+        const availability = mapWatchAvailabilityFromWatchProviders(response);
+        const providers = dedupeStreamingProvidersForDisplay(availability.stream);
+        const hasRentOrBuy = hasRentOrBuyAvailability(availability);
+        return [browseItemKey(item), { providers, hasRentOrBuy }] as const;
       },
     );
 
     const providers: Record<string, StreamingProvider[]> = {};
-    for (const [key, list] of pairs) {
-      providers[key] = list;
+    const hasRentOrBuy: Record<string, boolean> = {};
+    for (const [key, entry] of pairs) {
+      providers[key] = entry.providers;
+      hasRentOrBuy[key] = entry.hasRentOrBuy;
     }
 
-    return NextResponse.json({ providers });
+    return NextResponse.json({ providers, hasRentOrBuy });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Watch providers failed";
 

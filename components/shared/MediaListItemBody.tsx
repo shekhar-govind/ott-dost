@@ -8,6 +8,7 @@ interface MediaListItemBodyProps {
   item: SearchTitle;
   variant?: "browse" | "default";
   streamProviders?: StreamingProvider[];
+  streamHasRentOrBuy?: boolean;
   streamLoadState?: BrowseStreamLoadState;
   streamIsLoading?: boolean;
   onRetryStreamProviders?: () => void;
@@ -22,6 +23,7 @@ export function MediaListItemBody({
   item,
   variant = "default",
   streamProviders,
+  streamHasRentOrBuy = false,
   streamLoadState = "pending",
   streamIsLoading = false,
   onRetryStreamProviders,
@@ -36,9 +38,13 @@ export function MediaListItemBody({
 
   const overview = item.overview?.trim();
 
-  const resolvedProviders = streamProviders ?? item.streamProviders;
+  const resolvedProviders =
+    variant === "browse"
+      ? streamProviders
+      : (streamProviders ?? item.streamProviders);
   const showDefaultStream =
-    resolvedProviders.length > 0 || showStreamWhenEmpty;
+    resolvedProviders !== undefined &&
+    (resolvedProviders.length > 0 || showStreamWhenEmpty);
 
   return (
     <div className="min-w-0 flex-1">
@@ -60,12 +66,13 @@ export function MediaListItemBody({
       ) : null}
       {variant === "browse" ? (
         <BrowseStreamRow
-          providers={resolvedProviders}
+          providers={streamProviders}
+          hasRentOrBuy={streamHasRentOrBuy}
           loadState={streamLoadState}
           isLoading={streamIsLoading}
           onRetry={onRetryStreamProviders}
         />
-      ) : showDefaultStream ? (
+      ) : showDefaultStream && resolvedProviders ? (
         <StreamOnLabel providers={resolvedProviders} density="compact" />
       ) : null}
     </div>

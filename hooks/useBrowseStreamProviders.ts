@@ -6,6 +6,7 @@ import {
   getCachedWatchProvidersBatch,
   setCachedWatchProvidersBatch,
 } from "@/lib/browse/stream-providers-cache";
+import type { BrowseWatchProviderEntry } from "@/lib/browse/watch-provider-entry";
 import {
   logWatchProvidersScrollSettled,
   recordWatchProvidersCacheSkipped,
@@ -31,6 +32,7 @@ interface UseBrowseStreamProvidersOptions {
 
 interface UseBrowseStreamProvidersResult {
   getProviders: (key: string) => StreamingProvider[] | undefined;
+  getHasRentOrBuy: (key: string) => boolean | undefined;
   getLoadState: (key: string) => BrowseStreamLoadState;
   /** Queued or actively fetching (not yet loaded). */
   isStreamLoading: (key: string) => boolean;
@@ -93,6 +95,9 @@ export function useBrowseStreamProviders({
   const [providersByKey, setProvidersByKey] = useState<
     Record<string, StreamingProvider[]>
   >({});
+  const [hasRentOrBuyByKey, setHasRentOrBuyByKey] = useState<
+    Record<string, boolean>
+  >({});
   const [loadedKeys, setLoadedKeys] = useState<Set<string>>(() => new Set());
   const [errorKeys, setErrorKeys] = useState<Set<string>>(() => new Set());
   const [queueRevision, setQueueRevision] = useState(0);
@@ -148,11 +153,20 @@ export function useBrowseStreamProviders({
   }, []);
 
   const applyLoadedProviders = useCallback(
-    (updates: Record<string, StreamingProvider[]>) => {
+    (updates: Record<string, BrowseWatchProviderEntry>) => {
       const keys = Object.keys(updates);
       if (keys.length === 0) return;
 
-      setProvidersByKey((prev) => ({ ...prev, ...updates }));
+      const providerUpdates: Record<string, StreamingProvider[]> = {};
+      const rentOrBuyUpdates: Record<string, boolean> = {};
+
+      for (const key of keys) {
+        providerUpdates[key] = updates[key].providers ?? [];
+        rentOrBuyUpdates[key] = updates[key].hasRentOrBuy ?? false;
+      }
+
+      setProvidersByKey((prev) => ({ ...prev, ...providerUpdates }));
+      setHasRentOrBuyByKey((prev) => ({ ...prev, ...rentOrBuyUpdates }));
 
       for (const key of keys) {
         loadedKeysRef.current.add(key);
@@ -188,12 +202,12 @@ export function useBrowseStreamProviders({
       if (candidates.length === 0) return;
 
       const cached = getCachedWatchProvidersBatch(candidates);
-      const cacheUpdates: Record<string, StreamingProvider[]> = {};
+      const cacheUpdates: Record<string, BrowseWatchProviderEntry> = {};
       const misses: string[] = [];
 
       for (const key of candidates) {
         if (cached.has(key)) {
-          cacheUpdates[key] = cached.get(key) ?? [];
+          cacheUpdates[key] = cached.get(key)!;
         } else {
           misses.push(key);
         }
@@ -250,6 +264,7 @@ export function useBrowseStreamProviders({
     inFlightKeysRef.current.clear();
     queuedKeysRef.current.clear();
     setProvidersByKey({});
+    setHasRentOrBuyByKey({});
     setLoadedKeys(new Set());
     setErrorKeys(new Set());
     setQueueRevision(0);
@@ -357,15 +372,17 @@ export function useBrowseStreamProviders({
           .map((item) => ({ id: item.id, mediaType: item.mediaType }));
 
         try {
-          const providers = await fetchBrowseWatchProviders(batchItems);
+          const { entries } = await fetchBrowseWatchProviders(batchItems);
 
           if (generation !== fetchGenerationRef.current) return;
 
-          const updates: Record<string, StreamingProvider[]> = {
-            ...providers,
+          const updates: Record<string, BrowseWatchProviderEntry> = {
+            ...entries,
           };
           for (const key of chunk) {
-            if (!(key in updates)) updates[key] = [];
+            if (!(key in updates)) {
+              updates[key] = { providers: [], hasRentOrBuy: false };
+            }
           }
 
           applyLoadedProviders(updates);
@@ -440,9 +457,9 @@ export function useBrowseStreamProviders({
       bumpInFlightRevision();
 
       void fetchBrowseWatchProviders([{ id: item.id, mediaType: item.mediaType }])
-        .then((providers) => {
-          const list = providers[key] ?? [];
-          const updates = { [key]: list };
+        .then(({ entries }) => {
+          const entry = entries[key] ?? { providers: [], hasRentOrBuy: false };
+          const updates = { [key]: entry };
           applyLoadedProviders(updates);
           setCachedWatchProvidersBatch(updates);
         })
@@ -471,8 +488,19 @@ export function useBrowseStreamProviders({
   );
 
   const getProviders = useCallback(
-    (key: string) => providersByKey[key],
-    [providersByKey],
+    (key: string): StreamingProvider[] | undefined => {
+      if (!loadedKeys.has(key)) return undefined;
+      return providersByKey[key] ?? [];
+    },
+    [providersByKey, loadedKeys],
+  );
+
+  const getHasRentOrBuy = useCallback(
+    (key: string): boolean | undefined => {
+      if (!loadedKeys.has(key)) return undefined;
+      return hasRentOrBuyByKey[key] ?? false;
+    },
+    [hasRentOrBuyByKey, loadedKeys],
   );
 
   const getLoadState = useCallback(
@@ -508,6 +536,7 @@ export function useBrowseStreamProviders({
 
   return {
     getProviders,
+    getHasRentOrBuy,
     getLoadState,
     isStreamLoading,
     retryStreamProviders,

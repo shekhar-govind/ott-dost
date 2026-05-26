@@ -4,9 +4,10 @@ import { fetchBrowsePage } from "@/lib/api/browse";
 import { browseDebug } from "@/lib/browse/debug";
 import { mergeBrowseItems } from "@/lib/browse/items";
 import type { BrowseFilters } from "@/lib/browse/filters";
-import { filtersAreEqual } from "@/lib/browse/filters";
+import { serializeBrowseFilters } from "@/lib/browse/filters";
 import type { SearchTitle } from "@/lib/tmdb/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 const MAX_CONSECUTIVE_EMPTY_BROWSE_PAGES = 20;
 
 interface UseBrowseListOptions {
@@ -36,6 +37,8 @@ export function useBrowseList({
   infiniteScroll,
   filters,
 }: UseBrowseListOptions): UseBrowseListResult {
+  const filterKey = useMemo(() => serializeBrowseFilters(filters), [filters]);
+
   const [items, setItems] = useState<SearchTitle[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -44,158 +47,196 @@ export function useBrowseList({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emptyPageStreak, setEmptyPageStreak] = useState(0);
-  const requestId = useRef(0);
-  const filtersRef = useRef(filters);
-  const prevFiltersRef = useRef(filters);
-  const hasLoadedRef = useRef(false);
+
+  /** Filter key the current `items` were fetched with. */
+  const syncedFilterKeyRef = useRef<string | null>(null);
   const loadedPageRef = useRef(0);
-  const inFlightRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    filtersRef.current = filters;
-  }, [filters]);
-
-  const resetPagination = useCallback(() => {
-    requestId.current += 1;
-    inFlightRef.current = false;
-    loadedPageRef.current = 0;
-    setPage(1);
-    setTotalPages(1);
-    setHasMore(false);
-    setEmptyPageStreak(0);
-    setItems([]);
-    setError(null);
-    setIsLoading(false);
-    setIsLoadingMore(false);
-    browseDebug("Browse pagination reset (filters changed)", {
-      page: 1,
-      providerIds: filtersRef.current.providerIds,
-    });
+  const cancelInFlight = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
   }, []);
 
-  const loadPage = useCallback(
-    async (targetPage: number, mode: "replace" | "append") => {
-      if (inFlightRef.current && mode === "append") return;
-      if (inFlightRef.current && mode === "replace") {
-        requestId.current += 1;
-        inFlightRef.current = false;
-      }
-      if (mode === "append" && targetPage <= loadedPageRef.current) return;
+  const applyBrowsePage = useCallback(
+    (
+      data: Awaited<ReturnType<typeof fetchBrowsePage>>,
+      mode: "replace" | "append",
+      activeFilterKey: string,
+    ) => {
+      loadedPageRef.current = data.page;
+      setPage(data.page);
+      setTotalPages(data.totalPages);
+      syncedFilterKeyRef.current = activeFilterKey;
 
-      const currentRequest = ++requestId.current;
-      const isAppend = mode === "append";
-      inFlightRef.current = true;
-
-      if (isAppend) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
-      setError(null);
-
-      try {
-        const data = await fetchBrowsePage(targetPage, filtersRef.current);
-
-        if (currentRequest !== requestId.current) return;
-
-        loadedPageRef.current = data.page;
-        setPage(data.page);
-        setTotalPages(data.totalPages);
-
-        const receivedCount = data.items.length;
-        setEmptyPageStreak((prevStreak) => {
-          const nextEmptyStreak = isAppend
+      const receivedCount = data.items.length;
+      setEmptyPageStreak((prevStreak) => {
+        const nextEmptyStreak =
+          mode === "append"
             ? receivedCount === 0
               ? prevStreak + 1
               : 0
             : receivedCount === 0
               ? 1
               : 0;
-          setHasMore(
-            data.hasMore && nextEmptyStreak < MAX_CONSECUTIVE_EMPTY_BROWSE_PAGES,
-          );
-          return nextEmptyStreak;
-        });
+        setHasMore(
+          data.hasMore && nextEmptyStreak < MAX_CONSECUTIVE_EMPTY_BROWSE_PAGES,
+        );
+        return nextEmptyStreak;
+      });
 
-        setItems((prev) => {
-          const nextItems = isAppend
-            ? mergeBrowseItems(prev, data.items)
-            : data.items;
-          browseDebug("Browse list state updated", {
-            mode: isAppend ? "append" : "replace",
-            page: data.page,
-            providerIds: filtersRef.current.providerIds,
-            itemCount: nextItems.length,
-          });
-          return nextItems;
+      setItems((prev) => {
+        const nextItems =
+          mode === "append" ? mergeBrowseItems(prev, data.items) : data.items;
+        browseDebug("Browse list synced to filters", {
+          mode,
+          page: data.page,
+          filterKey: activeFilterKey,
+          itemCount: nextItems.length,
         });
-      } catch {
-        if (currentRequest !== requestId.current) return;
-        setError("Could not load titles. Try again.");
-        if (!isAppend) setItems([]);
-      } finally {
-        inFlightRef.current = false;
-        if (currentRequest === requestId.current) {
-          setIsLoading(false);
-          setIsLoadingMore(false);
-        }
-      }
+        return nextItems;
+      });
     },
     [],
   );
 
-  const appendNextPage = useCallback(() => {
-    if (!enabled || !infiniteScroll || inFlightRef.current || !hasMore) return;
-    loadPage(loadedPageRef.current + 1, "append");
-  }, [enabled, hasMore, infiniteScroll, loadPage]);
+  const fetchPage = useCallback(
+    async (
+      targetPage: number,
+      mode: "replace" | "append",
+      activeFilterKey: string,
+      activeFilters: BrowseFilters,
+    ) => {
+      cancelInFlight();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const isAppend = mode === "append";
+      if (isAppend) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+        setError(null);
+      }
+
+      try {
+        const data = await fetchBrowsePage(
+          targetPage,
+          activeFilters,
+          controller.signal,
+        );
+
+        if (controller.signal.aborted) return;
+
+        applyBrowsePage(data, mode, activeFilterKey);
+      } catch (fetchError) {
+        if (controller.signal.aborted) return;
+        if (fetchError instanceof DOMException && fetchError.name === "AbortError") {
+          return;
+        }
+        setError("Could not load titles. Try again.");
+        if (!isAppend) {
+          setItems([]);
+          syncedFilterKeyRef.current = null;
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+          setIsLoadingMore(false);
+        }
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+        }
+      }
+    },
+    [applyBrowsePage, cancelInFlight],
+  );
+
+  /** Keep list aligned with URL filters whenever the filter key changes on home. */
+  useEffect(() => {
+    if (!enabled) return;
+
+    if (syncedFilterKeyRef.current === filterKey) return;
+
+    browseDebug("Browse list resync (filter key changed)", {
+      from: syncedFilterKeyRef.current,
+      to: filterKey,
+    });
+
+    setPage(1);
+    loadedPageRef.current = 0;
+    setEmptyPageStreak(0);
+    setHasMore(false);
+    setItems([]);
+
+    void fetchPage(1, "replace", filterKey, filters);
+  }, [enabled, filterKey, filters, fetchPage]);
+
+  /** Desktop pagination — only when list is already synced to current filters. */
+  useEffect(() => {
+    if (!enabled || infiniteScroll || page <= 1) return;
+    if (syncedFilterKeyRef.current !== filterKey) return;
+    if (page === loadedPageRef.current) return;
+
+    void fetchPage(page, "replace", filterKey, filters);
+  }, [enabled, infiniteScroll, page, filterKey, filters, fetchPage]);
+
+  useEffect(() => {
+    if (enabled) return;
+
+    cancelInFlight();
+    setIsLoading(false);
+    setIsLoadingMore(false);
+
+    if (!preserveStateWhenDisabled) {
+      setItems([]);
+      setPage(1);
+      loadedPageRef.current = 0;
+      setError(null);
+      setEmptyPageStreak(0);
+      setHasMore(false);
+      syncedFilterKeyRef.current = null;
+    }
+  }, [enabled, preserveStateWhenDisabled, cancelInFlight]);
+
+  const loadMore = useCallback(() => {
+    if (
+      !enabled ||
+      !infiniteScroll ||
+      !hasMore ||
+      isLoading ||
+      isLoadingMore ||
+      syncedFilterKeyRef.current !== filterKey
+    ) {
+      return;
+    }
+
+    void fetchPage(loadedPageRef.current + 1, "append", filterKey, filters);
+  }, [
+    enabled,
+    infiniteScroll,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    filterKey,
+    filters,
+    fetchPage,
+  ]);
 
   const refresh = useCallback(() => {
     if (!enabled) return;
-    resetPagination();
-    loadPage(1, "replace");
-  }, [enabled, loadPage, resetPagination]);
 
-  useEffect(() => {
-    if (!enabled) {
-      if (!preserveStateWhenDisabled) {
-        setItems([]);
-        setPage(1);
-        loadedPageRef.current = 0;
-        setError(null);
-        setIsLoading(false);
-        setIsLoadingMore(false);
-        setEmptyPageStreak(0);
-        hasLoadedRef.current = false;
-      }
-      return;
-    }
+    syncedFilterKeyRef.current = null;
+    setPage(1);
+    loadedPageRef.current = 0;
+    setItems([]);
+    void fetchPage(1, "replace", filterKey, filters);
+  }, [enabled, filterKey, filters, fetchPage]);
 
-    const filtersChanged = !filtersAreEqual(prevFiltersRef.current, filters);
-    prevFiltersRef.current = filters;
-
-    if (filtersChanged) {
-      resetPagination();
-      hasLoadedRef.current = true;
-      loadPage(1, "replace");
-      return;
-    }
-
-    if (preserveStateWhenDisabled && hasLoadedRef.current) {
-      return;
-    }
-
-    hasLoadedRef.current = true;
-    loadPage(1, "replace");
-  }, [enabled, filters, preserveStateWhenDisabled, loadPage, resetPagination]);
-
-  useEffect(() => {
-    if (!enabled || infiniteScroll || page === 1) return;
-    loadPage(page, "replace");
-  }, [enabled, infiniteScroll, page, loadPage]);
-
-  const loadMore = useCallback(() => {
-    appendNextPage();
-  }, [appendNextPage]);
+  const setPageSafe = useCallback((nextPage: number) => {
+    if (syncedFilterKeyRef.current !== filterKey) return;
+    setPage(nextPage);
+  }, [filterKey]);
 
   return {
     items,
@@ -205,7 +246,7 @@ export function useBrowseList({
     isLoading,
     isLoadingMore,
     error,
-    setPage,
+    setPage: setPageSafe,
     loadMore,
     refresh,
   };

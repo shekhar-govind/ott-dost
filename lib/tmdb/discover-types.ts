@@ -5,6 +5,8 @@ export interface DiscoverFilters {
   dateFrom: string | null;
   dateTo: string | null;
   providerIds: number[];
+  castPersonId: number | null;
+  crewPersonId: number | null;
 }
 
 export function toDiscoverFilters(filters: BrowseFilters): DiscoverFilters {
@@ -13,5 +15,7 @@ export function toDiscoverFilters(filters: BrowseFilters): DiscoverFilters {
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     providerIds: filters.providerIds,
+    castPersonId: filters.castPersonId,
+    crewPersonId: filters.crewPersonId,
   };
 }

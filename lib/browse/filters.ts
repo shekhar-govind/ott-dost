@@ -18,6 +18,10 @@ export interface BrowseFilters {
   dateFrom: string | null;
   dateTo: string | null;
   providerIds: number[];
+  /** TMDB person id; set via title-page cast links. */
+  castPersonId: number | null;
+  /** TMDB person id; set via title-page crew links. */
+  crewPersonId: number | null;
 }
 
 export const DEFAULT_BROWSE_FILTERS: BrowseFilters = {
@@ -27,6 +31,8 @@ export const DEFAULT_BROWSE_FILTERS: BrowseFilters = {
   dateFrom: null,
   dateTo: null,
   providerIds: [],
+  castPersonId: null,
+  crewPersonId: null,
 };
 
 export function parseBrowseFilters(
@@ -73,7 +79,16 @@ export function parseBrowseFilters(
     dateFrom,
     dateTo,
     providerIds,
+    castPersonId: parseBrowsePersonIdParam(searchParams.get("cast")),
+    crewPersonId: parseBrowsePersonIdParam(searchParams.get("crew")),
   };
+}
+
+function parseBrowsePersonIdParam(idParam: string | null): number | null {
+  if (!idParam) return null;
+  const id = Number(idParam);
+  if (!Number.isInteger(id) || id <= 0) return null;
+  return id;
 }
 
 /** Legacy `type=all` URLs map to the default (movies). */
@@ -127,11 +142,34 @@ export function serializeBrowseFilters(filters: BrowseFilters): string {
     params.set("ott", filters.providerIds.join(","));
   }
 
+  if (filters.castPersonId) {
+    params.set("cast", String(filters.castPersonId));
+  }
+
+  if (filters.crewPersonId) {
+    params.set("crew", String(filters.crewPersonId));
+  }
+
   return params.toString();
 }
 
 export function filtersAreEqual(a: BrowseFilters, b: BrowseFilters): boolean {
   return serializeBrowseFilters(a) === serializeBrowseFilters(b);
+}
+
+/** Compare filter query strings regardless of param order. */
+export function browseFilterQueryEquals(a: string, b: string): boolean {
+  if (a === b) return true;
+
+  const paramsA = new URLSearchParams(a);
+  const paramsB = new URLSearchParams(b);
+  const keys = new Set([...paramsA.keys(), ...paramsB.keys()]);
+
+  for (const key of keys) {
+    if (paramsA.get(key) !== paramsB.get(key)) return false;
+  }
+
+  return true;
 }
 
 export function languageMatchesDefault(language: string): boolean {
@@ -148,6 +186,8 @@ export function countBrowseRefinementFilters(filters: BrowseFilters): number {
   if (filters.genreIds.length > 0) count += 1;
   if (filters.dateFrom || filters.dateTo) count += 1;
   if (filters.providerIds.length > 0) count += 1;
+  if (filters.castPersonId) count += 1;
+  if (filters.crewPersonId) count += 1;
 
   return count;
 }

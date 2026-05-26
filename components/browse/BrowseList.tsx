@@ -6,6 +6,7 @@ import { useBrowseList } from "@/hooks/useBrowseList";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
+  browseFilterQueryEquals,
   filtersAreEqual,
   hasNonDefaultBrowseFilters,
   serializeBrowseFilters,
@@ -48,12 +49,17 @@ export function BrowseList({
     const sanitized = sanitizeBrowseFiltersForMediaType(filters, meta);
     const canonicalQuery = serializeBrowseFilters(sanitized);
     const needsSanitize = !filtersAreEqual(sanitized, filters);
-    const needsUrlSync = canonicalQuery !== searchParams.toString();
+    const needsUrlSync = !browseFilterQueryEquals(
+      canonicalQuery,
+      searchParams.toString(),
+    );
 
-    if (needsSanitize || needsUrlSync) {
+    if (needsSanitize) {
+      commitBrowseFilters(sanitized);
+    } else if (needsUrlSync) {
       setFilters(sanitized);
     }
-  }, [filters, meta, searchParams, setFilters]);
+  }, [filters, meta, searchParams, commitBrowseFilters, setFilters]);
 
   const {
     items,

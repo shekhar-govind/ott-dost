@@ -2,6 +2,7 @@ import { TMDB_IMAGE_BASE } from "./constants";
 import type {
   CastMember,
   CrewCredit,
+  CrewCreditMember,
   SearchTitle,
   StreamingProvider,
   TitleDetail,
@@ -350,6 +351,18 @@ export function getStreamFlatrateProviders(
   return mapProviderList(region?.flatrate ?? []);
 }
 
+export function mapWatchAvailabilityFromWatchProviders(
+  response: TmdbWatchProvidersApiResponse,
+): WatchAvailability {
+  const region = response.results?.[WATCH_REGION];
+
+  return {
+    stream: mapProviderList(region?.flatrate ?? []),
+    rent: mapProviderList(region?.rent ?? []),
+    buy: mapProviderList(region?.buy ?? []),
+  };
+}
+
 export function mapWatchAvailability(
   details: TmdbMovieDetails | TmdbTvDetails,
 ): WatchAvailability {
@@ -496,35 +509,36 @@ export function mapMainCrew(credits?: TmdbCredits | null): CrewCredit[] {
   const crew = credits?.crew;
   if (!crew?.length) return [];
 
-  const namesByJob = new Map<string, string[]>();
+  const membersByJob = new Map<string, CrewCreditMember[]>();
 
   for (const member of crew) {
     const job = member.job?.trim();
     const name = member.name?.trim();
-    if (!job || !name) continue;
+    if (!job || !name || !member.id) continue;
 
-    const names = namesByJob.get(job) ?? [];
-    if (!names.includes(name)) {
-      names.push(name);
+    const members = membersByJob.get(job) ?? [];
+    if (!members.some((entry) => entry.id === member.id)) {
+      members.push({ id: member.id, name });
     }
-    namesByJob.set(job, names);
+    membersByJob.set(job, members);
   }
 
-  return [...namesByJob.entries()]
+  return [...membersByJob.entries()]
     .sort(([jobA], [jobB]) => {
       const byPriority = crewJobSortKey(jobA) - crewJobSortKey(jobB);
       return byPriority !== 0 ? byPriority : jobA.localeCompare(jobB);
     })
     .slice(0, MAIN_CREW_LIMIT)
-    .map(([job, names]) => {
-      const listed = names.slice(0, MAX_NAMES_PER_JOB);
-      const suffix =
-        names.length > MAX_NAMES_PER_JOB
-          ? ` +${names.length - MAX_NAMES_PER_JOB} more`
-          : "";
+    .map(([job, members]) => {
+      const listed = members.slice(0, MAX_NAMES_PER_JOB);
+      const extraCount =
+        members.length > MAX_NAMES_PER_JOB
+          ? members.length - MAX_NAMES_PER_JOB
+          : undefined;
       return {
         job,
-        names: `${listed.join(", ")}${suffix}`,
+        members: listed,
+        extraCount,
       };
     });
 }

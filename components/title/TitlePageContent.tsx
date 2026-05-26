@@ -48,7 +48,11 @@ export async function TitlePageContent({
       </div>
       {detail.trailer ? <TitleTrailer trailer={detail.trailer} /> : null}
       <TitleWatchCard availability={detail.watchAvailability} />
-      <TitlePeopleSection cast={detail.cast} crew={detail.crew} />
+      <TitlePeopleSection
+        cast={detail.cast}
+        crew={detail.crew}
+        mediaType={mediaType}
+      />
       <TitleRecommendations items={detail.recommendations} />
     </>
   );

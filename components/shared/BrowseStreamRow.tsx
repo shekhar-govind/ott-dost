@@ -1,12 +1,14 @@
 import { StreamOnLabel } from "@/components/shared/StreamOnLabel";
 import type { BrowseStreamLoadState } from "@/hooks/useBrowseStreamProviders";
 import type { StreamingProvider } from "@/lib/tmdb/types";
+import { getStreamUnavailableMessageForEmptyStream } from "@/lib/watch/availability-messages";
 
-/** Matches compact {@link StreamOnLabel} footprint to avoid layout shift on browse rows. */
-export const BROWSE_STREAM_ROW_SLOT_CLASS = "mt-1.5 h-[28px] shrink-0";
+/** Matches compact {@link StreamOnLabel} footprint; grows when showing empty-state copy. */
+export const BROWSE_STREAM_ROW_SLOT_CLASS = "mt-1.5 min-h-[28px] shrink-0";
 
 interface BrowseStreamRowProps {
   providers: StreamingProvider[] | undefined;
+  hasRentOrBuy?: boolean;
   loadState: BrowseStreamLoadState;
   isLoading: boolean;
   onRetry?: () => void;
@@ -25,6 +27,14 @@ function BrowseStreamLoadingPlaceholder() {
         />
       </span>
     </div>
+  );
+}
+
+function BrowseStreamEmptyMessage({ hasRentOrBuy }: { hasRentOrBuy: boolean }) {
+  return (
+    <p className="text-[11px] leading-snug text-zinc-500">
+      {getStreamUnavailableMessageForEmptyStream(hasRentOrBuy)}
+    </p>
   );
 }
 
@@ -51,12 +61,14 @@ function BrowseStreamRetryRow({ onRetry }: { onRetry: () => void }) {
 
 export function BrowseStreamRow({
   providers,
+  hasRentOrBuy = false,
   loadState,
   isLoading,
   onRetry,
 }: BrowseStreamRowProps) {
-  const showLogos =
-    loadState === "loaded" && providers !== undefined && providers.length > 0;
+  const isLoaded = loadState === "loaded" && providers !== undefined;
+  const showLogos = isLoaded && providers.length > 0;
+  const showEmptyMessage = isLoaded && providers.length === 0;
 
   return (
     <div className={BROWSE_STREAM_ROW_SLOT_CLASS}>
@@ -66,13 +78,15 @@ export function BrowseStreamRow({
           density="compact"
           className="!mt-0"
         />
+      ) : showEmptyMessage ? (
+        <BrowseStreamEmptyMessage hasRentOrBuy={hasRentOrBuy} />
       ) : loadState === "error" && onRetry ? (
         isLoading ? (
           <BrowseStreamLoadingPlaceholder />
         ) : (
           <BrowseStreamRetryRow onRetry={onRetry} />
         )
-      ) : isLoading ? (
+      ) : loadState === "pending" && isLoading ? (
         <BrowseStreamLoadingPlaceholder />
       ) : null}
     </div>

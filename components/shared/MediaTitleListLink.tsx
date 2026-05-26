@@ -36,6 +36,7 @@ interface MediaTitleListLinkProps {
   item: SearchTitle;
   variant: MediaTitleListLinkVariant;
   streamProviders?: StreamingProvider[];
+  streamHasRentOrBuy?: boolean;
   streamLoadState?: BrowseStreamLoadState;
   streamIsLoading?: boolean;
   onRetryStreamProviders?: () => void;
@@ -50,6 +51,7 @@ function LinkRowSurface({
   item,
   variant,
   streamProviders,
+  streamHasRentOrBuy,
   streamLoadState,
   streamIsLoading,
   onRetryStreamProviders,
@@ -57,6 +59,7 @@ function LinkRowSurface({
   item: SearchTitle;
   variant: MediaTitleListLinkVariant;
   streamProviders?: StreamingProvider[];
+  streamHasRentOrBuy?: boolean;
   streamLoadState?: BrowseStreamLoadState;
   streamIsLoading?: boolean;
   onRetryStreamProviders?: () => void;
@@ -93,6 +96,7 @@ function LinkRowSurface({
         item={item}
         variant={variant === "browse" ? "browse" : "default"}
         streamProviders={streamProviders}
+        streamHasRentOrBuy={streamHasRentOrBuy}
         streamLoadState={streamLoadState}
         streamIsLoading={streamIsLoading}
         onRetryStreamProviders={onRetryStreamProviders}
@@ -105,6 +109,7 @@ export function MediaTitleListLink({
   item,
   variant,
   streamProviders,
+  streamHasRentOrBuy,
   streamLoadState,
   streamIsLoading,
   onRetryStreamProviders,
@@ -134,6 +139,7 @@ export function MediaTitleListLink({
         item={item}
         variant={variant}
         streamProviders={streamProviders}
+        streamHasRentOrBuy={streamHasRentOrBuy}
         streamLoadState={streamLoadState}
         streamIsLoading={streamIsLoading}
         onRetryStreamProviders={onRetryStreamProviders}
