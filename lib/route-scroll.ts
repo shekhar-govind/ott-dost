@@ -155,6 +155,34 @@ export function restoreRouteScrollPixel(y: number): void {
   document.body.scrollTop = y;
 }
 
+/** Scroll the document to the top (e.g. after filter URL replace). */
+export function scrollRouteToTop(): void {
+  restoreRouteScrollPixel(0);
+}
+
+/**
+ * Restore scroll for a route from sessionStorage (read-only).
+ * Returns a cancel function for in-flight restore, or null if nothing saved.
+ */
+export function restoreSavedRouteScroll(routeUrl: string): (() => void) | null {
+  const y = readSavedRouteScroll(routeUrl);
+  if (y == null) return null;
+
+  const cancelRaf = restoreRouteScrollWhenLayoutReady(y);
+  const timeoutId = window.setTimeout(() => {
+    const maxScroll = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight,
+    );
+    restoreRouteScrollPixel(Math.min(y, maxScroll));
+  }, 100);
+
+  return () => {
+    cancelRaf();
+    clearTimeout(timeoutId);
+  };
+}
+
 export function restoreRouteScrollWhenLayoutReady(
   targetY: number,
   maxWaitMs = 4000,

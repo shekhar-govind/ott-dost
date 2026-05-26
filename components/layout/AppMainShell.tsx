@@ -6,14 +6,11 @@ import {
   getRouteUrl,
   initRouteScrollStorage,
   normalizeRouteUrl,
-  readSavedRouteScroll,
-  restoreRouteScrollPixel,
-  restoreRouteScrollWhenLayoutReady,
   saveRouteScrollPosition,
 } from "@/lib/route-scroll";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const TITLE_DETAIL_PATH = /^\/(?:movie|tv)\/\d+\/[^/]+$/;
 
@@ -27,11 +24,7 @@ export function AppMainShell({ children }: { children: ReactNode }) {
   const showSearchShell = usesSearchShell(pathname);
   const isDesignPreview = pathname.startsWith("/design/");
   const [query, setQuery] = useState("");
-  /** Routes the user has left at least once (skip restore on first visit). */
-  const routesLeftRef = useRef(new Set<string>());
-  const prevRouteUrlRef = useRef<string | null>(null);
   const scrollRestorationSetRef = useRef(false);
-  const cancelScheduledRestoreRef = useRef<(() => void) | null>(null);
 
   const handleClear = () => {
     setQuery("");
@@ -45,27 +38,6 @@ export function AppMainShell({ children }: { children: ReactNode }) {
     scrollRestorationSetRef.current = true;
     window.history.scrollRestoration = "manual";
     initRouteScrollStorage();
-  }, []);
-
-  const tryRestoreRoute = useCallback((route: string) => {
-    const y = readSavedRouteScroll(route);
-    if (y == null) return;
-
-    cancelScheduledRestoreRef.current?.();
-
-    const cancelRaf = restoreRouteScrollWhenLayoutReady(y);
-    const t = window.setTimeout(() => {
-      const maxScroll = Math.max(
-        0,
-        document.documentElement.scrollHeight - window.innerHeight,
-      );
-      restoreRouteScrollPixel(Math.min(y, maxScroll));
-    }, 100);
-
-    cancelScheduledRestoreRef.current = () => {
-      cancelRaf();
-      clearTimeout(t);
-    };
   }, []);
 
   /** Save scroll for the current URL before navigating away via a link. */
@@ -114,47 +86,75 @@ export function AppMainShell({ children }: { children: ReactNode }) {
     };
   }, [pathname]);
 
-  /** Restore when returning to a URL we've left before. */
-  useEffect(() => {
-    const route = getRouteUrl();
-    const prev = prevRouteUrlRef.current;
-    prevRouteUrlRef.current = route;
-
-    if (prev != null && prev !== route) {
-      routesLeftRef.current.add(prev);
-    }
-
-    if (!routesLeftRef.current.has(route)) {
-      return;
-    }
-
-    tryRestoreRoute(route);
-
-    return () => {
-      cancelScheduledRestoreRef.current?.();
-    };
-  }, [pathname, tryRestoreRoute]);
-
-  /** Back/forward may update the URL before pathname — restore from that URL's key. */
-  useEffect(() => {
-    const run = () => {
-      const route = getRouteUrl();
-      if (!routesLeftRef.current.has(route)) return;
-      tryRestoreRoute(route);
-    };
-
-    const onPopState = () => queueMicrotask(run);
-    const onPageShow = (event: PageTransitionEvent) => {
-      if (event.persisted) queueMicrotask(run);
-    };
-
-    window.addEventListener("popstate", onPopState);
-    window.addEventListener("pageshow", onPageShow);
-    return () => {
-      window.removeEventListener("popstate", onPopState);
-      window.removeEventListener("pageshow", onPageShow);
-    };
-  }, [tryRestoreRoute]);
+  // Scroll restore runs only on history back — see BackNavigationCoordinator.
+  //
+  // /** Routes the user has left at least once (skip restore on first visit). */
+  // const routesLeftRef = useRef(new Set<string>());
+  // const prevRouteUrlRef = useRef<string | null>(null);
+  // const cancelScheduledRestoreRef = useRef<(() => void) | null>(null);
+  //
+  // const tryRestoreRoute = useCallback((route: string) => {
+  //   const y = readSavedRouteScroll(route);
+  //   if (y == null) return;
+  //
+  //   cancelScheduledRestoreRef.current?.();
+  //
+  //   const cancelRaf = restoreRouteScrollWhenLayoutReady(y);
+  //   const t = window.setTimeout(() => {
+  //     const maxScroll = Math.max(
+  //       0,
+  //       document.documentElement.scrollHeight - window.innerHeight,
+  //     );
+  //     restoreRouteScrollPixel(Math.min(y, maxScroll));
+  //   }, 100);
+  //
+  //   cancelScheduledRestoreRef.current = () => {
+  //     cancelRaf();
+  //     clearTimeout(t);
+  //   };
+  // }, []);
+  //
+  // /** Restore when returning to a URL we've left before. */
+  // useEffect(() => {
+  //   const route = getRouteUrl();
+  //   const prev = prevRouteUrlRef.current;
+  //   prevRouteUrlRef.current = route;
+  //
+  //   if (prev != null && prev !== route) {
+  //     routesLeftRef.current.add(prev);
+  //   }
+  //
+  //   if (!routesLeftRef.current.has(route)) {
+  //     return;
+  //   }
+  //
+  //   tryRestoreRoute(route);
+  //
+  //   return () => {
+  //     cancelScheduledRestoreRef.current?.();
+  //   };
+  // }, [pathname, tryRestoreRoute]);
+  //
+  // /** Back/forward may update the URL before pathname — restore from that URL's key. */
+  // useEffect(() => {
+  //   const run = () => {
+  //     const route = getRouteUrl();
+  //     if (!routesLeftRef.current.has(route)) return;
+  //     tryRestoreRoute(route);
+  //   };
+  //
+  //   const onPopState = () => queueMicrotask(run);
+  //   const onPageShow = (event: PageTransitionEvent) => {
+  //     if (event.persisted) queueMicrotask(run);
+  //   };
+  //
+  //   window.addEventListener("popstate", onPopState);
+  //   window.addEventListener("pageshow", onPageShow);
+  //   return () => {
+  //     window.removeEventListener("popstate", onPopState);
+  //     window.removeEventListener("pageshow", onPageShow);
+  //   };
+  // }, [tryRestoreRoute]);
 
   if (isDesignPreview) {
     return <main className="flex w-full flex-1 flex-col">{children}</main>;

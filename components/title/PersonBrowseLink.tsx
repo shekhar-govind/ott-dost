@@ -1,6 +1,7 @@
 "use client";
 
 import { rememberPersonName } from "@/lib/api/person";
+import { requestScrollTopOnHomeLand } from "@/lib/browse/scroll-top-on-home-land";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -24,9 +25,13 @@ export function PersonBrowseLink({
   return (
     <Link
       href={href}
+      scroll
       className={className}
       aria-label={ariaLabel}
-      onClick={() => rememberPersonName(personId, personName)}
+      onClick={() => {
+        rememberPersonName(personId, personName);
+        requestScrollTopOnHomeLand();
+      }}
     >
       {children}
     </Link>

@@ -8,14 +8,20 @@ import {
   persistBrowseFilters,
 } from "@/lib/browse/filter-persistence";
 import {
+  browseFilterQueryEquals,
   DEFAULT_BROWSE_FILTERS,
   filtersAreEqual,
   parseBrowseFilters,
   serializeBrowseFilters,
   type BrowseFilters,
 } from "@/lib/browse/filters";
+import { scrollRouteToTop } from "@/lib/route-scroll";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
+
+export interface SetBrowseFiltersOptions {
+  scrollToTop?: boolean;
+}
 
 export function useBrowseFilters() {
   const router = useRouter();
@@ -36,26 +42,35 @@ export function useBrowseFilters() {
   }, [filters, searchParams]);
 
   const setFilters = useCallback(
-    (next: BrowseFilters) => {
+    (next: BrowseFilters, options?: SetBrowseFiltersOptions) => {
       if (pathname !== "/") return;
 
       const query = serializeBrowseFilters(next);
+      const currentQuery = searchParams.toString();
+      if (browseFilterQueryEquals(query, currentQuery)) {
+        return;
+      }
+
       browseDebug("Filters applied to URL", {
         providerIds: next.providerIds,
         serializedOttParam: next.providerIds.length > 0 ? next.providerIds.join(",") : null,
         fullQuery: query || null,
         filters: next,
+        scrollToTop: options?.scrollToTop ?? false,
       });
       router.replace(query ? `/?${query}` : "/", { scroll: false });
+      if (options?.scrollToTop) {
+        scrollRouteToTop();
+      }
     },
-    [pathname, router],
+    [pathname, router, searchParams],
   );
 
   /** Apply filters and remember them — only for explicit user actions. */
   const commitBrowseFilters = useCallback(
     (next: BrowseFilters) => {
       persistBrowseFilters(next);
-      setFilters(next);
+      setFilters(next, { scrollToTop: true });
     },
     [setFilters],
   );
@@ -72,7 +87,7 @@ export function useBrowseFilters() {
 
   const clearFilters = useCallback(() => {
     clearSavedBrowseFilters();
-    setFilters(DEFAULT_BROWSE_FILTERS);
+    setFilters(DEFAULT_BROWSE_FILTERS, { scrollToTop: true });
   }, [setFilters]);
 
   return { filters, setFilters, commitBrowseFilters, clearFilters };

@@ -7,11 +7,6 @@ import {
   setCachedWatchProvidersBatch,
 } from "@/lib/browse/stream-providers-cache";
 import type { BrowseWatchProviderEntry } from "@/lib/browse/watch-provider-entry";
-import {
-  logWatchProvidersScrollSettled,
-  recordWatchProvidersCacheSkipped,
-  resetWatchProvidersFetchLog,
-} from "@/lib/browse/watch-providers-log";
 import type { SearchTitle, StreamingProvider } from "@/lib/tmdb/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebouncedValue } from "./useDebouncedValue";
@@ -214,7 +209,6 @@ export function useBrowseStreamProviders({
       }
 
       if (Object.keys(cacheUpdates).length > 0) {
-        recordWatchProvidersCacheSkipped(Object.keys(cacheUpdates).length);
         applyLoadedProviders(cacheUpdates);
       }
 
@@ -268,7 +262,6 @@ export function useBrowseStreamProviders({
     setLoadedKeys(new Set());
     setErrorKeys(new Set());
     setQueueRevision(0);
-    resetWatchProvidersFetchLog();
   }, [filterCacheKey]);
 
   useEffect(() => {
@@ -428,7 +421,6 @@ export function useBrowseStreamProviders({
     };
 
     const pendingCount = getPendingKeys().length;
-    logWatchProvidersScrollSettled(pendingCount);
 
     if (pendingCount > 0) {
       void run();

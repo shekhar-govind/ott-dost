@@ -5,6 +5,7 @@ import { useBrowseFilters } from "@/hooks/useBrowseFilters";
 import { useBrowseList } from "@/hooks/useBrowseList";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { persistBrowseFilters } from "@/lib/browse/filter-persistence";
 import {
   browseFilterQueryEquals,
   filtersAreEqual,
@@ -55,11 +56,12 @@ export function BrowseList({
     );
 
     if (needsSanitize) {
-      commitBrowseFilters(sanitized);
+      persistBrowseFilters(sanitized);
+      setFilters(sanitized);
     } else if (needsUrlSync) {
       setFilters(sanitized);
     }
-  }, [filters, meta, searchParams, commitBrowseFilters, setFilters]);
+  }, [filters, meta, searchParams, setFilters]);
 
   const {
     items,

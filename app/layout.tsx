@@ -1,9 +1,11 @@
+import "@/lib/navigation/back-navigation-client-init";
 import type { Metadata, Viewport } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { AppMainShell } from "@/components/layout/AppMainShell";
 import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader";
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
+import { BackNavigationCoordinator } from "@/components/navigation/BackNavigationCoordinator";
 import { SharePayloadProvider } from "@/components/share/SharePayloadProvider";
 import { getSiteBaseUrl } from "@/lib/build-title-share-payload";
 import "./globals.css";
@@ -38,6 +40,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="flex min-h-dvh flex-col bg-zinc-50 text-zinc-900 antialiased">
         <SharePayloadProvider>
+          <Suspense fallback={null}>
+            <BackNavigationCoordinator />
+          </Suspense>
           <ConditionalSiteHeader />
           <AppMainShell>{children}</AppMainShell>
           <ConditionalSiteFooter />
