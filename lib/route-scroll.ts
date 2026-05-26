@@ -5,6 +5,9 @@ const LEGACY_KEY_PREFIXES = ["ott-dost:scroll-y:", "ott-dost:scroll:"] as const;
 
 type ScrollStore = Record<string, number>;
 
+/** In-memory map after first load; avoids re-scanning sessionStorage on every save. */
+let scrollStoreCache: ScrollStore | null = null;
+
 /**
  * Canonical route identity for scroll storage.
  * Title pages use /movie/{id} or /tv/{id} (slug is cosmetic and may redirect).
@@ -107,33 +110,51 @@ function readScrollY(): number {
   );
 }
 
-function loadStore(): ScrollStore {
+/** Current document scroll Y (for lightweight scroll listeners). */
+export function readCurrentDocumentScrollY(): number {
+  return readScrollY();
+}
+
+/** Full load: parse store, merge legacy keys, remove legacy keys. Call once per session tab. */
+function loadStoreWithMigration(): ScrollStore {
   const store = migrateLegacyKeysIntoStore(readStore());
   clearLegacyScrollKeys();
   return store;
 }
 
+function getScrollStoreForMutation(): ScrollStore {
+  if (scrollStoreCache) return scrollStoreCache;
+  scrollStoreCache = loadStoreWithMigration();
+  return scrollStoreCache;
+}
+
 /** Run once on app load: merge legacy keys into the single store. */
 export function initRouteScrollStorage(): void {
   if (typeof window === "undefined") return;
-  const store = loadStore();
-  writeStore(store);
+  scrollStoreCache = loadStoreWithMigration();
+  writeStore(scrollStoreCache);
 }
 
-export function saveRouteScrollPosition(routeUrl?: string): void {
+/**
+ * Persist scroll Y for a route. If `scrollY` is omitted, reads the live document position.
+ */
+export function saveRouteScrollPosition(
+  routeUrl?: string,
+  scrollY?: number,
+): void {
   if (typeof window === "undefined") return;
 
   const route = normalizeRouteUrl(routeUrl ?? getRouteUrl());
-  const y = readScrollY();
+  const y = scrollY !== undefined ? scrollY : readScrollY();
 
-  const store = loadStore();
+  const store = getScrollStoreForMutation();
   store[route] = y;
   writeStore(store);
 }
 
 export function readRouteScrollPosition(routeUrl: string): number | null {
   const route = normalizeRouteUrl(routeUrl);
-  const store = loadStore();
+  const store = getScrollStoreForMutation();
   const y = store[route];
   if (y == null || !Number.isFinite(y) || y < 0) return null;
   return y;
