@@ -125,8 +125,8 @@ export function BrowseFilterSheet({
       aria-labelledby={titleId}
       className={
         isDesktop
-          ? "relative z-10 flex max-h-[min(85dvh,720px)] w-full max-w-md min-h-0 flex-col rounded-2xl border border-zinc-200 bg-white p-5 shadow-xl ring-1 ring-zinc-900/5"
-          : "relative z-10 flex max-h-[min(85dvh,640px)] w-full min-h-0 flex-col rounded-t-2xl border border-zinc-200 border-b-0 bg-white px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.2)] ring-1 ring-zinc-900/5"
+          ? "relative z-10 flex max-h-[min(85svh,720px)] w-full max-w-md min-h-0 flex-col rounded-2xl border border-zinc-200 bg-white p-5 shadow-xl ring-1 ring-zinc-900/5"
+          : "relative z-10 flex max-h-[min(85svh,640px)] w-full min-h-0 flex-col rounded-t-2xl border border-zinc-200 border-b-0 bg-white px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.2)] ring-1 ring-zinc-900/5"
       }
     >
       {!isDesktop ? (

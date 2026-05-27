@@ -45,7 +45,7 @@ export function SearchAutocomplete({
         <ul
           id={listboxId}
           role="listbox"
-          className="max-h-[min(24rem,58dvh)] overflow-y-auto overscroll-contain py-1 sm:max-h-[22rem]"
+          className="max-h-[min(24rem,58svh)] overflow-y-auto overscroll-contain py-1 sm:max-h-[22rem]"
         >
           {results.map((item, index) => (
             <SearchResultItem

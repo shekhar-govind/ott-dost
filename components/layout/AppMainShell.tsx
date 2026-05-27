@@ -156,11 +156,11 @@ export function AppMainShell({ children }: { children: ReactNode }) {
   // }, [tryRestoreRoute]);
 
   if (isDesignPreview) {
-    return <main className="flex w-full flex-1 flex-col">{children}</main>;
+    return <main className="flex w-full flex-col">{children}</main>;
   }
 
   const mainClassName =
-    "mx-auto flex w-full max-w-xl flex-1 flex-col px-4 sm:max-w-2xl sm:px-6 lg:max-w-3xl lg:px-8 " +
+    "mx-auto flex w-full max-w-xl flex-col px-4 sm:max-w-2xl sm:px-6 lg:max-w-3xl lg:px-8 " +
     (showSearchShell ? "py-10 sm:py-16 lg:py-20" : "py-8 sm:py-12");
 
   if (!showSearchShell) {

@@ -17,7 +17,7 @@ export function SiteSearchPanel({
   children,
 }: SiteSearchPanelProps) {
   return (
-    <section className="flex w-full flex-1 flex-col justify-start">
+    <section className="flex w-full flex-col justify-start">
       <div className="mb-6 text-center sm:mb-8">
         <h2 className="text-pretty text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl lg:text-3xl">
           What do you want to watch?
