@@ -8,17 +8,16 @@ import {
   buildSharePosterProxyPath,
   SHARE_POSTER_TMDB_SIZE,
 } from "@/lib/share-poster-url";
+import { getSiteBaseUrl } from "@/lib/site-url";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TitleDetail } from "@/lib/tmdb/types";
+
+export { getSiteBaseUrl } from "@/lib/site-url";
 
 function clip(text: string, max: number): string {
   const t = text.replace(/\s+/g, " ").trim();
   if (t.length <= max) return t;
   return `${t.slice(0, max - 1).trimEnd()}…`;
-}
-
-export function getSiteBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
 }
 
 export function buildWatchHeadline(detail: TitleDetail): string {

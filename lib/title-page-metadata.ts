@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import {
   buildTitleSharePreviewText,
   buildWatchHeadline,
-  getSiteBaseUrl,
 } from "@/lib/build-title-share-payload";
+import { getSiteBaseUrl } from "@/lib/site-url";
 import { buildSharePosterAbsoluteUrl } from "@/lib/share-poster-url";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath } from "@/lib/title-url";

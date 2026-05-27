@@ -7,10 +7,10 @@ import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
 import { BackNavigationCoordinator } from "@/components/navigation/BackNavigationCoordinator";
 import { SharePayloadProvider } from "@/components/share/SharePayloadProvider";
-import { getSiteBaseUrl } from "@/lib/build-title-share-payload";
+import { getMetadataBaseUrl } from "@/lib/site-url";
 import "./globals.css";
 
-const metadataBase = new URL(getSiteBaseUrl() || "http://localhost:3000");
+const metadataBase = new URL(getMetadataBaseUrl());
 
 export const metadata: Metadata = {
   metadataBase,
