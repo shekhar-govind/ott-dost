@@ -38,7 +38,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="flex min-h-dvh flex-col bg-zinc-50 text-zinc-900 antialiased">
+      <body className="flex min-h-svh flex-col bg-zinc-50 text-zinc-900 antialiased">
         <SharePayloadProvider>
           <Suspense fallback={null}>
             <BackNavigationCoordinator />
