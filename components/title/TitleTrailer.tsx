@@ -20,7 +20,7 @@ export function TitleTrailer({ trailer }: TitleTrailerProps) {
   const [playing, setPlaying] = useState(false);
 
   return (
-    <article className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <article className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-none sm:shadow-sm">
       <div className="p-4 sm:p-6">
         <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
           Trailer

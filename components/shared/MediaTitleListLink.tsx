@@ -16,7 +16,7 @@ function cn(...parts: Array<string | false | undefined>): string {
 }
 
 const browseLinkClass = cn(
-  "relative flex w-full min-h-14 touch-manipulation items-start gap-2.5 rounded-lg border border-zinc-100 bg-white px-2.5 py-2 text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] outline-none transition-[border-color,background-color,box-shadow,opacity,transform] duration-200 ease-out",
+  "relative flex w-full min-h-14 touch-manipulation items-start gap-2.5 rounded-lg border border-zinc-100 bg-white px-2.5 py-2 text-left shadow-none outline-none transition-[border-color,background-color,box-shadow,opacity,transform] duration-200 ease-out sm:shadow-[0_1px_2px_rgba(0,0,0,0.04)]",
   "hover:border-zinc-200/90 hover:bg-zinc-50/70 active:bg-zinc-50 active:scale-[0.992] motion-reduce:transition-none motion-reduce:active:scale-100",
   "focus-visible:ring-2 focus-visible:ring-zinc-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50",
   "sm:min-h-0 sm:gap-3 sm:px-3 sm:py-2.5",

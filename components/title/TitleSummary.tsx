@@ -18,7 +18,7 @@ export function TitleSummary({
 
   if (backdropUrl) {
     return (
-      <article className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+      <article className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-none sm:shadow-sm">
         <TitleSummaryBackdrop backdropUrl={backdropUrl} title={detail.title} />
 
         <div className="relative z-10 px-4 pb-4 sm:px-6 sm:pb-6">
@@ -35,7 +35,7 @@ export function TitleSummary({
   }
 
   return (
-    <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+    <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-none sm:p-6 sm:shadow-sm">
       <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
         <Poster posterUrl={detail.posterUrl} title={detail.title} />
 
@@ -98,7 +98,7 @@ function Poster({
   overlapsBackdrop?: boolean;
 }) {
   const className = overlapsBackdrop
-    ? "mx-auto h-48 w-32 shrink-0 rounded-lg object-cover bg-zinc-100 shadow-lg ring-1 ring-zinc-200/80 sm:mx-0 sm:h-56 sm:w-36"
+    ? "mx-auto h-48 w-32 shrink-0 rounded-lg object-cover bg-zinc-100 ring-1 ring-zinc-200/80 shadow-none sm:mx-0 sm:h-56 sm:w-36 sm:shadow-lg"
     : "mx-auto h-48 w-32 shrink-0 rounded-lg object-cover bg-zinc-100 sm:mx-0 sm:h-56 sm:w-36";
 
   if (posterUrl) {
@@ -117,7 +117,7 @@ function Poster({
     <div
       className={
         overlapsBackdrop
-          ? "mx-auto flex h-48 w-32 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-2xl font-medium text-zinc-400 shadow-lg ring-1 ring-zinc-200/80 sm:mx-0 sm:h-56 sm:w-36"
+          ? "mx-auto flex h-48 w-32 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-2xl font-medium text-zinc-400 ring-1 ring-zinc-200/80 shadow-none sm:mx-0 sm:h-56 sm:w-36 sm:shadow-lg"
           : "mx-auto flex h-48 w-32 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-2xl font-medium text-zinc-400 sm:mx-0 sm:h-56 sm:w-36"
       }
     >

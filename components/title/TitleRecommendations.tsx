@@ -10,7 +10,7 @@ export function TitleRecommendations({ items }: TitleRecommendationsProps) {
   if (items.length === 0) return null;
 
   return (
-    <article className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <article className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-none sm:shadow-sm">
       <div className="border-b border-zinc-100 px-4 py-3 sm:px-6">
         <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
           More like this
