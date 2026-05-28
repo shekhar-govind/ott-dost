@@ -7,7 +7,7 @@ import type { SharePayload } from "@/lib/share-payload";
 
 export type { SharePayload } from "@/lib/share-payload";
 
-export type ShareStatus = "idle" | "copied" | "error";
+export type ShareStatus = "idle" | "pending" | "copied" | "error";
 
 function resolveShareUrl(url: string | undefined): string {
   const raw = url ?? window.location.href;
@@ -116,6 +116,7 @@ export function useShare() {
   const share = useCallback(
     async (payload?: SharePayload) => {
       const data = buildShareData(payload);
+      setStatus("pending");
 
       if (typeof navigator !== "undefined" && navigator.share) {
         try {
@@ -125,6 +126,7 @@ export function useShare() {
           return;
         } catch (err) {
           if (err instanceof DOMException && err.name === "AbortError") {
+            setStatus("idle");
             return;
           }
         }
