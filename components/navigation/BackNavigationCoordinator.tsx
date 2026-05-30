@@ -7,7 +7,6 @@ import {
   initBackNavigationDetection,
   notifyRouteSettled,
 } from "@/lib/navigation/back-navigation";
-import { resetMobileChromeToolbar } from "@/lib/navigation/reset-mobile-chrome-toolbar";
 import {
   getRouteUrl,
   restoreSavedRouteScroll,
@@ -24,18 +23,6 @@ export function BackNavigationCoordinator() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const cancelRestoreRef = useRef<(() => void) | null>(null);
-  const isFirstPathnameRef = useRef(true);
-
-  useLayoutEffect(() => {
-    if (isFirstPathnameRef.current) {
-      isFirstPathnameRef.current = false;
-      return;
-    }
-
-    if (hasPendingBackNavigation()) return;
-
-    resetMobileChromeToolbar(0);
-  }, [pathname]);
 
   useLayoutEffect(() => {
     initBackNavigationDetection((event) => {
