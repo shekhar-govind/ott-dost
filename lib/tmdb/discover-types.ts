@@ -1,3 +1,4 @@
+import { resolveEffectiveDateTo } from "@/lib/browse/date-presets";
 import type { BrowseFilters } from "@/lib/browse/filters";
 
 export interface DiscoverFilters {
@@ -13,7 +14,7 @@ export function toDiscoverFilters(filters: BrowseFilters): DiscoverFilters {
   return {
     genreIds: filters.genreIds,
     dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo,
+    dateTo: resolveEffectiveDateTo(filters.dateTo),
     providerIds: filters.providerIds,
     castPersonId: filters.castPersonId,
     crewPersonId: filters.crewPersonId,

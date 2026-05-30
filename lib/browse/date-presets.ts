@@ -13,8 +13,43 @@ export interface BrowseDatePreset {
 export const BROWSE_CUSTOM_YEAR_MIN = 1930;
 export const BROWSE_CUSTOM_YEAR_MAX = 2026;
 
+const INDIA_TIMEZONE = "Asia/Kolkata";
+
 export function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Calendar date in IST (YYYY-MM-DD), used for browse release-date ceilings. */
+export function todayIsoDateInIndia(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: INDIA_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/**
+ * Sunday ending next calendar week (Monday–Sunday weeks) relative to referenceDate.
+ * Example: Sat 2026-05-30 → 2026-06-07.
+ */
+export function nextCalendarWeekSunday(
+  referenceDate = todayIsoDateInIndia(),
+): string {
+  const date = new Date(`${referenceDate}T12:00:00.000Z`);
+  const day = date.getUTCDay();
+  const mondayOffset = day === 0 ? 6 : day - 1;
+  return addDaysToIsoDate(referenceDate, 13 - mondayOffset);
+}
+
+/** Upper bound for TMDB discover: min(user dateTo, next calendar week Sunday). */
+export function resolveEffectiveDateTo(
+  dateTo: string | null,
+  referenceDate = todayIsoDateInIndia(),
+): string {
+  const ceiling = nextCalendarWeekSunday(referenceDate);
+  if (!dateTo || dateTo > ceiling) return ceiling;
+  return dateTo;
 }
 
 /** Descending years for custom range dropdowns (1930–2026). */
