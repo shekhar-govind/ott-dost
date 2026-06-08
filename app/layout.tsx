@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   metadataBase,
   title: "OTT Dost",
   description: "Find where to watch movies and shows in India",
+  verification: {
+    google: "4xk7uq6rQCaTrYDvDlqAmBvNGZBAIdffgBKoc5OuNPo",
+  },
   icons: {
     icon: [{ url: "/ott-dost-logo.png", type: "image/png" }],
     apple: [{ url: "/ott-dost-logo.png", type: "image/png" }],
