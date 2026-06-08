@@ -24,6 +24,10 @@
     display: none;
   }
 
+  html.home-browse-hydrated [data-home-browse-ssr] {
+    display: none;
+  }
+
   html.browse-restore-pending .browse-restore-skeleton {
     display: block;
   }

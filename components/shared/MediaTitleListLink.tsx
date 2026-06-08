@@ -24,45 +24,27 @@ const searchLinkClass = cn(
   "[&:has([data-nav-pending])]:bg-violet-50/80 [&:has([data-nav-pending])]:shadow-[inset_0_0_0_1px_rgba(139,92,246,0.12)]",
 );
 
-interface MediaTitleListLinkProps {
+interface RowSurfaceProps {
   item: SearchTitle;
   variant: MediaTitleListLinkVariant;
-  /** Home browse rows open in a new tab so the list tab stays put. */
-  openInNewTab?: boolean;
   streamProviders?: StreamingProvider[];
   streamHasRentOrBuy?: boolean;
   streamLoadState?: BrowseStreamLoadState;
   streamIsLoading?: boolean;
   onRetryStreamProviders?: () => void;
-  /** Search row: keyboard/highlight state */
-  isActive?: boolean;
-  onMouseEnter?: MouseEventHandler<HTMLAnchorElement>;
-  onTouchStart?: TouchEventHandler<HTMLAnchorElement>;
-  onClick?: MouseEventHandler<HTMLAnchorElement>;
+  isPending?: boolean;
 }
 
-function LinkRowSurface({
+function ListRowSurface({
   item,
   variant,
-  showNavPending,
   streamProviders,
   streamHasRentOrBuy,
   streamLoadState,
   streamIsLoading,
   onRetryStreamProviders,
-}: {
-  item: SearchTitle;
-  variant: MediaTitleListLinkVariant;
-  showNavPending: boolean;
-  streamProviders?: StreamingProvider[];
-  streamHasRentOrBuy?: boolean;
-  streamLoadState?: BrowseStreamLoadState;
-  streamIsLoading?: boolean;
-  onRetryStreamProviders?: () => void;
-}) {
-  const { pending } = useLinkStatus();
-  const isPending = showNavPending && pending;
-
+  isPending = false,
+}: RowSurfaceProps) {
   return (
     <span
       className={cn(
@@ -102,6 +84,29 @@ function LinkRowSurface({
   );
 }
 
+function LinkedRowSurface(props: RowSurfaceProps & { showNavPending: boolean }) {
+  const { pending } = useLinkStatus();
+  const isPending = props.showNavPending && pending;
+  return <ListRowSurface {...props} isPending={isPending} />;
+}
+
+interface MediaTitleListLinkProps {
+  item: SearchTitle;
+  variant: MediaTitleListLinkVariant;
+  /** Home browse rows open in a new tab so the list tab stays put. */
+  openInNewTab?: boolean;
+  streamProviders?: StreamingProvider[];
+  streamHasRentOrBuy?: boolean;
+  streamLoadState?: BrowseStreamLoadState;
+  streamIsLoading?: boolean;
+  onRetryStreamProviders?: () => void;
+  /** Search row: keyboard/highlight state */
+  isActive?: boolean;
+  onMouseEnter?: MouseEventHandler<HTMLElement>;
+  onTouchStart?: TouchEventHandler<HTMLElement>;
+  onClick?: MouseEventHandler<HTMLElement>;
+}
+
 export function MediaTitleListLink({
   item,
   variant,
@@ -124,6 +129,30 @@ export function MediaTitleListLink({
       (isActive ? "bg-zinc-100 hover:bg-zinc-100" : "hover:bg-zinc-50"),
   );
 
+  const rowProps: RowSurfaceProps = {
+    item,
+    variant,
+    streamProviders,
+    streamHasRentOrBuy,
+    streamLoadState,
+    streamIsLoading,
+    onRetryStreamProviders,
+  };
+
+  if (variant === "search" && onClick) {
+    return (
+      <button
+        type="button"
+        className={linkClass}
+        onMouseEnter={onMouseEnter}
+        onTouchStart={onTouchStart}
+        onClick={onClick}
+      >
+        <ListRowSurface {...rowProps} />
+      </button>
+    );
+  }
+
   return (
     <Link
       href={href}
@@ -135,15 +164,9 @@ export function MediaTitleListLink({
       onTouchStart={onTouchStart}
       onClick={onClick}
     >
-      <LinkRowSurface
-        item={item}
-        variant={variant}
+      <LinkedRowSurface
+        {...rowProps}
         showNavPending={!openInNewTab}
-        streamProviders={streamProviders}
-        streamHasRentOrBuy={streamHasRentOrBuy}
-        streamLoadState={streamLoadState}
-        streamIsLoading={streamIsLoading}
-        onRetryStreamProviders={onRetryStreamProviders}
       />
     </Link>
   );

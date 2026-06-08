@@ -53,18 +53,17 @@ export function SearchBox({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const closeDropdownForItem = useCallback(() => {
-    onQueryChange("");
-    onClear?.();
-    setIsOpen(false);
-  }, [onClear, onQueryChange]);
-
   const handlePickItem = useCallback(
     (item: SearchTitle) => {
-      closeDropdownForItem();
+      setIsOpen(false);
       router.push(titlePathFromSearchTitle(item));
+      // Defer clear so React can commit navigation before dropdown unmounts.
+      queueMicrotask(() => {
+        onQueryChange("");
+        onClear?.();
+      });
     },
-    [closeDropdownForItem, router],
+    [onClear, onQueryChange, router],
   );
 
   const handleChange = useCallback(
@@ -133,7 +132,7 @@ export function SearchBox({
         error={error}
         activeIndex={activeIndex}
         onActiveIndexChange={setActiveIndex}
-        onSelect={closeDropdownForItem}
+        onSelect={handlePickItem}
         listboxId={listboxId}
       />
     </div>

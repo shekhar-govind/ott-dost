@@ -50,8 +50,11 @@ export function HomeBrowseClient({
 
   useLayoutEffect(() => {
     if (!hasServerList) return;
-    document.querySelector("[data-home-browse-ssr]")?.remove();
+    document.documentElement.classList.add("home-browse-hydrated");
     setShowClientBrowse(true);
+    return () => {
+      document.documentElement.classList.remove("home-browse-hydrated");
+    };
   }, [hasServerList]);
 
   useEffect(() => {
