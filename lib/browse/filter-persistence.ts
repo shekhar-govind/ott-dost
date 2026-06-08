@@ -6,7 +6,7 @@ import {
   type BrowseFilters,
 } from "./filters";
 
-const STORAGE_KEY = "ott-dost:browse-filters";
+export const BROWSE_FILTERS_STORAGE_KEY = "ott-dost:browse-filters";
 
 /** Home URL with no meaningful filter query — safe to restore saved prefs. */
 export function isBareBrowseUrl(searchParams: URLSearchParams): boolean {
@@ -18,7 +18,7 @@ export function isBareBrowseUrl(searchParams: URLSearchParams): boolean {
 export function loadSavedBrowseFilters(): BrowseFilters | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(BROWSE_FILTERS_STORAGE_KEY);
     if (!raw) return null;
     return parseBrowseFilters(new URLSearchParams(raw));
   } catch {
@@ -36,11 +36,11 @@ export function persistBrowseFilters(filters: BrowseFilters): void {
   if (typeof window === "undefined") return;
   try {
     if (!shouldPersistBrowseFilters(filters)) {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(BROWSE_FILTERS_STORAGE_KEY);
       return;
     }
     const query = serializeBrowseFilters(filters);
-    localStorage.setItem(STORAGE_KEY, query);
+    localStorage.setItem(BROWSE_FILTERS_STORAGE_KEY, query);
   } catch {
     // Private mode / quota — ignore
   }
@@ -49,7 +49,7 @@ export function persistBrowseFilters(filters: BrowseFilters): void {
 export function clearSavedBrowseFilters(): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(BROWSE_FILTERS_STORAGE_KEY);
   } catch {
     // ignore
   }

@@ -12,7 +12,9 @@ import {
   hasNonDefaultBrowseFilters,
   serializeBrowseFilters,
 } from "@/lib/browse/filters";
+import { shouldDeferBrowseRestore } from "@/lib/browse/should-defer-browse-restore";
 import { browseItemKey } from "@/lib/browse/items";
+import type { BrowsePage } from "@/lib/tmdb/types";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { sanitizeBrowseFiltersForMediaType } from "./filters/browse-filter-utils";
@@ -26,14 +28,23 @@ interface BrowseListProps {
   enabled: boolean;
   /** Keep list data in memory when disabled (e.g. route away from home). */
   preserveStateWhenDisabled?: boolean;
+  /** ISR page 1 from the server when the URL is allowlisted. */
+  initialPage?: BrowsePage | null;
+  initialFilterKey?: string | null;
 }
 
 export function BrowseList({
   enabled,
   preserveStateWhenDisabled = false,
+  initialPage = null,
+  initialFilterKey = null,
 }: BrowseListProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [deferInitialData] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return shouldDeferBrowseRestore(window.location.search);
+  });
   const { filters, setFilters, commitBrowseFilters, clearFilters } =
     useBrowseFilters();
   const searchParams = useSearchParams();
@@ -63,6 +74,11 @@ export function BrowseList({
     }
   }, [filters, meta, searchParams, setFilters]);
 
+  useEffect(() => {
+    if (!deferInitialData) return;
+    document.documentElement.classList.remove("browse-restore-pending");
+  }, [deferInitialData]);
+
   const {
     items,
     page,
@@ -79,6 +95,9 @@ export function BrowseList({
     preserveStateWhenDisabled,
     infiniteScroll: !isDesktop,
     filters,
+    initialPage,
+    initialFilterKey,
+    deferInitialData,
   });
 
   const sentinelRef = useInfiniteScroll({
@@ -103,6 +122,7 @@ export function BrowseList({
 
   return (
     <section
+      data-browse-list
       className={`mt-8 w-full ${visuallyHidden ? "hidden" : ""}`}
       aria-hidden={visuallyHidden}
       aria-label={browseListTitle}
@@ -153,13 +173,19 @@ export function BrowseList({
           items={items}
           filterCacheKey={streamFilterCacheKey}
         >
-          <ul className="space-y-1.5">
-            {items.map((item) => (
-              <BrowseListItem key={browseItemKey(item)} item={item} />
-            ))}
-          </ul>
+          <div data-server-browse-items>
+            <ul className="space-y-1.5">
+              {items.map((item) => (
+                <BrowseListItem key={browseItemKey(item)} item={item} />
+              ))}
+            </ul>
+          </div>
         </BrowseStreamProvidersProvider>
       )}
+
+      <div data-browse-restore-skeleton className="browse-restore-skeleton">
+        <BrowseListSkeleton />
+      </div>
 
       {!isDesktop && (
         <>

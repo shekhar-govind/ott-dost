@@ -15,6 +15,18 @@
     animation: browse-row-shimmer 1.05s ease-in-out infinite;
   }
 
+  .browse-restore-skeleton {
+    display: none;
+  }
+
+  html.browse-restore-pending [data-server-browse-items] {
+    display: none;
+  }
+
+  html.browse-restore-pending .browse-restore-skeleton {
+    display: block;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .browse-row-shimmer {
       animation: none;

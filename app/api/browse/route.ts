@@ -1,34 +1,6 @@
-import {
-  browseByPersonCredits,
-  shouldBrowseViaPersonCredits,
-} from "@/lib/browse/discover-by-person";
-import { browseDebug } from "@/lib/browse/debug";
-import { isBrowseLanguageAll } from "@/lib/browse/languages";
+import { getBrowsePage } from "@/lib/browse/get-browse-page";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
-import {
-  discoverLatestMovies,
-  discoverLatestTv,
-} from "@/lib/tmdb/client";
-import { toDiscoverFilters } from "@/lib/tmdb/discover-types";
-import { getMovieGenreMap, getTvGenreMap, resolveGenreNames } from "@/lib/tmdb/genres";
-import type {
-  TmdbDiscoverResponse,
-  TmdbDiscoverMovieResult,
-  TmdbDiscoverTvResult,
-} from "@/lib/tmdb/types";
-import {
-  compareByReleaseDateDesc,
-  toSearchTitleFromMovie,
-  toSearchTitleFromTv,
-} from "@/lib/tmdb/utils";
 import { NextRequest, NextResponse } from "next/server";
-
-/** Matches TMDB discover page size (20 results per upstream page). */
-const PAGE_SIZE = 20;
-
-type DiscoverResult =
-  | TmdbDiscoverResponse<TmdbDiscoverMovieResult>
-  | TmdbDiscoverResponse<TmdbDiscoverTvResult>;
 
 export async function GET(request: NextRequest) {
   const pageParam = request.nextUrl.searchParams.get("page") ?? "1";
@@ -39,58 +11,10 @@ export async function GET(request: NextRequest) {
   }
 
   const filters = parseBrowseFiltersFromRequest(request);
-  const isMovie = filters.mediaType === "movie";
-  const discoverFilters = toDiscoverFilters(filters);
-  const originalLanguage = isBrowseLanguageAll(filters.language)
-    ? null
-    : filters.language;
-
-  browseDebug("Browse API received", {
-    page,
-    mediaType: filters.mediaType,
-    providerIds: filters.providerIds,
-    discoverFilters,
-  });
 
   try {
-    const genreMap = await (isMovie ? getMovieGenreMap() : getTvGenreMap());
-
-    if (shouldBrowseViaPersonCredits(discoverFilters)) {
-      const personBrowse = await browseByPersonCredits(
-        filters.mediaType,
-        page,
-        originalLanguage,
-        discoverFilters,
-        genreMap,
-      );
-
-      browseDebug("Browse API via person credits", {
-        mediaType: filters.mediaType,
-        page: personBrowse.page,
-        castPersonId: discoverFilters.castPersonId,
-        crewPersonId: discoverFilters.crewPersonId,
-        itemCount: personBrowse.items.length,
-      });
-
-      return NextResponse.json(personBrowse);
-    }
-
-    const discoverResponse = isMovie
-      ? await discoverLatestMovies(page, originalLanguage, discoverFilters)
-      : await discoverLatestTv(page, originalLanguage, discoverFilters);
-
-    const candidates = mapDiscoverResults(discoverResponse, genreMap, isMovie)
-      .sort(compareByReleaseDateDesc)
-      .slice(0, PAGE_SIZE);
-
-    const hasMore = page < discoverResponse.total_pages;
-
-    return NextResponse.json({
-      items: candidates,
-      page,
-      totalPages: discoverResponse.total_pages,
-      hasMore,
-    });
+    const data = await getBrowsePage(page, filters);
+    return NextResponse.json(data);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Browse failed";
 
@@ -101,24 +25,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (message === "Invalid page") {
+      return NextResponse.json({ error: "Invalid page" }, { status: 400 });
+    }
+
     return NextResponse.json({ error: "Browse failed" }, { status: 502 });
   }
-}
-
-function mapDiscoverResults(
-  response: DiscoverResult,
-  genreMap: Map<number, string>,
-  isMovie: boolean,
-) {
-  return response.results.map((item) =>
-    isMovie
-      ? toSearchTitleFromMovie(
-          item as TmdbDiscoverMovieResult,
-          resolveGenreNames(item.genre_ids, genreMap),
-        )
-      : toSearchTitleFromTv(
-          item as TmdbDiscoverTvResult,
-          resolveGenreNames(item.genre_ids, genreMap),
-        ),
-  );
 }

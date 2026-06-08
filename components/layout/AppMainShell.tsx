@@ -1,6 +1,5 @@
 "use client";
 
-import { BrowseList } from "@/components/browse/BrowseList";
 import { SiteSearchPanel } from "@/components/search/SiteSearchPanel";
 import {
   getRouteUrl,
@@ -174,9 +173,8 @@ export function AppMainShell({ children }: { children: ReactNode }) {
         onQueryChange={setQuery}
         onClear={handleClear}
       >
-        {!isHome ? children : null}
-        <Suspense fallback={<BrowseListFallback />}>
-          <BrowseList enabled={isHome} preserveStateWhenDisabled />
+        <Suspense fallback={isHome ? <BrowseListFallback /> : null}>
+          {children}
         </Suspense>
       </SiteSearchPanel>
     </main>
