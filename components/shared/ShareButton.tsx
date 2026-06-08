@@ -2,6 +2,8 @@
 
 import { usePageSharePayload } from "@/hooks/usePageSharePayload";
 import { useShare, type SharePayload } from "@/hooks/useShare";
+import { isTitleRoutePath } from "@/lib/title-detail-path";
+import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 
 type ShareButtonProps = {
@@ -10,9 +12,16 @@ type ShareButtonProps = {
 };
 
 export function ShareButton({ payload: payloadProp, className }: ShareButtonProps) {
+  const pathname = usePathname();
   const payload = usePageSharePayload(payloadProp);
   const { share, status } = useShare();
   const isPending = status === "pending";
+  const isTitleRoute = isTitleRoutePath(pathname);
+
+  // Title pages register share data only after a successful fetch.
+  if (isTitleRoute && !payload) {
+    return null;
+  }
 
   const visibleLabel =
     status === "pending" ? "Preparing..." : status === "copied" ? "Copied" : "Share";
