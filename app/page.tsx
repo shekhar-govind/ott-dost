@@ -77,6 +77,7 @@ export default async function Home({
       <HomeBrowseClient
         initialPage={initialPage}
         initialFilterKey={initialPage ? filterKey : null}
+        hasServerList={serverListPage != null}
       />
     </>
   );

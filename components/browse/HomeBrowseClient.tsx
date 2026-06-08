@@ -27,18 +27,18 @@ import { BrowsePagination } from "./BrowsePagination";
 interface HomeBrowseClientProps {
   initialPage: BrowsePage | null;
   initialFilterKey: string | null;
+  /** True when ISR server list HTML is in the document (hidden until hydration). */
+  hasServerList: boolean;
 }
 
 export function HomeBrowseClient({
   initialPage,
   initialFilterKey,
+  hasServerList,
 }: HomeBrowseClientProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [showClientBrowse, setShowClientBrowse] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return !document.querySelector("[data-home-browse-ssr]");
-  });
+  const [showClientBrowse, setShowClientBrowse] = useState(() => !hasServerList);
   const [deferInitialData] = useState(() => {
     if (typeof window === "undefined") return false;
     return shouldDeferBrowseRestore(window.location.search);
@@ -49,9 +49,10 @@ export function HomeBrowseClient({
   const { meta } = useBrowseFilterMeta(true);
 
   useLayoutEffect(() => {
+    if (!hasServerList) return;
     document.querySelector("[data-home-browse-ssr]")?.remove();
     setShowClientBrowse(true);
-  }, []);
+  }, [hasServerList]);
 
   useEffect(() => {
     const metaLoaded =
