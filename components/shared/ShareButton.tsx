@@ -2,6 +2,7 @@
 
 import { usePageSharePayload } from "@/hooks/usePageSharePayload";
 import { useShare, type SharePayload } from "@/hooks/useShare";
+import { createPortal } from "react-dom";
 
 type ShareButtonProps = {
   payload?: SharePayload;
@@ -58,20 +59,23 @@ export function ShareButton({ payload: payloadProp, className }: ShareButtonProp
         </svg>
         <span aria-live="polite">{visibleLabel}</span>
       </button>
-      {isPending ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-zinc-950/20 backdrop-blur-[1px]">
-          <div
-            className="rounded-xl border border-zinc-200 bg-white/95 px-4 py-3 shadow-lg"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="flex items-center gap-2.5 text-sm font-medium text-zinc-700">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700" />
-              <span>Preparing share options...</span>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {isPending && typeof document !== "undefined"
+        ? createPortal(
+            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-zinc-950/20 backdrop-blur-[1px]">
+              <div
+                className="rounded-xl border border-zinc-200 bg-white/95 px-4 py-3 shadow-lg"
+                role="status"
+                aria-live="polite"
+              >
+                <div className="flex items-center gap-2.5 text-sm font-medium text-zinc-700">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700" />
+                  <span>Preparing share options...</span>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
