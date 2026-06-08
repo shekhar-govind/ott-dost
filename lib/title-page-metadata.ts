@@ -77,7 +77,5 @@ export async function buildTitlePageMetadata(
       description: clip(sharePreview, 200),
       ...(sharePosterUrl ? { images: [sharePosterUrl] } : {}),
     },
-    // Beta: was only noindex for non-canonical URLs; block all until launch.
-    robots: { index: false, follow: false },
   };
 }

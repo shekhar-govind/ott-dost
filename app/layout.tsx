@@ -21,13 +21,6 @@ export const metadata: Metadata = {
     icon: [{ url: "/ott-dost-logo.png", type: "image/png" }],
     apple: [{ url: "/ott-dost-logo.png", type: "image/png" }],
   },
-  // Beta: remove or relax when the site should be publicly indexable.
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: { index: false, follow: false, noimageindex: true },
-  },
 };
 
 export const viewport: Viewport = {
