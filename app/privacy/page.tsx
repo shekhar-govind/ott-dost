@@ -30,16 +30,12 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="font-medium text-zinc-700">Browser storage:</strong>{" "}
-            The site may store scroll position for routes in{" "}
-            <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs text-zinc-700">
-              sessionStorage
-            </code>{" "}
-            and your browse filter choices in{" "}
+            The site may store your browse filter choices in{" "}
             <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs text-zinc-700">
               localStorage
             </code>{" "}
-            so returning visits and back navigation feel smoother. This stays on
-            your device and is not sent to our servers as a profile.
+            so returning visits feel smoother. This stays on your device and is
+            not sent to our servers as a profile.
           </li>
           <li>
             <strong className="font-medium text-zinc-700">Search and browse queries:</strong>{" "}

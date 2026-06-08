@@ -14,8 +14,9 @@ import {
 } from "@/lib/browse/filters";
 import { shouldDeferBrowseRestore } from "@/lib/browse/should-defer-browse-restore";
 import { browseItemKey } from "@/lib/browse/items";
+import type { BrowsePage } from "@/lib/tmdb/types";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { sanitizeBrowseFiltersForMediaType } from "./filters/browse-filter-utils";
 import { BrowseFilterSheet } from "./filters/BrowseFilterSheet";
 import { BrowseFiltersToolbar } from "./filters/BrowseFiltersToolbar";
@@ -23,18 +24,21 @@ import { BrowseStreamProvidersProvider } from "./BrowseStreamProvidersContext";
 import { BrowseListItem } from "./BrowseListItem";
 import { BrowsePagination } from "./BrowsePagination";
 
-interface BrowseListProps {
-  enabled: boolean;
-  /** Keep list data in memory when disabled (e.g. route away from home). */
-  preserveStateWhenDisabled?: boolean;
+interface HomeBrowseClientProps {
+  initialPage: BrowsePage | null;
+  initialFilterKey: string | null;
 }
 
-export function BrowseList({
-  enabled,
-  preserveStateWhenDisabled = false,
-}: BrowseListProps) {
+export function HomeBrowseClient({
+  initialPage,
+  initialFilterKey,
+}: HomeBrowseClientProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [showClientBrowse, setShowClientBrowse] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return !document.querySelector("[data-home-browse-ssr]");
+  });
   const [deferInitialData] = useState(() => {
     if (typeof window === "undefined") return false;
     return shouldDeferBrowseRestore(window.location.search);
@@ -42,7 +46,12 @@ export function BrowseList({
   const { filters, setFilters, commitBrowseFilters, clearFilters } =
     useBrowseFilters();
   const searchParams = useSearchParams();
-  const { meta } = useBrowseFilterMeta(enabled);
+  const { meta } = useBrowseFilterMeta(true);
+
+  useLayoutEffect(() => {
+    document.querySelector("[data-home-browse-ssr]")?.remove();
+    setShowClientBrowse(true);
+  }, []);
 
   useEffect(() => {
     const metaLoaded =
@@ -85,22 +94,21 @@ export function BrowseList({
     loadMore,
     refresh,
   } = useBrowseList({
-    enabled,
-    preserveStateWhenDisabled,
     infiniteScroll: !isDesktop,
     filters,
     deferInitialData,
+    initialPage,
+    initialFilterKey,
   });
 
   const sentinelRef = useInfiniteScroll({
-    enabled: enabled && !isDesktop,
+    enabled: !isDesktop,
     hasMore,
     isLoading: isLoading || isLoadingMore,
     canObserve: items.length > 0,
     onLoadMore: loadMore,
   });
 
-  const visuallyHidden = !enabled && preserveStateWhenDisabled;
   const filtersActive = hasNonDefaultBrowseFilters(filters);
   const streamFilterCacheKey = useMemo(
     () => serializeBrowseFilters(filters),
@@ -110,13 +118,10 @@ export function BrowseList({
   const browseListTitle =
     filters.mediaType === "tv" ? "Browse TV shows" : "Browse movies";
 
-  if (!enabled && !preserveStateWhenDisabled) return null;
-
   return (
     <section
       data-browse-list
-      className={`mt-8 w-full ${visuallyHidden ? "hidden" : ""}`}
-      aria-hidden={visuallyHidden}
+      className={`mt-8 w-full ${showClientBrowse ? "" : "hidden"}`}
       aria-label={browseListTitle}
     >
       <BrowseFiltersToolbar
@@ -161,7 +166,7 @@ export function BrowseList({
         </p>
       ) : (
         <BrowseStreamProvidersProvider
-          enabled={enabled}
+          enabled
           items={items}
           filterCacheKey={streamFilterCacheKey}
         >

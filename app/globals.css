@@ -19,7 +19,8 @@
     display: none;
   }
 
-  html.browse-restore-pending [data-server-browse-items] {
+  html.browse-restore-pending [data-server-browse-items],
+  html.browse-restore-pending [data-home-browse-ssr] {
     display: none;
   }
 

@@ -2,7 +2,6 @@
 
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTitleSearch } from "@/hooks/useTitleSearch";
-import { getRouteUrl, saveRouteScrollPosition } from "@/lib/route-scroll";
 import { titlePathFromSearchTitle } from "@/lib/title-url";
 import type { SearchTitle } from "@/lib/tmdb/types";
 import { useRouter } from "next/navigation";
@@ -63,7 +62,6 @@ export function SearchBox({
   const handlePickItem = useCallback(
     (item: SearchTitle) => {
       closeDropdownForItem();
-      saveRouteScrollPosition(getRouteUrl());
       router.push(titlePathFromSearchTitle(item));
     },
     [closeDropdownForItem, router],

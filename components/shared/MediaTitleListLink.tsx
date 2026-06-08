@@ -1,5 +1,6 @@
 "use client";
 
+import { BROWSE_ITEM_LINK_CLASS } from "@/lib/browse/browse-item-link-class";
 import { ListItemPoster } from "@/components/shared/ListItemPoster";
 import { MediaListItemBody } from "@/components/shared/MediaListItemBody";
 import { titlePathFromSearchTitle } from "@/lib/title-url";
@@ -15,15 +16,6 @@ function cn(...parts: Array<string | false | undefined>): string {
   return parts.filter(Boolean).join(" ");
 }
 
-const browseLinkClass = cn(
-  "relative flex w-full min-h-14 touch-manipulation items-start gap-2.5 rounded-lg border border-zinc-100 bg-white px-2.5 py-2 text-left shadow-none outline-none transition-[border-color,background-color,box-shadow,opacity,transform] duration-200 ease-out sm:shadow-[0_1px_2px_rgba(0,0,0,0.04)]",
-  "hover:border-zinc-200/90 hover:bg-zinc-50/70 active:bg-zinc-50 active:scale-[0.992] motion-reduce:transition-none motion-reduce:active:scale-100",
-  "focus-visible:ring-2 focus-visible:ring-zinc-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50",
-  "sm:min-h-0 sm:gap-3 sm:px-3 sm:py-2.5",
-  "[&:has([data-nav-pending])]:border-violet-200/90 [&:has([data-nav-pending])]:bg-gradient-to-br [&:has([data-nav-pending])]:from-violet-50/90 [&:has([data-nav-pending])]:to-white",
-  "[&:has([data-nav-pending])]:shadow-[0_2px_14px_rgba(109,40,217,0.09)]",
-);
-
 const searchLinkClass = cn(
   "relative flex w-full min-h-14 touch-manipulation items-start gap-3 px-3 py-3 text-left outline-none transition-[background-color,opacity,transform] duration-200 ease-out",
   "active:bg-zinc-100 active:scale-[0.992] motion-reduce:transition-none motion-reduce:active:scale-100",
@@ -35,6 +27,8 @@ const searchLinkClass = cn(
 interface MediaTitleListLinkProps {
   item: SearchTitle;
   variant: MediaTitleListLinkVariant;
+  /** Home browse rows open in a new tab so the list tab stays put. */
+  openInNewTab?: boolean;
   streamProviders?: StreamingProvider[];
   streamHasRentOrBuy?: boolean;
   streamLoadState?: BrowseStreamLoadState;
@@ -50,6 +44,7 @@ interface MediaTitleListLinkProps {
 function LinkRowSurface({
   item,
   variant,
+  showNavPending,
   streamProviders,
   streamHasRentOrBuy,
   streamLoadState,
@@ -58,6 +53,7 @@ function LinkRowSurface({
 }: {
   item: SearchTitle;
   variant: MediaTitleListLinkVariant;
+  showNavPending: boolean;
   streamProviders?: StreamingProvider[];
   streamHasRentOrBuy?: boolean;
   streamLoadState?: BrowseStreamLoadState;
@@ -65,6 +61,7 @@ function LinkRowSurface({
   onRetryStreamProviders?: () => void;
 }) {
   const { pending } = useLinkStatus();
+  const isPending = showNavPending && pending;
 
   return (
     <span
@@ -72,10 +69,10 @@ function LinkRowSurface({
         "relative z-[1] flex w-full min-w-0 items-start",
         variant === "browse" ? "gap-2.5 sm:gap-3" : "gap-3",
       )}
-      {...(pending ? { "data-nav-pending": "" } : {})}
-      aria-busy={pending}
+      {...(isPending ? { "data-nav-pending": "" } : {})}
+      aria-busy={isPending}
     >
-      {pending ? (
+      {isPending ? (
         <span
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] motion-reduce:hidden"
           aria-hidden
@@ -108,6 +105,7 @@ function LinkRowSurface({
 export function MediaTitleListLink({
   item,
   variant,
+  openInNewTab = false,
   streamProviders,
   streamHasRentOrBuy,
   streamLoadState,
@@ -121,7 +119,7 @@ export function MediaTitleListLink({
   const href = titlePathFromSearchTitle(item);
 
   const linkClass = cn(
-    variant === "browse" ? browseLinkClass : searchLinkClass,
+    variant === "browse" ? BROWSE_ITEM_LINK_CLASS : searchLinkClass,
     variant === "search" &&
       (isActive ? "bg-zinc-100 hover:bg-zinc-100" : "hover:bg-zinc-50"),
   );
@@ -129,7 +127,9 @@ export function MediaTitleListLink({
   return (
     <Link
       href={href}
-      prefetch
+      prefetch={!openInNewTab}
+      target={openInNewTab ? "_blank" : undefined}
+      rel={openInNewTab ? "noopener noreferrer" : undefined}
       className={linkClass}
       onMouseEnter={onMouseEnter}
       onTouchStart={onTouchStart}
@@ -138,6 +138,7 @@ export function MediaTitleListLink({
       <LinkRowSurface
         item={item}
         variant={variant}
+        showNavPending={!openInNewTab}
         streamProviders={streamProviders}
         streamHasRentOrBuy={streamHasRentOrBuy}
         streamLoadState={streamLoadState}

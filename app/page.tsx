@@ -1,5 +1,6 @@
 import { BrowseJsonLd } from "@/components/browse/BrowseJsonLd";
-import { HomeBrowseInitialSeed } from "@/components/browse/HomeBrowseInitialSeed";
+import { HomeBrowseClient } from "@/components/browse/HomeBrowseClient";
+import { HomeBrowseServerList } from "@/components/browse/HomeBrowseServerList";
 import { buildBrowsePageMetadata } from "@/lib/browse/browse-page-metadata";
 import { getBrowsePage } from "@/lib/browse/get-browse-page";
 import {
@@ -62,12 +63,18 @@ export default async function Home({
     }
   }
 
+  const serverListPage =
+    initialPage != null && initialPage.items.length > 0 ? initialPage : null;
+
   return (
     <>
-      {indexable && initialPage && initialPage.items.length > 0 ? (
-        <BrowseJsonLd filters={filters} items={initialPage.items} />
+      {indexable && serverListPage ? (
+        <BrowseJsonLd filters={filters} items={serverListPage.items} />
       ) : null}
-      <HomeBrowseInitialSeed
+      {serverListPage ? (
+        <HomeBrowseServerList initialPage={serverListPage} filters={filters} />
+      ) : null}
+      <HomeBrowseClient
         initialPage={initialPage}
         initialFilterKey={initialPage ? filterKey : null}
       />

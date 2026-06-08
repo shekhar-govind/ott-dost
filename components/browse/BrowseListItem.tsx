@@ -27,6 +27,7 @@ export function BrowseListItem({ item }: BrowseListItemProps) {
     >
       <MediaTitleListLink
         variant="browse"
+        openInNewTab
         item={item}
         streamProviders={providers}
         streamHasRentOrBuy={hasRentOrBuy}
