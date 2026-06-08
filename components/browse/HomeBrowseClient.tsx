@@ -13,9 +13,11 @@ import {
   serializeBrowseFilters,
 } from "@/lib/browse/filters";
 import { shouldDeferBrowseRestore } from "@/lib/browse/should-defer-browse-restore";
+import { consumeScrollTopOnHomeLand } from "@/lib/browse/scroll-top-on-home-land";
 import { browseItemKey } from "@/lib/browse/items";
+import { scrollRouteToTop } from "@/lib/route-scroll";
 import type { BrowsePage } from "@/lib/tmdb/types";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { sanitizeBrowseFiltersForMediaType } from "./filters/browse-filter-utils";
 import { BrowseFilterSheet } from "./filters/BrowseFilterSheet";
@@ -45,8 +47,16 @@ export function HomeBrowseClient({
   });
   const { filters, setFilters, commitBrowseFilters, clearFilters } =
     useBrowseFilters();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { meta } = useBrowseFilterMeta(true);
+
+  useLayoutEffect(() => {
+    if (pathname !== "/") return;
+    if (consumeScrollTopOnHomeLand()) {
+      scrollRouteToTop();
+    }
+  }, [pathname, searchParams]);
 
   useLayoutEffect(() => {
     if (!hasServerList) return;
