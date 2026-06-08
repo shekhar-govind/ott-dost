@@ -42,7 +42,7 @@ export async function TitlePageContent({
   return (
     <>
       <TitleSharePayloadSetter payload={sharePayload} />
-      <div className="mt-3 space-y-3">
+      <div className="space-y-3">
         <TitleBackHomeLink />
         <TitleSummary detail={detail} variant="page" />
       </div>

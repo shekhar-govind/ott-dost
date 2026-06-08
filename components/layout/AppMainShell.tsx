@@ -1,19 +1,19 @@
 "use client";
 
 import { SiteSearchPanel } from "@/components/search/SiteSearchPanel";
+import { isTitleDetailPath } from "@/lib/title-detail-path";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
-const TITLE_DETAIL_PATH = /^\/(?:movie|tv)\/\d+\/[^/]+$/;
-
 function usesSearchShell(pathname: string): boolean {
-  return pathname === "/" || TITLE_DETAIL_PATH.test(pathname);
+  return pathname === "/" || isTitleDetailPath(pathname);
 }
 
 export function AppMainShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const showSearchShell = usesSearchShell(pathname);
+  const isTitleDetail = isTitleDetailPath(pathname);
   const isDesignPreview = pathname.startsWith("/design/");
   const [query, setQuery] = useState("");
 
@@ -27,7 +27,11 @@ export function AppMainShell({ children }: { children: ReactNode }) {
 
   const mainClassName =
     "mx-auto flex w-full max-w-xl flex-col px-4 sm:max-w-2xl sm:px-6 lg:max-w-3xl lg:px-8 " +
-    (showSearchShell ? "py-10 sm:py-16 lg:py-20" : "py-8 sm:py-12");
+    (isTitleDetail
+      ? "py-4 sm:py-6 lg:py-8"
+      : showSearchShell
+        ? "py-10 sm:py-16 lg:py-20"
+        : "py-8 sm:py-12");
 
   if (!showSearchShell) {
     return <main className={mainClassName}>{children}</main>;
@@ -36,6 +40,7 @@ export function AppMainShell({ children }: { children: ReactNode }) {
   return (
     <main className={mainClassName}>
       <SiteSearchPanel
+        variant={isTitleDetail ? "detail" : "home"}
         query={query}
         onQueryChange={setQuery}
         onClear={handleClear}

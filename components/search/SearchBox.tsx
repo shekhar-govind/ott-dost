@@ -15,12 +15,18 @@ interface SearchBoxProps {
   query: string;
   onQueryChange: (query: string) => void;
   onClear?: () => void;
+  onResultPick?: () => void;
+  autoFocus?: boolean;
+  placeholder?: string;
 }
 
 export function SearchBox({
   query,
   onQueryChange,
   onClear,
+  onResultPick,
+  autoFocus = false,
+  placeholder,
 }: SearchBoxProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -38,6 +44,11 @@ export function SearchBox({
   useEffect(() => {
     setActiveIndex(results.length > 0 ? 0 : -1);
   }, [results]);
+
+  useEffect(() => {
+    if (!autoFocus) return;
+    inputRef.current?.focus();
+  }, [autoFocus]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -61,9 +72,10 @@ export function SearchBox({
       queueMicrotask(() => {
         onQueryChange("");
         onClear?.();
+        onResultPick?.();
       });
     },
-    [onClear, onQueryChange, router],
+    [onClear, onQueryChange, onResultPick, router],
   );
 
   const handleChange = useCallback(
@@ -122,6 +134,7 @@ export function SearchBox({
         isLoading={isLoading}
         listboxId={listboxId}
         isExpanded={showDropdown && results.length > 0}
+        placeholder={placeholder}
       />
 
       <SearchAutocomplete
