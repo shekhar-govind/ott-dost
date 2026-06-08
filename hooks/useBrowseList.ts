@@ -2,11 +2,13 @@
 
 import { fetchBrowsePage } from "@/lib/api/browse";
 import { browseDebug } from "@/lib/browse/debug";
+import { consumeHomeBrowseSeed } from "@/lib/browse/home-browse-seed";
 import { mergeBrowseItems } from "@/lib/browse/items";
 import type { BrowseFilters } from "@/lib/browse/filters";
 import { serializeBrowseFilters } from "@/lib/browse/filters";
-import type { BrowsePage, SearchTitle } from "@/lib/tmdb/types";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { hasPendingBackNavigation } from "@/lib/navigation/back-navigation";
+import type { SearchTitle } from "@/lib/tmdb/types";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const MAX_CONSECUTIVE_EMPTY_BROWSE_PAGES = 20;
 
@@ -16,9 +18,6 @@ interface UseBrowseListOptions {
   preserveStateWhenDisabled?: boolean;
   infiniteScroll: boolean;
   filters: BrowseFilters;
-  /** Server-rendered page 1 from ISR when filters match the URL. */
-  initialPage?: BrowsePage | null;
-  initialFilterKey?: string | null;
   /** Skip server HTML and fetch client-side (saved filter restore on bare `/`). */
   deferInitialData?: boolean;
 }
@@ -36,59 +35,29 @@ interface UseBrowseListResult {
   refresh: () => void;
 }
 
-function usesServerInitialData(
-  deferInitialData: boolean,
-  initialPage: BrowsePage | null | undefined,
-  initialFilterKey: string | null | undefined,
-  filterKey: string,
-): initialPage is BrowsePage {
-  return (
-    !deferInitialData &&
-    initialPage != null &&
-    initialFilterKey != null &&
-    initialFilterKey === filterKey
-  );
-}
-
 export function useBrowseList({
   enabled,
   preserveStateWhenDisabled = false,
   infiniteScroll,
   filters,
-  initialPage = null,
-  initialFilterKey = null,
   deferInitialData = false,
 }: UseBrowseListOptions): UseBrowseListResult {
   const filterKey = useMemo(() => serializeBrowseFilters(filters), [filters]);
 
-  const hasInitialData = usesServerInitialData(
-    deferInitialData,
-    initialPage,
-    initialFilterKey,
-    filterKey,
-  );
-
-  const [items, setItems] = useState<SearchTitle[]>(() =>
-    hasInitialData ? initialPage.items : [],
-  );
-  const [page, setPage] = useState(() => (hasInitialData ? initialPage.page : 1));
-  const [totalPages, setTotalPages] = useState(() =>
-    hasInitialData ? initialPage.totalPages : 1,
-  );
-  const [hasMore, setHasMore] = useState(() =>
-    hasInitialData ? initialPage.hasMore : false,
-  );
-  const [isLoading, setIsLoading] = useState(() => enabled && !hasInitialData);
+  const [items, setItems] = useState<SearchTitle[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emptyPageStreak, setEmptyPageStreak] = useState(0);
 
   /** Filter key the current `items` were fetched with. */
-  const syncedFilterKeyRef = useRef<string | null>(
-    hasInitialData ? filterKey : null,
-  );
-  const loadedPageRef = useRef(hasInitialData ? initialPage.page : 0);
+  const syncedFilterKeyRef = useRef<string | null>(null);
+  const loadedPageRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
+  const seedAppliedRef = useRef(false);
 
   const cancelInFlight = useCallback(() => {
     abortRef.current?.abort();
@@ -189,6 +158,20 @@ export function useBrowseList({
     [applyBrowsePage, cancelInFlight],
   );
 
+  /** Apply ISR seed before paint when landing on home (not when restoring preserved state). */
+  useLayoutEffect(() => {
+    if (!enabled || deferInitialData || seedAppliedRef.current) return;
+    if (hasPendingBackNavigation()) return;
+    if (syncedFilterKeyRef.current === filterKey) return;
+
+    const seed = consumeHomeBrowseSeed();
+    if (!seed || seed.initialFilterKey !== filterKey) return;
+
+    seedAppliedRef.current = true;
+    applyBrowsePage(seed.initialPage, "replace", filterKey);
+    setIsLoading(false);
+  }, [enabled, deferInitialData, filterKey, applyBrowsePage]);
+
   /** Keep list aligned with URL filters whenever the filter key changes on home. */
   useEffect(() => {
     if (!enabled) return;
@@ -233,6 +216,7 @@ export function useBrowseList({
       setEmptyPageStreak(0);
       setHasMore(false);
       syncedFilterKeyRef.current = null;
+      seedAppliedRef.current = false;
     }
   }, [enabled, preserveStateWhenDisabled, cancelInFlight]);
 
@@ -264,6 +248,7 @@ export function useBrowseList({
     if (!enabled) return;
 
     syncedFilterKeyRef.current = null;
+    seedAppliedRef.current = false;
     setPage(1);
     loadedPageRef.current = 0;
     setItems([]);

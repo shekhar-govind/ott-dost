@@ -1,4 +1,4 @@
-import { BrowseList } from "@/components/browse/BrowseList";
+import { HomeBrowseInitialSeed } from "@/components/browse/HomeBrowseInitialSeed";
 import { getBrowsePage } from "@/lib/browse/get-browse-page";
 import { isBrowseUrlIsrAllowed } from "@/lib/browse/isr-allowlist";
 import { parseBrowseFiltersFromSearchParams } from "@/lib/browse/parse-search-params";
@@ -45,9 +45,7 @@ export default async function Home({
   }
 
   return (
-    <BrowseList
-      enabled
-      preserveStateWhenDisabled
+    <HomeBrowseInitialSeed
       initialPage={initialPage}
       initialFilterKey={initialPage ? filterKey : null}
     />

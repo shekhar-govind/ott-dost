@@ -1,5 +1,6 @@
 "use client";
 
+import { BrowseList } from "@/components/browse/BrowseList";
 import { SiteSearchPanel } from "@/components/search/SiteSearchPanel";
 import {
   getRouteUrl,
@@ -173,26 +174,12 @@ export function AppMainShell({ children }: { children: ReactNode }) {
         onQueryChange={setQuery}
         onClear={handleClear}
       >
-        <Suspense fallback={isHome ? <BrowseListFallback /> : null}>
-          {children}
+        {!isHome ? children : null}
+        {isHome ? children : null}
+        <Suspense fallback={null}>
+          <BrowseList enabled={isHome} preserveStateWhenDisabled />
         </Suspense>
       </SiteSearchPanel>
     </main>
-  );
-}
-
-function BrowseListFallback() {
-  return (
-    <section className="mt-8 w-full" aria-hidden>
-      <div className="mb-4 h-8 animate-pulse rounded-lg bg-zinc-100" />
-      <ul className="space-y-1.5">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <li
-            key={index}
-            className="min-h-[4.75rem] animate-pulse rounded-lg border border-zinc-100 bg-zinc-100"
-          />
-        ))}
-      </ul>
-    </section>
   );
 }
