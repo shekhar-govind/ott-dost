@@ -95,6 +95,8 @@ interface MediaTitleListLinkProps {
   variant: MediaTitleListLinkVariant;
   /** Home browse rows open in a new tab so the list tab stays put. */
   openInNewTab?: boolean;
+  /** Same-tab full page load (e.g. title recommendations) to avoid mobile scroll jerk. */
+  hardNavigate?: boolean;
   streamProviders?: StreamingProvider[];
   streamHasRentOrBuy?: boolean;
   streamLoadState?: BrowseStreamLoadState;
@@ -111,6 +113,7 @@ export function MediaTitleListLink({
   item,
   variant,
   openInNewTab = false,
+  hardNavigate = false,
   streamProviders,
   streamHasRentOrBuy,
   streamLoadState,
@@ -150,6 +153,20 @@ export function MediaTitleListLink({
       >
         <ListRowSurface {...rowProps} />
       </button>
+    );
+  }
+
+  if (hardNavigate) {
+    return (
+      <a
+        href={href}
+        className={linkClass}
+        onMouseEnter={onMouseEnter}
+        onTouchStart={onTouchStart}
+        onClick={onClick}
+      >
+        <ListRowSurface {...rowProps} />
+      </a>
     );
   }
 

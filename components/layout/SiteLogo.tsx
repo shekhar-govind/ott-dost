@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const LOGO_SRC = "/ott-dost-logo.png";
 
 type SiteLogoProps = {
@@ -25,7 +23,7 @@ export function SiteLogo({ size = "header", showTagline }: SiteLogoProps) {
           : "space-y-1.5"
       }
     >
-      <Link
+      <a
         href="/"
         className={`inline-flex min-w-0 items-center ${lockupGap} transition hover:opacity-80 ${isHeader ? "group" : ""}`}
       >
@@ -41,7 +39,7 @@ export function SiteLogo({ size = "header", showTagline }: SiteLogoProps) {
         >
           OTT Dost
         </span>
-      </Link>
+      </a>
       {showTagline && isHeader ? (
         <p className="text-xs text-zinc-500 sm:text-sm">Find where to watch</p>
       ) : null}

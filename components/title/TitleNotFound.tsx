@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function TitleNotFound() {
   return (
     <article
@@ -36,12 +34,12 @@ export function TitleNotFound() {
         Try searching for another movie or show above.
       </p>
 
-      <Link
+      <a
         href="/"
         className="mt-6 inline-flex items-center justify-center rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700"
       >
         Back to home
-      </Link>
+      </a>
     </article>
   );
 }

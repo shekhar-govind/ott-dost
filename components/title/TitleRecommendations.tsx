@@ -19,7 +19,7 @@ export function TitleRecommendations({ items }: TitleRecommendationsProps) {
       <ul className="divide-y divide-zinc-100">
         {items.map((item) => (
           <li key={browseItemKey(item)}>
-            <MediaTitleListLink variant="browse" item={item} />
+            <MediaTitleListLink variant="browse" item={item} hardNavigate />
           </li>
         ))}
       </ul>

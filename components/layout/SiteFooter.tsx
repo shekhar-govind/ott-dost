@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { SiteLogo } from "./SiteLogo";
 
@@ -33,9 +32,9 @@ function FooterLink({
   }
 
   return (
-    <Link href={href} className={className}>
+    <a href={href} className={className}>
       {children}
-    </Link>
+    </a>
   );
 }
 

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 interface LegalPageProps {
@@ -19,12 +18,12 @@ export function LegalPage({ title, children }: LegalPageProps) {
         {children}
       </div>
       <p className="mt-8">
-        <Link
+        <a
           href="/"
           className="text-sm font-medium text-zinc-700 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-900"
         >
           Back to home
-        </Link>
+        </a>
       </p>
     </article>
   );

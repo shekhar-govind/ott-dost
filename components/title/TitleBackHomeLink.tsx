@@ -1,8 +1,6 @@
-import Link from "next/link";
-
 export function TitleBackHomeLink() {
   return (
-    <Link
+    <a
       href="/"
       className="inline-flex w-fit items-center gap-1.5 rounded-md py-0.5 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400"
     >
@@ -19,6 +17,6 @@ export function TitleBackHomeLink() {
         />
       </svg>
       Home
-    </Link>
+    </a>
   );
 }
