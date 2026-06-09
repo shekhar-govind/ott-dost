@@ -1,7 +1,7 @@
 import { buildBrowseCastUrl } from "@/lib/browse/person-filter-url";
 import type { BrowseMediaType } from "@/lib/browse/filters";
+import { PersonBrowseLink } from "@/components/title/PersonBrowseLink";
 import type { CastMember } from "@/lib/tmdb/types";
-import Link from "next/link";
 
 interface TitleCastScrollerProps {
   cast: CastMember[];
@@ -15,9 +15,10 @@ export function TitleCastScroller({ cast, mediaType }: TitleCastScrollerProps) {
     <ul className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {cast.map((person) => (
         <li key={person.id} className="w-[4.75rem] shrink-0 sm:w-24">
-          <Link
+          <PersonBrowseLink
             href={buildBrowseCastUrl(mediaType, person.id)}
-            scroll
+            personId={person.id}
+            personName={person.name}
             className="group block rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2"
             aria-label={`Browse titles with ${person.name}`}
           >
@@ -47,7 +48,7 @@ export function TitleCastScroller({ cast, mediaType }: TitleCastScrollerProps) {
                 {person.character}
               </p>
             ) : null}
-          </Link>
+          </PersonBrowseLink>
         </li>
       ))}
     </ul>
