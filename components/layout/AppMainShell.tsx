@@ -1,10 +1,10 @@
 "use client";
 
+import { RouteViewportStabilizer } from "@/components/layout/RouteViewportStabilizer";
 import { SiteSearchPanel } from "@/components/search/SiteSearchPanel";
 import { isTitleDetailPath } from "@/lib/title-detail-path";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { useState } from "react";
+import { Suspense, type ReactNode, useState } from "react";
 
 function usesSearchShell(pathname: string): boolean {
   return pathname === "/" || isTitleDetailPath(pathname);
@@ -22,7 +22,14 @@ export function AppMainShell({ children }: { children: ReactNode }) {
   };
 
   if (isDesignPreview) {
-    return <main className="flex w-full flex-col">{children}</main>;
+    return (
+      <main className="flex w-full flex-col">
+        <Suspense fallback={null}>
+          <RouteViewportStabilizer />
+        </Suspense>
+        {children}
+      </main>
+    );
   }
 
   const mainClassName =
@@ -34,11 +41,21 @@ export function AppMainShell({ children }: { children: ReactNode }) {
         : "py-8 sm:py-12");
 
   if (!showSearchShell) {
-    return <main className={mainClassName}>{children}</main>;
+    return (
+      <main className={mainClassName}>
+        <Suspense fallback={null}>
+          <RouteViewportStabilizer />
+        </Suspense>
+        {children}
+      </main>
+    );
   }
 
   return (
     <main className={mainClassName}>
+      <Suspense fallback={null}>
+        <RouteViewportStabilizer />
+      </Suspense>
       <SiteSearchPanel
         variant={isTitleDetail ? "detail" : "home"}
         query={query}
