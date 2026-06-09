@@ -4,7 +4,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useTitleSearch } from "@/hooks/useTitleSearch";
 import { titlePathFromSearchTitle } from "@/lib/title-url";
 import type { SearchTitle } from "@/lib/tmdb/types";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { SearchAutocomplete } from "./SearchAutocomplete";
 import { SearchInput } from "./SearchInput";
@@ -29,6 +29,7 @@ export function SearchBox({
   placeholder,
 }: SearchBoxProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,6 +50,10 @@ export function SearchBox({
     if (!autoFocus) return;
     inputRef.current?.focus();
   }, [autoFocus]);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

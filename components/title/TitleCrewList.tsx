@@ -1,8 +1,8 @@
 import { buildBrowseCrewUrl } from "@/lib/browse/person-filter-url";
 import type { BrowseMediaType } from "@/lib/browse/filters";
 import type { CrewCredit, CrewCreditMember } from "@/lib/tmdb/types";
+import Link from "next/link";
 import { Fragment } from "react";
-import { PersonBrowseLink } from "./PersonBrowseLink";
 
 interface TitleCrewCollapsibleProps {
   crew: CrewCredit[];
@@ -79,10 +79,9 @@ function CrewMemberLinks({
       {members.map((member, index) => (
         <Fragment key={member.id}>
           {index > 0 ? ", " : null}
-          <PersonBrowseLink
+          <Link
             href={buildBrowseCrewUrl(mediaType, member.id)}
-            personId={member.id}
-            personName={member.name}
+            scroll
             className="group text-zinc-600 transition hover:text-zinc-900"
           >
             <span className="inline-flex items-center gap-1">
@@ -103,7 +102,7 @@ function CrewMemberLinks({
                 <path d="M7 5h8v8" />
               </svg>
             </span>
-          </PersonBrowseLink>
+          </Link>
         </Fragment>
       ))}
     </>
