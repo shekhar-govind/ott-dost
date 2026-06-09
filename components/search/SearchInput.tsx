@@ -37,7 +37,6 @@ export function SearchInput({
         aria-expanded={isExpanded}
         aria-controls={isExpanded && listboxId ? listboxId : undefined}
         aria-label="Search titles"
-        data-site-search-input
         className="w-full touch-manipulation rounded-xl border border-zinc-200 bg-white px-4 py-3.5 pr-11 text-base text-zinc-900 shadow-sm outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 focus:ring-2 focus:ring-zinc-100 sm:py-3 sm:text-sm"
       />
       {isLoading && (

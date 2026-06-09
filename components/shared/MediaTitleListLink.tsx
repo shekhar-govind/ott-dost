@@ -4,15 +4,10 @@ import { BROWSE_ITEM_LINK_CLASS } from "@/lib/browse/browse-item-link-class";
 import { ListItemPoster } from "@/components/shared/ListItemPoster";
 import { MediaListItemBody } from "@/components/shared/MediaListItemBody";
 import { titlePathFromSearchTitle } from "@/lib/title-url";
-import {
-  stabilizeMobileViewport,
-  shouldStabilizeViewport,
-} from "@/lib/mobile-viewport-stabilize";
 import type { BrowseStreamLoadState } from "@/hooks/useBrowseStreamProviders";
 import type { SearchTitle, StreamingProvider } from "@/lib/tmdb/types";
 import Link from "next/link";
 import { useLinkStatus } from "next/link";
-import { useRouter } from "next/navigation";
 import type { MouseEventHandler, TouchEventHandler } from "react";
 
 export type MediaTitleListLinkVariant = "browse" | "search";
@@ -126,7 +121,6 @@ export function MediaTitleListLink({
   onTouchStart,
   onClick,
 }: MediaTitleListLinkProps) {
-  const router = useRouter();
   const href = titlePathFromSearchTitle(item);
 
   const linkClass = cn(
@@ -143,18 +137,6 @@ export function MediaTitleListLink({
     streamLoadState,
     streamIsLoading,
     onRetryStreamProviders,
-  };
-
-  const handleSameTabNavigate: MouseEventHandler<HTMLElement> = (event) => {
-    onClick?.(event);
-    if (event.defaultPrevented || openInNewTab) return;
-    if (!shouldStabilizeViewport()) return;
-
-    event.preventDefault();
-    void (async () => {
-      await stabilizeMobileViewport();
-      router.push(href);
-    })();
   };
 
   if (variant === "search" && onClick) {
@@ -180,7 +162,7 @@ export function MediaTitleListLink({
       className={linkClass}
       onMouseEnter={onMouseEnter}
       onTouchStart={onTouchStart}
-      onClick={handleSameTabNavigate}
+      onClick={onClick}
     >
       <LinkedRowSurface
         {...rowProps}
