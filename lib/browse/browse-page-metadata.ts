@@ -20,35 +20,25 @@ function languageRomanName(code: string): string {
 }
 
 export function buildBrowsePageTitle(filters: BrowseFilters): string {
-  const isTv = filters.mediaType === "tv";
   const hasLanguage = filters.language !== defaultBrowseLanguage();
 
   if (!hasLanguage) {
-    return isTv
-      ? "Browse TV shows in India | OTT Dost"
-      : "Browse movies in India | OTT Dost";
+    return "Browse movies and TV shows in India | OTT Dost";
   }
 
   const languageName = languageRomanName(filters.language);
-  return isTv
-    ? `${languageName} TV shows — where to watch in India | OTT Dost`
-    : `${languageName} movies — where to watch in India | OTT Dost`;
+  return `${languageName} movies and TV shows — where to watch in India | OTT Dost`;
 }
 
 function buildBrowsePageDescription(filters: BrowseFilters): string {
-  const isTv = filters.mediaType === "tv";
   const hasLanguage = filters.language !== defaultBrowseLanguage();
 
   if (!hasLanguage) {
-    return isTv
-      ? "Browse the latest TV shows and find where to stream them in India."
-      : "Browse the latest movies and find where to stream, rent, or buy them in India.";
+    return "Browse movies and TV shows and find where to stream them in India.";
   }
 
   const languageName = languageRomanName(filters.language);
-  return isTv
-    ? `Browse ${languageName} TV shows and find where to stream them in India.`
-    : `Browse ${languageName} movies and find where to stream, rent, or buy them in India.`;
+  return `Browse ${languageName} movies and TV shows and find where to stream them in India.`;
 }
 
 function absoluteBrowseUrl(path: string): string {
