@@ -21,7 +21,7 @@ import type {
 } from "@/lib/tmdb/types";
 import {
   compareByReleaseDateDesc,
-  getStreamFlatrateProviders,
+  getStreamProviders,
   toSearchTitleFromMovie,
   toSearchTitleFromTv,
 } from "@/lib/tmdb/utils";
@@ -145,8 +145,8 @@ async function filterCreditsByOttProviders(
         mediaType === "movie"
           ? await getMovieWatchProviders(item.id)
           : await getTvWatchProviders(item.id);
-      const flatrate = getStreamFlatrateProviders(response);
-      const matches = flatrate.some((provider) =>
+      const streamProviders = getStreamProviders(response);
+      const matches = streamProviders.some((provider) =>
         allowedProviderIds.has(provider.id),
       );
       return matches ? item : null;

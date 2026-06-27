@@ -8,7 +8,7 @@ export function appendDiscoverFilters(
   mode: "movie" | "tv",
 ): void {
   params.set("watch_region", TMDB_WATCH_REGION);
-  params.set("with_watch_monetization_types", "flatrate");
+  params.set("with_watch_monetization_types", "flatrate|free|ads");
 
   if (filters.genreIds.length > 0) {
     params.set("with_genres", filters.genreIds.join("|"));

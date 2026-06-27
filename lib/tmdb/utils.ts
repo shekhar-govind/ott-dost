@@ -344,11 +344,15 @@ function mapProviderList(
     });
 }
 
-export function getStreamFlatrateProviders(
+export function getStreamProviders(
   response: TmdbWatchProvidersApiResponse,
 ): StreamingProvider[] {
   const region = response.results?.[WATCH_REGION];
-  return mapProviderList(region?.flatrate ?? []);
+  return mapProviderList([
+    ...(region?.flatrate ?? []),
+    ...(region?.free ?? []),
+    ...(region?.ads ?? []),
+  ]);
 }
 
 export function mapWatchAvailabilityFromWatchProviders(
@@ -357,7 +361,11 @@ export function mapWatchAvailabilityFromWatchProviders(
   const region = response.results?.[WATCH_REGION];
 
   return {
-    stream: mapProviderList(region?.flatrate ?? []),
+    stream: mapProviderList([
+      ...(region?.flatrate ?? []),
+      ...(region?.free ?? []),
+      ...(region?.ads ?? []),
+    ]),
     rent: mapProviderList(region?.rent ?? []),
     buy: mapProviderList(region?.buy ?? []),
   };
@@ -369,7 +377,11 @@ export function mapWatchAvailability(
   const region = details["watch/providers"]?.results?.[WATCH_REGION];
 
   return {
-    stream: mapProviderList(region?.flatrate ?? []),
+    stream: mapProviderList([
+      ...(region?.flatrate ?? []),
+      ...(region?.free ?? []),
+      ...(region?.ads ?? []),
+    ]),
     rent: mapProviderList(region?.rent ?? []),
     buy: mapProviderList(region?.buy ?? []),
   };
