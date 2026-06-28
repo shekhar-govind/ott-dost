@@ -6,6 +6,7 @@ import { AppMainShell } from "@/components/layout/AppMainShell";
 import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader";
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
 import { SharePayloadProvider } from "@/components/share/SharePayloadProvider";
+import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
 import { getMetadataBaseUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -19,8 +20,16 @@ export const metadata: Metadata = {
     google: "4xk7uq6rQCaTrYDvDlqAmBvNGZBAIdffgBKoc5OuNPo",
   },
   icons: {
-    icon: [{ url: "/ott-dost-logo.png", type: "image/png" }],
-    apple: [{ url: "/ott-dost-logo.png", type: "image/png" }],
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "OTT Dost",
+    statusBarStyle: "default",
   },
 };
 
@@ -29,6 +38,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   colorScheme: "light",
+  themeColor: "#fafafa",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -41,6 +51,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AppMainShell>{children}</AppMainShell>
           <ConditionalSiteFooter />
         </SharePayloadProvider>
+        <ServiceWorkerRegistrar />
         <Analytics />
       </body>
     </html>
