@@ -4,6 +4,7 @@ import { BROWSE_ITEM_LINK_CLASS } from "@/lib/browse/browse-item-link-class";
 import { ListItemPoster } from "@/components/shared/ListItemPoster";
 import { MediaListItemBody } from "@/components/shared/MediaListItemBody";
 import { titlePathFromSearchTitle } from "@/lib/title-url";
+import { useIsStandalone } from "@/hooks/useIsStandalone";
 import type { BrowseStreamLoadState } from "@/hooks/useBrowseStreamProviders";
 import type { SearchTitle, StreamingProvider } from "@/lib/tmdb/types";
 import Link from "next/link";
@@ -126,6 +127,12 @@ export function MediaTitleListLink({
 }: MediaTitleListLinkProps) {
   const href = titlePathFromSearchTitle(item);
 
+  // In an installed PWA there are no tabs: a `target="_blank"` link opens a
+  // throwaway context whose back gesture exits the app. Fall back to in-app
+  // navigation so back returns to the list.
+  const isStandalone = useIsStandalone();
+  const openInNewTabEffective = openInNewTab && !isStandalone;
+
   const linkClass = cn(
     variant === "browse" ? BROWSE_ITEM_LINK_CLASS : searchLinkClass,
     variant === "search" &&
@@ -173,9 +180,9 @@ export function MediaTitleListLink({
   return (
     <Link
       href={href}
-      prefetch={!openInNewTab}
-      target={openInNewTab ? "_blank" : undefined}
-      rel={openInNewTab ? "noopener noreferrer" : undefined}
+      prefetch={!openInNewTabEffective}
+      target={openInNewTabEffective ? "_blank" : undefined}
+      rel={openInNewTabEffective ? "noopener noreferrer" : undefined}
       className={linkClass}
       onMouseEnter={onMouseEnter}
       onTouchStart={onTouchStart}
@@ -183,7 +190,7 @@ export function MediaTitleListLink({
     >
       <LinkedRowSurface
         {...rowProps}
-        showNavPending={!openInNewTab}
+        showNavPending={!openInNewTabEffective}
       />
     </Link>
   );
