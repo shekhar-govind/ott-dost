@@ -1,14 +1,20 @@
 // OTT Dost service worker.
 //
-// Purpose today: exist with a real `fetch` handler so Chromium browsers treat
-// the app as installable and surface the automatic install prompt.
+// Purpose today: exist with a `fetch` handler so Chromium browsers can treat
+// the app as installable, WITHOUT intercepting any requests.
 //
-// It intentionally does NO caching. Navigations go straight to the network and
-// every other request (images, assets, API) falls through to the browser's
-// default handling and existing HTTP cache.
+// History: a previous version proxied navigations via
+// `event.respondWith(fetch(event.request))`. Because a service worker is sticky
+// and keeps controlling pages, a single failed/redirected navigation fetch
+// could wedge the worker and leave users staring at a blank screen until they
+// fully restarted the browser. This version never calls `respondWith`, so it
+// cannot break navigations or any other request — the browser handles
+// everything natively.
 //
-// Bump SW_VERSION whenever the worker's behavior changes so clients update.
-const SW_VERSION = "v1";
+// Bumping SW_VERSION changes the file bytes, which is what makes browsers pick
+// up a new worker; combined with skipWaiting + clients.claim below, the safe
+// worker immediately replaces any previously wedged one.
+const SW_VERSION = "v2";
 
 self.addEventListener("install", () => {
   // Activate this worker immediately instead of waiting for old tabs to close.
@@ -16,19 +22,13 @@ self.addEventListener("install", () => {
 });
 
 self.addEventListener("activate", (event) => {
-  // Take control of open clients as soon as the worker activates.
+  // Take control of open clients at once so a stuck old worker is replaced.
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("fetch", (event) => {
-  // ---------------------------------------------------------------------------
-  // CACHING EXTENSION POINT
-  // Add runtime caching strategies here later (e.g. cache-first for TMDB
-  // images, stale-while-revalidate for API data). Until then we only handle
-  // navigations with a plain network fetch, which is enough to qualify as a
-  // real fetch handler for installability.
-  // ---------------------------------------------------------------------------
-  if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request));
-  }
+self.addEventListener("fetch", () => {
+  // Intentionally a no-op. The handler exists for installability, but we never
+  // call event.respondWith — every request goes to the browser's default
+  // handling and existing HTTP cache. Caching strategies could be added here
+  // later, but only with thorough testing given the wedging risk above.
 });
