@@ -13,10 +13,14 @@ import {
   serializeBrowseFilters,
 } from "@/lib/browse/filters";
 import { shouldDeferBrowseRestore } from "@/lib/browse/should-defer-browse-restore";
+import {
+  loadBrowseScroll,
+  saveBrowseScroll,
+} from "@/lib/browse/browse-restore-snapshot";
 import { browseItemKey } from "@/lib/browse/items";
 import type { BrowsePage } from "@/lib/tmdb/types";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { sanitizeBrowseFiltersForMediaType } from "./filters/browse-filter-utils";
 import { BrowseFilterSheet } from "./filters/BrowseFilterSheet";
 import { BrowseFiltersToolbar } from "./filters/BrowseFiltersToolbar";
@@ -112,6 +116,46 @@ export function HomeBrowseClient({
     canObserve: items.length > 0,
     onLoadMore: loadMore,
   });
+
+  const browseScrollKey = useMemo(
+    () => serializeBrowseFilters(filters),
+    [filters],
+  );
+
+  // Persist scroll position (throttled) so back-navigation can return to it.
+  useEffect(() => {
+    let lastWrite = 0;
+    const save = () => saveBrowseScroll(browseScrollKey, window.scrollY);
+    const onScroll = () => {
+      const now = Date.now();
+      if (now - lastWrite < 150) return;
+      lastWrite = now;
+      save();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pagehide", save);
+    document.addEventListener("visibilitychange", save);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pagehide", save);
+      document.removeEventListener("visibilitychange", save);
+    };
+  }, [browseScrollKey]);
+
+  // Restore scroll once the list is visible and populated (back-navigation).
+  const didRestoreScrollRef = useRef(false);
+  useEffect(() => {
+    if (didRestoreScrollRef.current) return;
+    if (!showClientBrowse || items.length === 0) return;
+    didRestoreScrollRef.current = true;
+    const targetY = loadBrowseScroll(browseScrollKey);
+    if (targetY == null || targetY <= 0) return;
+    // Wait two frames so the list (and fixed-size poster rows) have laid out
+    // and we override any router scroll-to-top before painting.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.scrollTo(0, targetY));
+    });
+  }, [showClientBrowse, items.length, browseScrollKey]);
 
   const filtersActive = hasNonDefaultBrowseFilters(filters);
   const streamFilterCacheKey = useMemo(
