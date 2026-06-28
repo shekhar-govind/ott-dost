@@ -7,6 +7,7 @@ import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
 import { SharePayloadProvider } from "@/components/share/SharePayloadProvider";
 import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
+import { ChunkErrorReloader } from "@/components/system/ChunkErrorReloader";
 import { getMetadataBaseUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AppMainShell>{children}</AppMainShell>
           <ConditionalSiteFooter />
         </SharePayloadProvider>
+        <ChunkErrorReloader />
         <ServiceWorkerRegistrar />
         <Analytics />
       </body>
