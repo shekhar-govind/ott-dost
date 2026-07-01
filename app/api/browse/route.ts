@@ -2,6 +2,12 @@ import { getBrowsePage } from "@/lib/browse/get-browse-page";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
 import { NextRequest, NextResponse } from "next/server";
 
+/** Shared across users; aligned with page ISR and TMDB discover TTL (1h). */
+export const revalidate = 3600;
+
+const BROWSE_CACHE_CONTROL =
+  "public, s-maxage=3600, stale-while-revalidate=300";
+
 export async function GET(request: NextRequest) {
   const pageParam = request.nextUrl.searchParams.get("page") ?? "1";
   const page = Number(pageParam);
@@ -14,7 +20,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const data = await getBrowsePage(page, filters);
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        "Cache-Control": BROWSE_CACHE_CONTROL,
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Browse failed";
 

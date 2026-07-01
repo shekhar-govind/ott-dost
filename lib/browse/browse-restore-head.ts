@@ -2,7 +2,6 @@ import { BROWSE_FILTERS_STORAGE_KEY } from "./filter-persistence";
 
 /** Critical CSS so restore hide/show works before globals.css loads. */
 export const BROWSE_RESTORE_HEAD_CSS = `
-html.browse-restore-pending [data-home-browse-discovery],
 html.browse-restore-pending [data-home-browse-ssr] {
   display: none !important;
 }

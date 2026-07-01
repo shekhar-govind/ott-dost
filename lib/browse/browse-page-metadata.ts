@@ -1,12 +1,7 @@
 import type { Metadata } from "next";
 import { getSiteBaseUrl } from "@/lib/site-url";
-import {
-  buildBrowseCanonicalPath,
-  buildBrowseIndexableParentPath,
-  isBrowseUrlIndexable,
-} from "./isr-allowlist";
+import { DEFAULT_BROWSE_FILTERS, type BrowseFilters } from "./filters";
 import { defaultBrowseLanguage } from "./languages";
-import type { BrowseFilters } from "./filters";
 
 function languageRomanName(code: string): string {
   try {
@@ -47,14 +42,9 @@ function absoluteBrowseUrl(path: string): string {
 }
 
 export function buildBrowsePageMetadata(
-  filters: BrowseFilters,
-  searchParams: URLSearchParams,
+  filters: BrowseFilters = DEFAULT_BROWSE_FILTERS,
 ): Metadata {
-  const indexable = isBrowseUrlIndexable(filters, searchParams);
-  const canonicalPath = indexable
-    ? buildBrowseCanonicalPath(filters)
-    : buildBrowseIndexableParentPath(filters);
-  const pageUrl = absoluteBrowseUrl(canonicalPath);
+  const pageUrl = absoluteBrowseUrl("/");
   const title = buildBrowsePageTitle(filters);
   const description = buildBrowsePageDescription(filters);
 
@@ -76,8 +66,6 @@ export function buildBrowsePageMetadata(
       title,
       description,
     },
-    robots: indexable
-      ? { index: true, follow: true }
-      : { index: false, follow: true },
+    robots: { index: true, follow: true },
   };
 }
