@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { BrowseDiscoveryLinks } from "@/components/browse/BrowseDiscoveryLinks";
 import { BrowseJsonLd } from "@/components/browse/BrowseJsonLd";
 import { HomeBrowseClient } from "@/components/browse/HomeBrowseClient";
 import { HomeBrowseServerList } from "@/components/browse/HomeBrowseServerList";
@@ -8,6 +9,7 @@ import {
   DEFAULT_BROWSE_FILTERS,
   serializeBrowseFilters,
 } from "@/lib/browse/filters";
+import { HOME_BROWSE_DISCOVERY_LINKS } from "@/lib/browse/special-page-discovery-links";
 import type { Metadata } from "next";
 
 /**
@@ -42,6 +44,7 @@ export default async function Home() {
 
   return (
     <>
+      <BrowseDiscoveryLinks links={HOME_BROWSE_DISCOVERY_LINKS} />
       {serverListPage ? (
         <BrowseJsonLd filters={filters} items={serverListPage.items} />
       ) : null}

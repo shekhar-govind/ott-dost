@@ -115,25 +115,7 @@ export function buildBrowseIndexableParentPath(filters: BrowseFilters): string {
   return buildBrowseCanonicalPath(toIndexableBrowseFilters(filters));
 }
 
-/** All indexable browse paths for the sitemap (includes canonical duplicates collapsed). */
+/** Indexable home paths for the sitemap. Query variants consolidate to `/`. */
 export function listIndexableBrowsePaths(): string[] {
-  const paths = new Set<string>(["/", "/?type=tv"]);
-
-  for (const code of INDEXABLE_BROWSE_LANGUAGE_CODES) {
-    paths.add(
-      buildBrowseCanonicalPath({
-        ...DEFAULT_BROWSE_FILTERS,
-        language: code,
-      }),
-    );
-    paths.add(
-      buildBrowseCanonicalPath({
-        ...DEFAULT_BROWSE_FILTERS,
-        mediaType: "tv",
-        language: code,
-      }),
-    );
-  }
-
-  return [...paths].sort();
+  return ["/"];
 }

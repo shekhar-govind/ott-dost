@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
+  BROWSE_NOINDEX_HEADER,
+  shouldNoindexBrowseUrl,
+} from "@/lib/browse/browse-seo-policy";
+import { resolveBrowseSpecialPathRedirect } from "@/lib/browse/special-page-redirects";
+import {
   isAlternateProductionHost,
   isPreviewOrLocalHost,
   PRIMARY_SITE_HOST,
@@ -29,6 +34,21 @@ export function middleware(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith("/design")) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+  }
+
+  const { pathname, search } = request.nextUrl;
+
+  const canonicalSpecialPath = resolveBrowseSpecialPathRedirect(pathname);
+  if (canonicalSpecialPath) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = canonicalSpecialPath;
+    return NextResponse.redirect(redirectUrl, 301);
+  }
+
+  if (shouldNoindexBrowseUrl(pathname, search)) {
+    const response = NextResponse.next();
+    response.headers.set("X-Robots-Tag", BROWSE_NOINDEX_HEADER);
+    return response;
   }
 
   return NextResponse.next();

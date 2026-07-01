@@ -154,7 +154,7 @@ export function SpecialBrowseClient({
       <h1 className="sr-only">{pageHeading}</h1>
       <section
         data-browse-list
-        className={`mt-8 w-full ${showClientBrowse ? "" : "hidden"}`}
+        className={`mt-4 w-full ${showClientBrowse ? "" : "hidden"}`}
         aria-label={browseListTitle}
       >
         <BrowseFiltersToolbar

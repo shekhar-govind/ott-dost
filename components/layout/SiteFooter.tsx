@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { FooterBrowseNav } from "./FooterBrowseNav";
 import { SiteLogo } from "./SiteLogo";
 
 const TMDB_URL = "https://www.themoviedb.org/";
@@ -44,7 +45,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-zinc-200/90 bg-gradient-to-b from-zinc-50/40 to-zinc-50">
       <div className="mx-auto w-full max-w-xl px-4 pt-10 pb-8 sm:max-w-2xl sm:px-6 lg:max-w-3xl lg:px-8">
-        <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <SiteLogo size="footer" />
 
           <nav
@@ -55,6 +56,8 @@ export function SiteFooter() {
             <FooterLink href="/disclaimer">Disclaimer</FooterLink>
           </nav>
         </div>
+
+        <FooterBrowseNav className="mt-8 border-t border-zinc-200/60 pt-8" />
 
         <div
           className="mt-8 flex flex-col gap-3.5 rounded-2xl border border-zinc-200/70 bg-white/70 p-4 shadow-sm shadow-zinc-900/2 sm:flex-row sm:items-center sm:gap-5 sm:p-5"

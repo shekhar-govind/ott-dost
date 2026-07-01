@@ -25,7 +25,7 @@ export function HomeBrowseServerList({
   return (
     <section
       data-home-browse-ssr
-      className="mt-8 w-full"
+      className="mt-4 w-full"
       aria-label={browseListTitle}
     >
       <div className="mb-3 min-h-[2.75rem] sm:min-h-[3rem]" aria-hidden />

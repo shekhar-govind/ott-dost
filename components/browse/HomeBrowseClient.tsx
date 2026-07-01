@@ -204,7 +204,7 @@ export function HomeBrowseClient({
   return (
     <section
       data-browse-list
-      className={`mt-8 w-full ${showClientBrowse || restoreLocked ? "" : "hidden"}`}
+      className={`mt-4 w-full ${showClientBrowse || restoreLocked ? "" : "hidden"}`}
       aria-label={browseListTitle}
     >
       {!restoreLocked && (
