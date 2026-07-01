@@ -1,12 +1,15 @@
 import { listIndexableBrowsePaths } from "@/lib/browse/isr-allowlist";
+import { listSpecialBrowseSitemapPaths } from "@/lib/browse/special-pages-allowlist";
 import { getSiteBaseUrl } from "@/lib/site-url";
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteBaseUrl() || "https://ott-dost.com";
 
-  const browseEntries: MetadataRoute.Sitemap = listIndexableBrowsePaths().map(
-    (path) => ({
+  const browseEntries: MetadataRoute.Sitemap = [
+    ...listIndexableBrowsePaths(),
+    ...listSpecialBrowseSitemapPaths(),
+  ].map((path) => ({
       url: `${baseUrl}${path}`,
       lastModified: new Date(),
       changeFrequency: "daily",

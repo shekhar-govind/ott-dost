@@ -56,3 +56,9 @@ export function listLaunchBrowseSpecialPagePaths(): BrowseSpecialPagePath[] {
 
   return paths;
 }
+
+export function listSpecialBrowseSitemapPaths(): string[] {
+  return listLaunchBrowseSpecialPagePaths()
+    .map((entry) => entry.pathname)
+    .sort();
+}

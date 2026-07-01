@@ -9,15 +9,18 @@ import type { BrowsePage } from "@/lib/tmdb/types";
 interface HomeBrowseServerListProps {
   initialPage: BrowsePage;
   filters: BrowseFilters;
+  listTitle?: string;
 }
 
 /** ISR HTML for home browse page 1 — replaced by the client list before paint. */
 export function HomeBrowseServerList({
   initialPage,
   filters,
+  listTitle,
 }: HomeBrowseServerListProps) {
   const browseListTitle =
-    filters.mediaType === "tv" ? "Browse TV shows" : "Browse movies";
+    listTitle ??
+    (filters.mediaType === "tv" ? "Browse TV shows" : "Browse movies");
 
   return (
     <section

@@ -2,12 +2,17 @@
 
 import { SiteSearchPanel } from "@/components/search/SiteSearchPanel";
 import { isTitleDetailPath } from "@/lib/title-detail-path";
+import { isBrowseSpecialPathname } from "@/lib/browse/is-browse-special-path";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
 function usesSearchShell(pathname: string): boolean {
-  return pathname === "/" || isTitleDetailPath(pathname);
+  return (
+    pathname === "/" ||
+    isBrowseSpecialPathname(pathname) ||
+    isTitleDetailPath(pathname)
+  );
 }
 
 export function AppMainShell({ children }: { children: ReactNode }) {
