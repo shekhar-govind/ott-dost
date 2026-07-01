@@ -5,7 +5,7 @@ import { isTitleDetailPath } from "@/lib/title-detail-path";
 import { isBrowseSpecialPathname } from "@/lib/browse/is-browse-special-path";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 function usesSearchShell(pathname: string): boolean {
   return (
@@ -18,6 +18,12 @@ function usesSearchShell(pathname: string): boolean {
 export function AppMainShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const showSearchShell = usesSearchShell(pathname);
+
+  useLayoutEffect(() => {
+    if (pathname !== "/") {
+      document.documentElement.classList.remove("browse-restore-pending");
+    }
+  }, [pathname]);
   const isTitleDetail = isTitleDetailPath(pathname);
   const isDesignPreview = pathname.startsWith("/design/");
   const [query, setQuery] = useState("");

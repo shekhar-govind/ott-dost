@@ -2,18 +2,20 @@
 
 import { browseDebug } from "@/lib/browse/debug";
 import {
+  resolveBrowseFilterDestination,
+  resolveCurrentBrowseUrl,
+} from "@/lib/browse/browse-filter-navigation";
+import {
   clearSavedBrowseFilters,
   persistBrowseFilters,
 } from "@/lib/browse/filter-persistence";
-import {
-  browseFilterQueryEquals,
-  type BrowseFilters,
-} from "@/lib/browse/filters";
+import type { BrowseFilters } from "@/lib/browse/filters";
 import { buildBrowseSpecialPagePath } from "@/lib/browse/path-facets";
 import {
   parseSpecialPageFilters,
   serializeSpecialPageRefinements,
 } from "@/lib/browse/special-page-filters";
+import { browseFilterQueryEquals } from "@/lib/browse/filters";
 import { scrollRouteToTop } from "@/lib/route-scroll";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
@@ -39,23 +41,18 @@ export function useSpecialBrowseFilters(pathname: string) {
 
   const setFilters = useCallback(
     (next: BrowseFilters, options?: SetBrowseFiltersOptions) => {
-      const nextPath = buildBrowseSpecialPagePath(next);
-      const refinements = serializeSpecialPageRefinements(next, nextPath);
-      const nextUrl = refinements ? `${nextPath}?${refinements}` : nextPath;
-      const currentUrl =
-        searchParams.toString().length > 0
-          ? `${activePathname}?${searchParams.toString()}`
-          : activePathname;
+      const destination = resolveBrowseFilterDestination(next);
+      const current = resolveCurrentBrowseUrl(activePathname, searchParams);
 
-      if (nextUrl === currentUrl) return;
+      if (destination === current) return;
 
       browseDebug("Special page filters applied", {
-        from: currentUrl,
-        to: nextUrl,
+        from: current,
+        to: destination,
         filters: next,
       });
 
-      router.replace(nextUrl, { scroll: false });
+      router.replace(destination, { scroll: false });
       if (options?.scrollToTop) {
         scrollRouteToTop();
       }
@@ -74,7 +71,8 @@ export function useSpecialBrowseFilters(pathname: string) {
   const clearFilters = useCallback(() => {
     if (!filters) return;
     clearSavedBrowseFilters();
-    router.replace(buildBrowseSpecialPagePath(filters), { scroll: false });
+    const destination = buildBrowseSpecialPagePath(filters);
+    router.replace(destination, { scroll: false });
     scrollRouteToTop();
   }, [filters, router]);
 

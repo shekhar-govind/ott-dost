@@ -2,17 +2,19 @@
 
 import { browseDebug } from "@/lib/browse/debug";
 import {
+  resolveBrowseFilterDestination,
+  resolveCurrentBrowseUrl,
+} from "@/lib/browse/browse-filter-navigation";
+import {
   clearSavedBrowseFilters,
   isBareBrowseUrl,
   loadSavedBrowseFilters,
   persistBrowseFilters,
 } from "@/lib/browse/filter-persistence";
 import {
-  browseFilterQueryEquals,
   DEFAULT_BROWSE_FILTERS,
   filtersAreEqual,
   parseBrowseFilters,
-  serializeBrowseFilters,
   type BrowseFilters,
 } from "@/lib/browse/filters";
 import { scrollRouteToTop } from "@/lib/route-scroll";
@@ -45,20 +47,20 @@ export function useBrowseFilters() {
     (next: BrowseFilters, options?: SetBrowseFiltersOptions) => {
       if (pathname !== "/") return;
 
-      const query = serializeBrowseFilters(next);
-      const currentQuery = searchParams.toString();
-      if (browseFilterQueryEquals(query, currentQuery)) {
+      const destination = resolveBrowseFilterDestination(next);
+      const current = resolveCurrentBrowseUrl(pathname, searchParams);
+      if (destination === current) {
         return;
       }
 
       browseDebug("Filters applied to URL", {
         providerIds: next.providerIds,
-        serializedOttParam: next.providerIds.length > 0 ? next.providerIds.join(",") : null,
-        fullQuery: query || null,
+        from: current,
+        to: destination,
         filters: next,
         scrollToTop: options?.scrollToTop ?? false,
       });
-      router.replace(query ? `/?${query}` : "/", { scroll: false });
+      router.replace(destination, { scroll: false });
       if (options?.scrollToTop) {
         scrollRouteToTop();
       }
@@ -77,13 +79,22 @@ export function useBrowseFilters() {
 
   useEffect(() => {
     if (pathname !== "/") return;
+
+    const destination = resolveBrowseFilterDestination(filters);
+    const current = resolveCurrentBrowseUrl(pathname, searchParams);
+    if (destination !== current) {
+      browseDebug("Migrating legacy home browse URL", { from: current, to: destination });
+      router.replace(destination, { scroll: false });
+      return;
+    }
+
     if (!isBareBrowseUrl(searchParams)) return;
 
     const saved = loadSavedBrowseFilters();
     if (saved && !filtersAreEqual(saved, filters)) {
       setFilters(saved);
     }
-  }, [pathname, searchParams, filters, setFilters]);
+  }, [pathname, searchParams, filters, router, setFilters]);
 
   const clearFilters = useCallback(() => {
     clearSavedBrowseFilters();

@@ -13,6 +13,7 @@ export function BrowseDiscoveryLinks({
 
   return (
     <nav
+      data-home-browse-discovery
       className="mb-2 w-full"
       aria-label={title}
     >
