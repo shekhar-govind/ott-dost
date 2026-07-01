@@ -185,10 +185,21 @@ export interface TmdbRecommendations {
   results?: TmdbRecommendationResult[];
 }
 
+export type WatchStreamSource = "watch_providers" | "network";
+
 export interface WatchAvailability {
   stream: StreamingProvider[];
   rent: StreamingProvider[];
   buy: StreamingProvider[];
+  /** Present when stream providers were inferred from TV networks. */
+  streamSource?: WatchStreamSource;
+}
+
+export interface TmdbNetwork {
+  id: number;
+  name: string;
+  logo_path: string | null;
+  origin_country?: string;
 }
 
 export interface TmdbVideo {
@@ -325,6 +336,8 @@ export interface TmdbTvDetails {
   episode_run_time: number[];
   genres: TmdbGenre[];
   status: string;
+  networks?: TmdbNetwork[];
+  origin_country?: string[];
   content_ratings?: TmdbContentRatings;
   "watch/providers"?: {
     results?: Record<string, TmdbWatchProvidersResult>;

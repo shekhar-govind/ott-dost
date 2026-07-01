@@ -1,3 +1,4 @@
+import { resolveStreamProvidersFromNetworks } from "@/lib/watch/network-provider-fallback";
 import { TMDB_IMAGE_BASE } from "./constants";
 import type {
   CastMember,
@@ -371,19 +372,42 @@ export function mapWatchAvailabilityFromWatchProviders(
   };
 }
 
-export function mapWatchAvailability(
+function mapWatchAvailabilityFromDetails(
   details: TmdbMovieDetails | TmdbTvDetails,
 ): WatchAvailability {
   const region = details["watch/providers"]?.results?.[WATCH_REGION];
 
+  const stream = mapProviderList([
+    ...(region?.flatrate ?? []),
+    ...(region?.free ?? []),
+    ...(region?.ads ?? []),
+  ]);
+
   return {
-    stream: mapProviderList([
-      ...(region?.flatrate ?? []),
-      ...(region?.free ?? []),
-      ...(region?.ads ?? []),
-    ]),
+    stream,
     rent: mapProviderList(region?.rent ?? []),
     buy: mapProviderList(region?.buy ?? []),
+    ...(stream.length > 0 ? { streamSource: "watch_providers" as const } : {}),
+  };
+}
+
+export function mapWatchAvailability(
+  details: TmdbMovieDetails | TmdbTvDetails,
+): WatchAvailability {
+  return mapWatchAvailabilityFromDetails(details);
+}
+
+export function mapWatchAvailabilityForTv(show: TmdbTvDetails): WatchAvailability {
+  const availability = mapWatchAvailabilityFromDetails(show);
+  if (availability.stream.length > 0) return availability;
+
+  const networkStream = resolveStreamProvidersFromNetworks(show.networks);
+  if (networkStream.length === 0) return availability;
+
+  return {
+    ...availability,
+    stream: networkStream,
+    streamSource: "network",
   };
 }
 
@@ -616,7 +640,7 @@ export function toTitleDetailFromTv(show: TmdbTvDetails): TitleDetail {
     runtime: formatTvRuntime(show),
     genres: show.genres.map((genre) => genre.name),
     status: show.status || null,
-    watchAvailability: mapWatchAvailability(show),
+    watchAvailability: mapWatchAvailabilityForTv(show),
     cast: mapTopCast(show.credits),
     crew: mapMainCrew(show.credits),
     recommendations: mapRecommendations(show.recommendations, "tv", show.id),

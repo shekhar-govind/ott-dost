@@ -1,8 +1,14 @@
-import type { WatchAvailability } from "@/lib/tmdb/types";
+import type { WatchAvailability, WatchStreamSource } from "@/lib/tmdb/types";
 import { hasWatchAvailability } from "@/lib/tmdb/utils";
 
 export const NO_OTT_IN_INDIA_MESSAGE =
   "Not available on any OTT platform in India right now.";
+
+export function getStreamGroupLabel(
+  streamSource: WatchStreamSource | undefined,
+): string {
+  return streamSource === "network" ? "Expected on" : "Streaming on";
+}
 
 export const NO_SUBSCRIPTION_STREAM_MESSAGE =
   "Not available to stream on subscription platforms.";

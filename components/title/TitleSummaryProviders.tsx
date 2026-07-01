@@ -1,6 +1,7 @@
 import type { StreamingProvider, WatchAvailability } from "@/lib/tmdb/types";
 import { hasWatchAvailability } from "@/lib/tmdb/utils";
 import {
+  getStreamGroupLabel,
   getStreamUnavailableMessage,
   NO_OTT_IN_INDIA_MESSAGE,
 } from "@/lib/watch/availability-messages";
@@ -10,7 +11,8 @@ interface TitleSummaryProvidersProps {
 }
 
 export function TitleSummaryProviders({ availability }: TitleSummaryProvidersProps) {
-  const { stream, rent, buy } = availability;
+  const { stream, rent, buy, streamSource } = availability;
+  const streamLabel = getStreamGroupLabel(streamSource);
 
   if (!hasWatchAvailability(availability)) {
     return (
@@ -32,7 +34,7 @@ export function TitleSummaryProviders({ availability }: TitleSummaryProvidersPro
       </h3>
 
       {stream.length > 0 ? (
-        <ProviderGroup label="Streaming on" providers={stream} />
+        <ProviderGroup label={streamLabel} providers={stream} />
       ) : (
         <p className="text-sm text-zinc-500">
           {getStreamUnavailableMessage(availability)}
