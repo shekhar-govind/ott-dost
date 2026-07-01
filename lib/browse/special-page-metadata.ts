@@ -22,12 +22,17 @@ function mediaTypeLabel(mediaType: BrowseFilters["mediaType"], plural = true): s
   return plural ? "movies" : "movie";
 }
 
+export interface BuildSpecialBrowsePageHeadingOptions {
+  typeLabel?: string;
+}
+
 export function buildSpecialBrowsePageHeading(
   filters: BrowseFilters,
   pathname: string,
+  options?: BuildSpecialBrowsePageHeadingOptions,
 ): string {
   const parsed = parseBrowseSpecialPath(pathname);
-  const typeLabel = mediaTypeLabel(filters.mediaType);
+  const typeLabel = options?.typeLabel ?? mediaTypeLabel(filters.mediaType);
   const parts: string[] = [];
 
   if (parsed) {

@@ -4,7 +4,6 @@ import {
   languageMatchesDefault,
   parseBrowseFilters,
   type BrowseFilters,
-  type BrowseMediaType,
 } from "@/lib/browse/filters";
 import { isBrowseSpecialPathname } from "@/lib/browse/is-browse-special-path";
 import { findOttProviderOption } from "@/lib/browse/ott-platform-normalization";
@@ -12,10 +11,10 @@ import { parseSpecialPageFilters } from "@/lib/browse/special-page-filters";
 import { buildSpecialBrowsePageHeading } from "@/lib/browse/special-page-metadata";
 import { appendShareUrlToHeadline } from "@/lib/build-title-share-payload";
 import {
+  BROWSE_SHARE_MEDIA_LABEL,
   formatContextualShareHeadline,
   shareTitleFromContext,
   SITE_SHARE_HEADLINE,
-  SITE_SHARE_HEADLINE_TV,
 } from "@/lib/share-brand";
 import type { SharePayload } from "@/lib/share-payload";
 import { isTitleRoutePath } from "@/lib/title-detail-path";
@@ -36,10 +35,6 @@ function languageRomanName(code: string): string {
   }
 }
 
-function mediaTypeShareLabel(mediaType: BrowseMediaType): string {
-  return mediaType === "tv" ? "TV shows" : "movies";
-}
-
 function isDefaultBrowseFilters(filters: BrowseFilters): boolean {
   return (
     filters.mediaType === DEFAULT_BROWSE_MEDIA_TYPE &&
@@ -47,20 +42,23 @@ function isDefaultBrowseFilters(filters: BrowseFilters): boolean {
   );
 }
 
-function isTvOnlyBrowseFilters(filters: BrowseFilters): boolean {
-  return filters.mediaType === "tv" && !hasNonDefaultBrowseFilters(filters);
-}
-
 function shareContextFromSpecialHeading(heading: string): string {
-  if (heading === "Browse movies") return "Movies";
-  if (heading === "Browse TV shows") return "TV shows";
   if (heading.startsWith("Browse ")) return heading.slice("Browse ".length);
   return heading;
 }
 
+function buildBrowseShareHeading(
+  filters: BrowseFilters,
+  pathname: string,
+): string {
+  return buildSpecialBrowsePageHeading(filters, pathname, {
+    typeLabel: BROWSE_SHARE_MEDIA_LABEL,
+  });
+}
+
 function buildPersonShareContext(personName: string | null | undefined): string {
   const name = personName?.trim();
-  return `Titles with ${name || "this person"}`;
+  return `${BROWSE_SHARE_MEDIA_LABEL} with ${name || "this person"}`;
 }
 
 function buildHomeShareContext(
@@ -75,30 +73,22 @@ function buildHomeShareContext(
     return SITE_SHARE_HEADLINE.replace(/ \| OTT Dost$/, "");
   }
 
-  if (isTvOnlyBrowseFilters(filters)) {
-    return SITE_SHARE_HEADLINE_TV.replace(/ \| OTT Dost$/, "");
-  }
-
   const hasLang = !languageMatchesDefault(filters.language);
   const hasProvider = filters.providerIds.length > 0;
   const langName = hasLang ? languageRomanName(filters.language) : null;
   const providerName = hasProvider ? opts.providerName?.trim() : null;
-  const typeLabel = mediaTypeShareLabel(filters.mediaType);
 
   if (hasLang && hasProvider && langName && providerName) {
-    return `${langName} ${typeLabel} on ${providerName}`;
+    return `${langName} ${BROWSE_SHARE_MEDIA_LABEL} on ${providerName}`;
   }
 
   if (hasProvider && providerName) {
-    const capitalized = `${typeLabel.charAt(0).toUpperCase()}${typeLabel.slice(1)}`;
+    const capitalized = `${BROWSE_SHARE_MEDIA_LABEL.charAt(0).toUpperCase()}${BROWSE_SHARE_MEDIA_LABEL.slice(1)}`;
     return `${capitalized} on ${providerName}`;
   }
 
   if (hasLang && langName) {
-    if (filters.mediaType === "tv") {
-      return `${langName} TV shows`;
-    }
-    return `${langName} movies and TV shows`;
+    return `${langName} ${BROWSE_SHARE_MEDIA_LABEL}`;
   }
 
   return SITE_SHARE_HEADLINE.replace(/ \| OTT Dost$/, "");
@@ -142,7 +132,7 @@ export function buildSiteShareHeadline(
 
   if (isBrowseSpecialPathname(pathname) && filters) {
     const context = shareContextFromSpecialHeading(
-      buildSpecialBrowsePageHeading(filters, pathname),
+      buildBrowseShareHeading(filters, pathname),
     );
     return formatContextualShareHeadline(context);
   }
@@ -176,7 +166,7 @@ export function buildSiteSharePayload(
   } else if (isBrowseSpecialPathname(pathname) && filters) {
     title = shareTitleFromContext(
       shareContextFromSpecialHeading(
-        buildSpecialBrowsePageHeading(filters, pathname),
+        buildBrowseShareHeading(filters, pathname),
       ),
     );
   } else if (pathname === "/" && filters) {
