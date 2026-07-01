@@ -35,7 +35,7 @@ export async function buildTitlePageMetadata(
   const pageUrl = baseUrl ? `${baseUrl}${canonicalPath}` : canonicalPath;
 
   const watchHeadline = buildWatchHeadline(detail);
-  const title = `${watchHeadline} — where to watch in India | OTT Dost`;
+  const title = `${watchHeadline} | OTT Dost`;
   const sharePreview = buildTitleSharePreviewText(detail);
 
   const descriptionSource =

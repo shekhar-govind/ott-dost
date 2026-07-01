@@ -1,8 +1,8 @@
 import type { WatchAvailability, WatchStreamSource } from "@/lib/tmdb/types";
 import { hasWatchAvailability } from "@/lib/tmdb/utils";
+import { NO_OTT_MESSAGE } from "@/lib/watch-region";
 
-export const NO_OTT_IN_INDIA_MESSAGE =
-  "Not available on any OTT platform in India right now.";
+export { NO_OTT_MESSAGE };
 
 export function getStreamGroupLabel(
   streamSource: WatchStreamSource | undefined,
@@ -18,7 +18,7 @@ export function getStreamUnavailableMessage(
   availability: Pick<WatchAvailability, "stream" | "rent" | "buy">,
 ): string {
   if (!hasWatchAvailability(availability)) {
-    return NO_OTT_IN_INDIA_MESSAGE;
+    return NO_OTT_MESSAGE;
   }
   return NO_SUBSCRIPTION_STREAM_MESSAGE;
 }
@@ -35,5 +35,5 @@ export function getStreamUnavailableMessageForEmptyStream(
 ): string {
   return hasRentOrBuy
     ? NO_SUBSCRIPTION_STREAM_MESSAGE
-    : NO_OTT_IN_INDIA_MESSAGE;
+    : NO_OTT_MESSAGE;
 }

@@ -1,4 +1,5 @@
 import type { StreamingProvider } from "@/lib/tmdb/types";
+import { NO_OTT_MESSAGE } from "@/lib/watch/availability-messages";
 
 interface StreamOnLabelProps {
   providers: StreamingProvider[];
@@ -21,7 +22,7 @@ export function StreamOnLabel({
             : "mt-1 text-xs text-zinc-400"
         }
       >
-        Not on any OTT platform
+        {NO_OTT_MESSAGE}
       </p>
     );
   }
@@ -43,7 +44,7 @@ export function StreamOnLabel({
         <ul
           className={`flex min-w-0 flex-1 flex-wrap items-center ${isCompact ? "gap-1" : "gap-1.5"}`}
           role="list"
-          aria-label="Subscription streaming in India"
+          aria-label="Subscription streaming"
         >
           {providers.map((provider) => (
             <li key={provider.id}>

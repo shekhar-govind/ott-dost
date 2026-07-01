@@ -18,22 +18,22 @@ export function buildBrowsePageTitle(filters: BrowseFilters): string {
   const hasLanguage = filters.language !== defaultBrowseLanguage();
 
   if (!hasLanguage) {
-    return "Browse movies and TV shows in India | OTT Dost";
+    return "Browse movies and TV shows | OTT Dost";
   }
 
   const languageName = languageRomanName(filters.language);
-  return `${languageName} movies and TV shows — where to watch in India | OTT Dost`;
+  return `${languageName} movies and TV shows | OTT Dost`;
 }
 
 function buildBrowsePageDescription(filters: BrowseFilters): string {
   const hasLanguage = filters.language !== defaultBrowseLanguage();
 
   if (!hasLanguage) {
-    return "Browse movies and TV shows and find where to stream them in India.";
+    return "Browse movies and TV shows and find where to stream them.";
   }
 
   const languageName = languageRomanName(filters.language);
-  return `Browse ${languageName} movies and TV shows and find where to stream them in India.`;
+  return `Browse ${languageName} movies and TV shows and find where to stream them.`;
 }
 
 function absoluteBrowseUrl(path: string): string {

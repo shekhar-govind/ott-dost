@@ -38,7 +38,7 @@ export function buildSpecialBrowsePageHeading(
   }
 
   if (parts.length === 0) {
-    return `Browse ${typeLabel} in India`;
+    return `Browse ${typeLabel}`;
   }
 
   const hasProvider = filters.providerIds.length > 0;
@@ -56,7 +56,7 @@ export function buildSpecialBrowsePageHeading(
     return `${parts[0]} ${typeLabel}`;
   }
 
-  return `Browse ${typeLabel} in India`;
+  return `Browse ${typeLabel}`;
 }
 
 export function buildSpecialBrowsePageTitle(
@@ -64,7 +64,7 @@ export function buildSpecialBrowsePageTitle(
   pathname: string,
 ): string {
   const heading = buildSpecialBrowsePageHeading(filters, pathname);
-  return `${heading} — where to watch in India | OTT Dost`;
+  return `${heading} | OTT Dost`;
 }
 
 export function buildSpecialBrowsePageDescription(
@@ -73,7 +73,7 @@ export function buildSpecialBrowsePageDescription(
 ): string {
   const heading = buildSpecialBrowsePageHeading(filters, pathname);
   const lower = heading.charAt(0).toLowerCase() + heading.slice(1);
-  return `Browse ${lower} and find where to stream them in India.`;
+  return `Browse ${lower} and find where to stream them.`;
 }
 
 function absoluteUrl(path: string): string {

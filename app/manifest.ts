@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
+import { SITE_TAGLINE } from "@/lib/watch-region";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "OTT Dost",
     short_name: "OTT Dost",
-    description: "Find where to watch movies and shows in India",
+    description: SITE_TAGLINE,
     start_url: "/",
     display: "standalone",
     background_color: "#fafafa",

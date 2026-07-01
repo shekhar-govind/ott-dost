@@ -11,7 +11,7 @@ export default function PrivacyPage() {
     <LegalPage title="Privacy Policy">
       <p>
         OTT Dost helps you find where movies and TV shows are available to stream,
-        rent, or buy in India. This policy describes what information is involved
+        rent, or buy. This policy describes what information is involved
         when you use the site.
       </p>
 
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
         <ul className="list-disc space-y-1 pl-5">
           <li>
             <strong className="font-medium text-zinc-700">TMDB</strong> supplies
-            metadata, images, and India watch-provider information. Their use is
+            metadata, images, and regional watch-provider information. Their use is
             governed by{" "}
             <a
               href="https://www.themoviedb.org/terms-of-use"

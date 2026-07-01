@@ -11,7 +11,7 @@ export default function DisclaimerPage() {
     <LegalPage title="Disclaimer">
       <p>
         OTT Dost is an independent guide to help you discover where titles may be
-        available in India. Please read the following before relying on any listing.
+        available to stream. Please read the following before relying on any listing.
       </p>
 
       <section className="space-y-2">

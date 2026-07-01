@@ -1,11 +1,12 @@
+import { SITE_TAGLINE } from "@/lib/watch-region";
+
 const LOGO_SRC = "/ott-dost-logo.png";
 
 type SiteLogoProps = {
   size?: "header" | "footer";
-  showTagline?: boolean;
 };
 
-export function SiteLogo({ size = "header", showTagline }: SiteLogoProps) {
+export function SiteLogo({ size = "header" }: SiteLogoProps) {
   const isHeader = size === "header";
   const imgClass = isHeader
     ? "h-9 w-9 sm:h-10 sm:w-10"
@@ -40,12 +41,9 @@ export function SiteLogo({ size = "header", showTagline }: SiteLogoProps) {
           OTT Dost
         </span>
       </a>
-      {showTagline && isHeader ? (
-        <p className="text-xs text-zinc-500 sm:text-sm">Find where to watch</p>
-      ) : null}
       {!isHeader ? (
         <p className="max-w-xs text-pretty text-xs leading-relaxed text-zinc-500">
-          Find where to watch movies and TV shows in India.
+          {SITE_TAGLINE}
         </p>
       ) : null}
     </div>

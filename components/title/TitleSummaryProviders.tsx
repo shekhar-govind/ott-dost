@@ -3,7 +3,7 @@ import { hasWatchAvailability } from "@/lib/tmdb/utils";
 import {
   getStreamGroupLabel,
   getStreamUnavailableMessage,
-  NO_OTT_IN_INDIA_MESSAGE,
+  NO_OTT_MESSAGE,
 } from "@/lib/watch/availability-messages";
 
 interface TitleSummaryProvidersProps {
@@ -18,10 +18,10 @@ export function TitleSummaryProviders({ availability }: TitleSummaryProvidersPro
     return (
       <div>
         <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-          Where to watch in India
+          Where to watch
         </h3>
         <p className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-600">
-          {NO_OTT_IN_INDIA_MESSAGE}
+          {NO_OTT_MESSAGE}
         </p>
       </div>
     );
@@ -30,7 +30,7 @@ export function TitleSummaryProviders({ availability }: TitleSummaryProvidersPro
   return (
     <div className="space-y-4">
       <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-        Where to watch in India
+        Where to watch
       </h3>
 
       {stream.length > 0 ? (

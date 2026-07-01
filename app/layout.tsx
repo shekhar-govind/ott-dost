@@ -12,6 +12,7 @@ import { SharePayloadProvider } from "@/components/share/SharePayloadProvider";
 import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
 import { ChunkErrorReloader } from "@/components/system/ChunkErrorReloader";
 import { getMetadataBaseUrl } from "@/lib/site-url";
+import { SITE_TAGLINE } from "@/lib/watch-region";
 import "./globals.css";
 
 const metadataBase = new URL(getMetadataBaseUrl());
@@ -19,7 +20,7 @@ const metadataBase = new URL(getMetadataBaseUrl());
 export const metadata: Metadata = {
   metadataBase,
   title: "OTT Dost",
-  description: "Find where to watch movies and shows in India",
+  description: SITE_TAGLINE,
   verification: {
     google: "4xk7uq6rQCaTrYDvDlqAmBvNGZBAIdffgBKoc5OuNPo",
   },
