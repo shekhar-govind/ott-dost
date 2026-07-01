@@ -1,6 +1,12 @@
 import { formatTmdbWithWatchProviders } from "@/lib/browse/ott-platform-normalization";
+import { normalizePositiveIntegerIds } from "@/lib/browse/query-hygiene";
 import type { DiscoverFilters } from "./discover-types";
 import { TMDB_WATCH_REGION } from "./watch-providers";
+
+/** TMDB discover OR separator within a single facet (genres, providers). */
+function joinTmdbOrFacetValues(ids: readonly number[]): string {
+  return normalizePositiveIntegerIds(ids).join("|");
+}
 
 export function appendDiscoverFilters(
   params: URLSearchParams,
@@ -11,7 +17,7 @@ export function appendDiscoverFilters(
   params.set("with_watch_monetization_types", "flatrate|free|ads");
 
   if (filters.genreIds.length > 0) {
-    params.set("with_genres", filters.genreIds.join("|"));
+    params.set("with_genres", joinTmdbOrFacetValues(filters.genreIds));
   }
 
   const dateFrom = filters.dateFrom;

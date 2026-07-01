@@ -5,6 +5,11 @@ import {
 import { isAllowedBrowseLanguageCode } from "./indian-language-codes";
 import { defaultBrowseLanguage } from "./languages";
 import { dedupeOttProviderIds } from "./ott-platform-normalization";
+import {
+  canonicalizeBrowseFilterQuery,
+  normalizeBrowseProviderIds,
+  normalizePositiveIntegerIds,
+} from "./query-hygiene";
 
 export type BrowseMediaType = "movie" | "tv";
 
@@ -48,16 +53,20 @@ export function parseBrowseFilters(
 
   const mediaType = normalizeBrowseMediaType(searchParams.get("type"));
 
-  const genreIds = (searchParams.get("genre") ?? "")
-    .split(",")
-    .map((id) => Number(id))
-    .filter((id) => Number.isInteger(id) && id > 0);
-
-  const providerIds = dedupeOttProviderIds(
-    (searchParams.get("ott") ?? "")
+  const genreIds = normalizePositiveIntegerIds(
+    (searchParams.get("genre") ?? "")
       .split(",")
       .map((id) => Number(id))
       .filter((id) => Number.isInteger(id) && id > 0),
+  );
+
+  const providerIds = normalizeBrowseProviderIds(
+    dedupeOttProviderIds(
+      (searchParams.get("ott") ?? "")
+        .split(",")
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id) && id > 0),
+    ),
   );
 
   const datePresetParam = searchParams.get("date");
@@ -115,6 +124,8 @@ function normalizeDateParam(
 export function serializeBrowseFilters(filters: BrowseFilters): string {
   const params = new URLSearchParams();
   const defaults = DEFAULT_BROWSE_FILTERS;
+  const genreIds = normalizePositiveIntegerIds(filters.genreIds);
+  const providerIds = normalizeBrowseProviderIds(filters.providerIds);
 
   if (filters.language !== defaults.language) {
     params.set("lang", filters.language);
@@ -122,8 +133,8 @@ export function serializeBrowseFilters(filters: BrowseFilters): string {
 
   params.set("type", filters.mediaType);
 
-  if (filters.genreIds.length > 0) {
-    params.set("genre", filters.genreIds.join(","));
+  if (genreIds.length > 0) {
+    params.set("genre", genreIds.join(","));
   }
 
   const datePresetId = resolveDatePresetIdForSerialize(filters);
@@ -138,8 +149,8 @@ export function serializeBrowseFilters(filters: BrowseFilters): string {
     }
   }
 
-  if (filters.providerIds.length > 0) {
-    params.set("ott", filters.providerIds.join(","));
+  if (providerIds.length > 0) {
+    params.set("ott", providerIds.join(","));
   }
 
   if (filters.castPersonId) {
@@ -157,19 +168,9 @@ export function filtersAreEqual(a: BrowseFilters, b: BrowseFilters): boolean {
   return serializeBrowseFilters(a) === serializeBrowseFilters(b);
 }
 
-/** Compare filter query strings regardless of param order. */
+/** Compare filter query strings regardless of param order or multi-value ordering. */
 export function browseFilterQueryEquals(a: string, b: string): boolean {
-  if (a === b) return true;
-
-  const paramsA = new URLSearchParams(a);
-  const paramsB = new URLSearchParams(b);
-  const keys = new Set([...paramsA.keys(), ...paramsB.keys()]);
-
-  for (const key of keys) {
-    if (paramsA.get(key) !== paramsB.get(key)) return false;
-  }
-
-  return true;
+  return canonicalizeBrowseFilterQuery(a) === canonicalizeBrowseFilterQuery(b);
 }
 
 export function languageMatchesDefault(language: string): boolean {

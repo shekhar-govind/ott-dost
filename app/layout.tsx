@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { type ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
-import { BrowseRestoreScript } from "@/components/browse/BrowseRestoreScript";
+import {
+  BROWSE_RESTORE_HEAD_CSS,
+  getBrowseRestoreHeadScript,
+} from "@/lib/browse/browse-restore-head";
 import { AppMainShell } from "@/components/layout/AppMainShell";
 import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader";
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
@@ -44,9 +47,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: BROWSE_RESTORE_HEAD_CSS }} />
+        <script dangerouslySetInnerHTML={{ __html: getBrowseRestoreHeadScript() }} />
+      </head>
       <body className="flex flex-col bg-zinc-50 text-zinc-900 antialiased">
-        <BrowseRestoreScript />
         <SharePayloadProvider>
           <ConditionalSiteHeader />
           <AppMainShell>{children}</AppMainShell>

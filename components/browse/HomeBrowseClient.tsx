@@ -12,7 +12,10 @@ import {
   hasNonDefaultBrowseFilters,
   serializeBrowseFilters,
 } from "@/lib/browse/filters";
-import { shouldDeferBrowseRestore } from "@/lib/browse/should-defer-browse-restore";
+import {
+  isBrowseRestoreComplete,
+  shouldDeferBrowseRestore,
+} from "@/lib/browse/should-defer-browse-restore";
 import {
   loadBrowseScroll,
   saveBrowseScroll,
@@ -35,6 +38,8 @@ interface HomeBrowseClientProps {
   hasServerList: boolean;
 }
 
+type RestorePhase = "unknown" | "pending" | "fetching" | "ready";
+
 export function HomeBrowseClient({
   initialPage,
   initialFilterKey,
@@ -43,23 +48,77 @@ export function HomeBrowseClient({
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [showClientBrowse, setShowClientBrowse] = useState(() => !hasServerList);
-  const [deferInitialData] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return shouldDeferBrowseRestore(window.location.search);
-  });
+  const [restorePhase, setRestorePhase] = useState<RestorePhase>(() =>
+    hasServerList ? "unknown" : "ready",
+  );
   const { filters, setFilters, commitBrowseFilters, clearFilters } =
     useBrowseFilters();
   const searchParams = useSearchParams();
   const { meta } = useBrowseFilterMeta(true);
 
+  const restoreComplete = useMemo(() => {
+    if (restorePhase !== "pending") return restorePhase !== "unknown";
+    return isBrowseRestoreComplete(true, filters);
+  }, [restorePhase, filters]);
+  const restoreLocked = restorePhase === "pending" || restorePhase === "fetching";
+  const deferInitialData = restorePhase !== "ready";
+  const pauseFetching = restorePhase === "unknown" || restorePhase === "pending";
+
   useLayoutEffect(() => {
     if (!hasServerList) return;
+
+    if (restorePhase === "unknown") {
+      const defer = shouldDeferBrowseRestore(window.location.search);
+      if (defer) {
+        setShowClientBrowse(true);
+        setRestorePhase("pending");
+        return;
+      }
+
+      document.documentElement.classList.add("home-browse-hydrated");
+      setShowClientBrowse(true);
+      setRestorePhase("ready");
+    }
+  }, [hasServerList, restorePhase]);
+
+  useEffect(() => {
+    if (restorePhase !== "pending" || !restoreComplete) return;
+    setRestorePhase("fetching");
+  }, [restorePhase, restoreComplete]);
+
+  const {
+    items,
+    page,
+    totalPages,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    error,
+    setPage,
+    loadMore,
+    refresh,
+  } = useBrowseList({
+    infiniteScroll: !isDesktop,
+    filters,
+    deferInitialData,
+    pauseFetching,
+    initialPage,
+    initialFilterKey,
+  });
+
+  useEffect(() => {
+    if (restorePhase !== "fetching" || isLoading) return;
+
     document.documentElement.classList.add("home-browse-hydrated");
-    setShowClientBrowse(true);
+    document.documentElement.classList.remove("browse-restore-pending");
+    setRestorePhase("ready");
+  }, [restorePhase, isLoading]);
+
+  useLayoutEffect(() => {
     return () => {
       document.documentElement.classList.remove("home-browse-hydrated");
     };
-  }, [hasServerList]);
+  }, []);
 
   useEffect(() => {
     const metaLoaded =
@@ -84,30 +143,6 @@ export function HomeBrowseClient({
       setFilters(sanitized);
     }
   }, [filters, meta, searchParams, setFilters]);
-
-  useEffect(() => {
-    if (!deferInitialData) return;
-    document.documentElement.classList.remove("browse-restore-pending");
-  }, [deferInitialData]);
-
-  const {
-    items,
-    page,
-    totalPages,
-    hasMore,
-    isLoading,
-    isLoadingMore,
-    error,
-    setPage,
-    loadMore,
-    refresh,
-  } = useBrowseList({
-    infiniteScroll: !isDesktop,
-    filters,
-    deferInitialData,
-    initialPage,
-    initialFilterKey,
-  });
 
   const sentinelRef = useInfiniteScroll({
     enabled: !isDesktop,
@@ -169,97 +204,101 @@ export function HomeBrowseClient({
   return (
     <section
       data-browse-list
-      className={`mt-8 w-full ${showClientBrowse ? "" : "hidden"}`}
+      className={`mt-8 w-full ${showClientBrowse || restoreLocked ? "" : "hidden"}`}
       aria-label={browseListTitle}
     >
-      <BrowseFiltersToolbar
-        filters={filters}
-        meta={meta}
-        filtersSheetOpen={sheetOpen}
-        onOpenFilters={() => setSheetOpen(true)}
-        onFiltersChange={commitBrowseFilters}
-        onClearFilters={clearFilters}
-      />
+      {!restoreLocked && (
+        <>
+          <BrowseFiltersToolbar
+            filters={filters}
+            meta={meta}
+            filtersSheetOpen={sheetOpen}
+            onOpenFilters={() => setSheetOpen(true)}
+            onFiltersChange={commitBrowseFilters}
+            onClearFilters={clearFilters}
+          />
 
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
-          {browseListTitle}
-        </h3>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={isLoading}
-          className="shrink-0 text-xs font-medium text-zinc-500 transition hover:text-zinc-800 disabled:opacity-50"
-        >
-          Refresh
-        </button>
-      </div>
-
-      {error && (
-        <p
-          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-
-      {isLoading && items.length === 0 ? (
-        <BrowseListSkeleton />
-      ) : items.length === 0 ? (
-        <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
-          {filtersActive
-            ? "No titles match your filters. Try clearing filters or adjusting your selection."
-            : "No titles with OTT availability on this page."}
-        </p>
-      ) : (
-        <BrowseStreamProvidersProvider
-          enabled
-          items={items}
-          filterCacheKey={streamFilterCacheKey}
-        >
-          <div data-server-browse-items>
-            <ul className="space-y-1.5">
-              {items.map((item) => (
-                <BrowseListItem key={browseItemKey(item)} item={item} />
-              ))}
-            </ul>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <h3 className="text-sm font-semibold tracking-tight text-zinc-900">
+              {browseListTitle}
+            </h3>
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={isLoading}
+              className="shrink-0 text-xs font-medium text-zinc-500 transition hover:text-zinc-800 disabled:opacity-50"
+            >
+              Refresh
+            </button>
           </div>
-        </BrowseStreamProvidersProvider>
+
+          {error && (
+            <p
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
+
+          {isLoading && items.length === 0 ? (
+            <BrowseListSkeleton />
+          ) : items.length === 0 ? (
+            <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-500">
+              {filtersActive
+                ? "No titles match your filters. Try clearing filters or adjusting your selection."
+                : "No titles with OTT availability on this page."}
+            </p>
+          ) : (
+            <BrowseStreamProvidersProvider
+              enabled
+              items={items}
+              filterCacheKey={streamFilterCacheKey}
+            >
+              <div data-server-browse-items>
+                <ul className="space-y-1.5">
+                  {items.map((item) => (
+                    <BrowseListItem key={browseItemKey(item)} item={item} />
+                  ))}
+                </ul>
+              </div>
+            </BrowseStreamProvidersProvider>
+          )}
+
+          {!isDesktop && (
+            <>
+              <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
+              {isLoadingMore && (
+                <p className="mt-4 text-center text-sm text-zinc-500">Loading more…</p>
+              )}
+              {!hasMore && items.length > 0 && (
+                <p className="mt-4 text-center text-sm text-zinc-400">You&apos;ve reached the end</p>
+              )}
+            </>
+          )}
+
+          {isDesktop && (
+            <BrowsePagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              disabled={isLoading}
+            />
+          )}
+
+          <BrowseFilterSheet
+            open={sheetOpen}
+            appliedFilters={filters}
+            meta={meta}
+            onClose={() => setSheetOpen(false)}
+            onApply={commitBrowseFilters}
+          />
+        </>
       )}
 
       <div data-browse-restore-skeleton className="browse-restore-skeleton">
         <BrowseListSkeleton />
       </div>
-
-      {!isDesktop && (
-        <>
-          <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
-          {isLoadingMore && (
-            <p className="mt-4 text-center text-sm text-zinc-500">Loading more…</p>
-          )}
-          {!hasMore && items.length > 0 && (
-            <p className="mt-4 text-center text-sm text-zinc-400">You&apos;ve reached the end</p>
-          )}
-        </>
-      )}
-
-      {isDesktop && (
-        <BrowsePagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          disabled={isLoading}
-        />
-      )}
-
-      <BrowseFilterSheet
-        open={sheetOpen}
-        appliedFilters={filters}
-        meta={meta}
-        onClose={() => setSheetOpen(false)}
-        onApply={commitBrowseFilters}
-      />
     </section>
   );
 }

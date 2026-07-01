@@ -2,6 +2,7 @@
 
 import { fetchBrowsePage } from "@/lib/api/browse";
 import { browseDebug } from "@/lib/browse/debug";
+import { shouldDeferBrowseRestore } from "@/lib/browse/should-defer-browse-restore";
 import { mergeBrowseItems } from "@/lib/browse/items";
 import type { BrowseFilters } from "@/lib/browse/filters";
 import { serializeBrowseFilters } from "@/lib/browse/filters";
@@ -21,6 +22,8 @@ interface UseBrowseListOptions {
   filters: BrowseFilters;
   /** Skip ISR HTML and fetch client-side (saved filter restore on bare `/`). */
   deferInitialData?: boolean;
+  /** Hold off on filter-key resync until saved filters are on the URL. */
+  pauseFetching?: boolean;
   initialPage?: BrowsePage | null;
   initialFilterKey?: string | null;
 }
@@ -42,6 +45,7 @@ export function useBrowseList({
   infiniteScroll,
   filters,
   deferInitialData = false,
+  pauseFetching = false,
   initialPage = null,
   initialFilterKey = null,
 }: UseBrowseListOptions): UseBrowseListResult {
@@ -50,9 +54,12 @@ export function useBrowseList({
   // A prior in-session snapshot for this exact filter, if any. Held in state so
   // it's read once. We do NOT seed rendered state from it directly (that would
   // cause a hydration mismatch); instead a layout effect applies it pre-paint.
-  const [restoredSnapshot] = useState<BrowseListSnapshot | null>(() =>
-    loadBrowseListSnapshot(filterKey),
-  );
+  const [restoredSnapshot] = useState<BrowseListSnapshot | null>(() => {
+    if (typeof window !== "undefined" && shouldDeferBrowseRestore(window.location.search)) {
+      return null;
+    }
+    return loadBrowseListSnapshot(filterKey);
+  });
 
   const [items, setItems] = useState<SearchTitle[]>([]);
   const [page, setPage] = useState(1);
@@ -218,6 +225,7 @@ export function useBrowseList({
 
   /** Keep list aligned with URL filters whenever the filter key changes on home. */
   useEffect(() => {
+    if (pauseFetching) return;
     if (syncedFilterKeyRef.current === filterKey) return;
 
     browseDebug("Browse list resync (filter key changed)", {
@@ -233,7 +241,7 @@ export function useBrowseList({
     initialPageAppliedRef.current = false;
 
     void fetchPage(1, "replace", filterKey, filters);
-  }, [filterKey, filters, fetchPage]);
+  }, [filterKey, filters, fetchPage, pauseFetching]);
 
   /** Desktop pagination — only when list is already synced to current filters. */
   useEffect(() => {
