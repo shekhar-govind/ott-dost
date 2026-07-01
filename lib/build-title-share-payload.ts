@@ -90,12 +90,12 @@ export function buildTitleSharePreviewText(detail: TitleDetail): string {
   return buildWatchBrandLine(detail);
 }
 
-/** Clipboard body: brand headline and page link only (no overview). */
+/** Clipboard body: headline with India and page link. */
 export function buildTitleShareClipboardText(
   detail: TitleDetail,
   shareUrl: string,
 ): string {
-  return appendShareUrlToHeadline(buildShareTitleLine(detail), shareUrl);
+  return appendShareUrlToHeadline(buildTitleShareHeadline(detail), shareUrl);
 }
 
 export function buildTitleSharePayload(detail: TitleDetail): SharePayload {

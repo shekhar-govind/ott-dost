@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import {
   BROWSE_RESTORE_HEAD_CSS,
@@ -9,6 +9,7 @@ import { AppMainShell } from "@/components/layout/AppMainShell";
 import { ConditionalSiteHeader } from "@/components/layout/ConditionalSiteHeader";
 import { ConditionalSiteFooter } from "@/components/layout/ConditionalSiteFooter";
 import { SharePayloadProvider } from "@/components/share/SharePayloadProvider";
+import { SiteSharePayloadRegistrar } from "@/components/share/SiteSharePayloadRegistrar";
 import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
 import { ChunkErrorReloader } from "@/components/system/ChunkErrorReloader";
 import { getMetadataBaseUrl } from "@/lib/site-url";
@@ -55,6 +56,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="flex flex-col bg-zinc-50 text-zinc-900 antialiased">
         <SharePayloadProvider>
+          <Suspense fallback={null}>
+            <SiteSharePayloadRegistrar />
+          </Suspense>
           <ConditionalSiteHeader />
           <AppMainShell>{children}</AppMainShell>
           <ConditionalSiteFooter />

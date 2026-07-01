@@ -1,5 +1,7 @@
+import { SHARE_BRAND_SUFFIX } from "@/lib/share-brand";
+
 /** Title-page share text already includes the full headline block. */
-export const TITLE_SHARE_TEXT_MARKER = "where to watch in India | OTT Dost";
+export const TITLE_SHARE_TEXT_MARKER = SHARE_BRAND_SUFFIX;
 
 export function isCompleteTitleShareText(text: string | undefined): boolean {
   return Boolean(text?.includes(TITLE_SHARE_TEXT_MARKER));
