@@ -13,6 +13,14 @@ export function buildSharePosterTmdbUrl(
   return posterUrl.replace("/t/p/w500/", `/t/p/${size}/`);
 }
 
+/** Direct TMDB CDN URL for Open Graph / Twitter metadata (avoids `/api/share/poster`). */
+export function buildSharePosterMetadataUrl(
+  posterUrl: string,
+  size: SharePosterTmdbSize = "w500",
+): string {
+  return buildSharePosterTmdbUrl(posterUrl, size);
+}
+
 /** Same-origin poster URL for Web Share file attachment (avoids TMDB CORS). */
 export function buildSharePosterProxyPath(
   mediaType: TmdbMediaType,

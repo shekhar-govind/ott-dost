@@ -4,7 +4,7 @@ import {
   buildWatchHeadline,
 } from "@/lib/build-title-share-payload";
 import { getSiteBaseUrl } from "@/lib/site-url";
-import { buildSharePosterAbsoluteUrl } from "@/lib/share-poster-url";
+import { buildSharePosterMetadataUrl } from "@/lib/share-poster-url";
 import { getTitleDetailCached } from "@/lib/get-title-detail-cached";
 import { buildTitlePath } from "@/lib/title-url";
 import type { TmdbMediaType } from "@/lib/tmdb/types";
@@ -41,10 +41,9 @@ export async function buildTitlePageMetadata(
   const descriptionSource =
     detail.overview?.trim() || `${sharePreview.replace("\n", " — ")}`;
 
-  const sharePosterUrl =
-    detail.posterUrl && baseUrl
-      ? buildSharePosterAbsoluteUrl(mediaType, id, baseUrl)
-      : null;
+  const sharePosterUrl = detail.posterUrl
+    ? buildSharePosterMetadataUrl(detail.posterUrl, "w500")
+    : null;
 
   return {
     title,
