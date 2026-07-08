@@ -1,5 +1,6 @@
 import {
   BROWSE_REVALIDATE_SECONDS,
+  SEARCH_REVALIDATE_SECONDS,
   TITLE_REVALIDATE_SECONDS,
 } from "@/lib/cache-ttl";
 import { TMDB_API_BASE } from "./constants";
@@ -37,7 +38,7 @@ export async function searchMulti(query: string): Promise<TmdbSearchResponse> {
   });
 
   const response = await fetchTmdb(`${TMDB_API_BASE}/search/multi?${params}`, {
-    next: { revalidate: 300 },
+    next: { revalidate: SEARCH_REVALIDATE_SECONDS },
   });
 
   return response.json() as Promise<TmdbSearchResponse>;
