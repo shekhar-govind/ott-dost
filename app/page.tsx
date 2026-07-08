@@ -18,8 +18,10 @@ import type { Metadata } from "next";
  * `/` and every `/?…` filter variant are served from this one cached document
  * (canonical → `/`), instead of invoking a function per request. Indexable,
  * keyword-targeted filter pages are handled by dedicated routes.
+ *
+ * Revalidate: `BROWSE_REVALIDATE_SECONDS` in `lib/cache-ttl.ts` (12h).
  */
-export const revalidate = 3600;
+export const revalidate = 43_200;
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildBrowsePageMetadata();

@@ -1,12 +1,15 @@
 import { getBrowsePage } from "@/lib/browse/get-browse-page";
 import { parseBrowseFiltersFromRequest } from "@/lib/browse/parse-request";
+import {
+  BROWSE_API_STALE_WHILE_REVALIDATE_SECONDS,
+  BROWSE_REVALIDATE_SECONDS,
+} from "@/lib/cache-ttl";
 import { NextRequest, NextResponse } from "next/server";
 
-/** Shared across users; aligned with page ISR and TMDB discover TTL (1h). */
-export const revalidate = 3600;
+/** Shared across users; aligned with page ISR and TMDB discover TTL (12h). */
+export const revalidate = 43_200;
 
-const BROWSE_CACHE_CONTROL =
-  "public, s-maxage=3600, stale-while-revalidate=300";
+const BROWSE_CACHE_CONTROL = `public, s-maxage=${BROWSE_REVALIDATE_SECONDS}, stale-while-revalidate=${BROWSE_API_STALE_WHILE_REVALIDATE_SECONDS}`;
 
 export async function GET(request: NextRequest) {
   const pageParam = request.nextUrl.searchParams.get("page") ?? "1";

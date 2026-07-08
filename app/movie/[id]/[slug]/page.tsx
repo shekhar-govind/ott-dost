@@ -6,10 +6,10 @@ interface PageProps {
   params: Promise<{ id: string; slug: string }>;
 }
 
-// Cache rendered title pages as ISR (generated on demand, revalidated hourly)
+// Cache rendered title pages as ISR (generated on demand, revalidated daily)
 // so crawler traffic is served from cache instead of invoking a function per
-// hit. Matches the 1h TTL of the underlying TMDB detail fetch.
-export const revalidate = 3600;
+// hit. Matches `TITLE_REVALIDATE_SECONDS` in `lib/cache-ttl.ts` (24h).
+export const revalidate = 86_400;
 export const dynamicParams = true;
 
 export function generateStaticParams() {

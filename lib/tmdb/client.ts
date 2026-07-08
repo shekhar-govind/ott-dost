@@ -1,3 +1,7 @@
+import {
+  BROWSE_REVALIDATE_SECONDS,
+  TITLE_REVALIDATE_SECONDS,
+} from "@/lib/cache-ttl";
 import { TMDB_API_BASE } from "./constants";
 import { appendDiscoverFilters, resolveDateTo } from "./discover";
 import type { DiscoverFilters } from "./discover-types";
@@ -51,7 +55,7 @@ export async function getTitleDetails(
 
   const response = await fetchTmdb(
     `${TMDB_API_BASE}/${mediaType}/${id}?${params}`,
-    { next: { revalidate: 3600 } },
+    { next: { revalidate: TITLE_REVALIDATE_SECONDS } },
   );
 
   return response.json() as Promise<TmdbMovieDetails | TmdbTvDetails>;
@@ -81,7 +85,7 @@ export async function discoverLatestMovies(
   appendDiscoverFilters(params, filters, "movie");
 
   const response = await fetchTmdb(`${TMDB_API_BASE}/discover/movie?${params}`, {
-    next: { revalidate: 3600 },
+    next: { revalidate: BROWSE_REVALIDATE_SECONDS },
   });
 
   return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverMovieResult>>;
@@ -110,7 +114,7 @@ export async function discoverLatestTv(
   appendDiscoverFilters(params, filters, "tv");
 
   const response = await fetchTmdb(`${TMDB_API_BASE}/discover/tv?${params}`, {
-    next: { revalidate: 3600 },
+    next: { revalidate: BROWSE_REVALIDATE_SECONDS },
   });
 
   return response.json() as Promise<TmdbDiscoverResponse<TmdbDiscoverTvResult>>;
@@ -123,7 +127,7 @@ export async function getMovieWatchProviders(
 
   const response = await fetchTmdb(
     `${TMDB_API_BASE}/movie/${movieId}/watch/providers?${params}`,
-    { next: { revalidate: 3600 } },
+    { next: { revalidate: BROWSE_REVALIDATE_SECONDS } },
   );
 
   return response.json() as Promise<TmdbWatchProvidersApiResponse>;
@@ -136,7 +140,7 @@ export async function getTvWatchProviders(
 
   const response = await fetchTmdb(
     `${TMDB_API_BASE}/tv/${tvId}/watch/providers?${params}`,
-    { next: { revalidate: 3600 } },
+    { next: { revalidate: BROWSE_REVALIDATE_SECONDS } },
   );
 
   return response.json() as Promise<TmdbWatchProvidersApiResponse>;
@@ -149,7 +153,7 @@ export async function getPersonTvCredits(
 
   const response = await fetchTmdb(
     `${TMDB_API_BASE}/person/${personId}/tv_credits?${params}`,
-    { next: { revalidate: 3600 } },
+    { next: { revalidate: BROWSE_REVALIDATE_SECONDS } },
   );
 
   return response.json() as Promise<TmdbPersonTvCredits>;
@@ -162,7 +166,7 @@ export async function getPersonMovieCredits(
 
   const response = await fetchTmdb(
     `${TMDB_API_BASE}/person/${personId}/movie_credits?${params}`,
-    { next: { revalidate: 3600 } },
+    { next: { revalidate: BROWSE_REVALIDATE_SECONDS } },
   );
 
   return response.json() as Promise<TmdbPersonMovieCredits>;
