@@ -10,7 +10,7 @@ import { mapWatchAvailabilityFromWatchProviders } from "@/lib/tmdb/utils";
 import { hasRentOrBuyAvailability } from "@/lib/watch/availability-messages";
 import { NextRequest, NextResponse } from "next/server";
 
-const MAX_BATCH_SIZE = 25;
+const MAX_BATCH_SIZE = 10;
 const TMDB_CONCURRENCY = 5;
 
 interface WatchProvidersRequestItem {

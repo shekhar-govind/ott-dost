@@ -11,8 +11,9 @@ import type { SearchTitle, StreamingProvider } from "@/lib/tmdb/types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDebouncedValue } from "./useDebouncedValue";
 
-const VISIBILITY_BUFFER_BELOW = 5;
-const MAX_BATCH_SIZE = 25;
+/** Rows below the viewport anchor to prefetch OTT icons (kept small to limit API batches). */
+const VISIBILITY_BUFFER_BELOW = 2;
+const MAX_BATCH_SIZE = 10;
 /** Debounce network batches while scrolling; enqueue stays immediate. */
 export const BROWSE_STREAM_FETCH_DEBOUNCE_MS = 120;
 
