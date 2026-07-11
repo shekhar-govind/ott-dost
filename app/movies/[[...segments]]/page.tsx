@@ -9,8 +9,8 @@ interface PageProps {
   params: Promise<{ segments?: string[] }>;
 }
 
-/** Revalidate: `BROWSE_REVALIDATE_SECONDS` in `lib/cache-ttl.ts` (12h). */
-export const revalidate = 43_200;
+/** Revalidate: `BROWSE_REVALIDATE_SECONDS` in `lib/cache-ttl.ts` (3d). */
+export const revalidate = 259_200;
 export const dynamicParams = false;
 
 export function generateStaticParams() {

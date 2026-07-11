@@ -6,6 +6,10 @@ import {
 } from "@/lib/browse/browse-seo-policy";
 import { resolveBrowseSpecialPathRedirect } from "@/lib/browse/special-page-redirects";
 import {
+  isBlockedScraperBot,
+  isIdOnlyTitlePath,
+} from "@/lib/bot-policy";
+import {
   isAlternateProductionHost,
   isPreviewOrLocalHost,
   PRIMARY_SITE_HOST,
@@ -37,6 +41,15 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname, search } = request.nextUrl;
+
+  const userAgent = request.headers.get("user-agent");
+  if (isBlockedScraperBot(userAgent)) {
+    return new NextResponse(null, { status: 403 });
+  }
+
+  if (isIdOnlyTitlePath(pathname)) {
+    return new NextResponse(null, { status: 404 });
+  }
 
   const canonicalSpecialPath = resolveBrowseSpecialPathRedirect(pathname);
   if (canonicalSpecialPath) {

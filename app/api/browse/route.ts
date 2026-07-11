@@ -6,8 +6,8 @@ import {
 } from "@/lib/cache-ttl";
 import { NextRequest, NextResponse } from "next/server";
 
-/** Shared across users; aligned with page ISR and TMDB discover TTL (12h). */
-export const revalidate = 43_200;
+/** Shared across users; aligned with page ISR and TMDB discover TTL (3d). */
+export const revalidate = 259_200;
 
 const BROWSE_CACHE_CONTROL = `public, s-maxage=${BROWSE_REVALIDATE_SECONDS}, stale-while-revalidate=${BROWSE_API_STALE_WHILE_REVALIDATE_SECONDS}`;
 

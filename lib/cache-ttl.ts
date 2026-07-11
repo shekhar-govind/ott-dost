@@ -1,5 +1,5 @@
-/** Browse list ISR, `/api/browse`, and TMDB discover TTL — 12 hours. */
-export const BROWSE_REVALIDATE_SECONDS = 43_200;
+/** Browse list ISR, `/api/browse`, and TMDB discover TTL — 3 days. */
+export const BROWSE_REVALIDATE_SECONDS = 259_200;
 
 /** Title page ISR and TMDB detail TTL — 7 days. */
 export const TITLE_REVALIDATE_SECONDS = 604_800;

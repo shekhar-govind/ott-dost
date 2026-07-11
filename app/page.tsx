@@ -19,9 +19,9 @@ import type { Metadata } from "next";
  * (canonical → `/`), instead of invoking a function per request. Indexable,
  * keyword-targeted filter pages are handled by dedicated routes.
  *
- * Revalidate: `BROWSE_REVALIDATE_SECONDS` in `lib/cache-ttl.ts` (12h).
+ * Revalidate: `BROWSE_REVALIDATE_SECONDS` in `lib/cache-ttl.ts` (3d).
  */
-export const revalidate = 43_200;
+export const revalidate = 259_200;
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildBrowsePageMetadata();
