@@ -7,7 +7,9 @@ import {
 import { resolveBrowseSpecialPathRedirect } from "@/lib/browse/special-page-redirects";
 import {
   isBlockedScraperBot,
+  isCrawlerBot,
   isIdOnlyTitlePath,
+  isTitleDetailPath,
 } from "@/lib/bot-policy";
 import {
   isAlternateProductionHost,
@@ -48,6 +50,12 @@ export function middleware(request: NextRequest) {
   }
 
   if (isIdOnlyTitlePath(pathname)) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  // Stop crawlers from creating unbounded title ISR pages. Humans + social
+  // preview bots still get title pages; browse routes stay crawlable for SEO.
+  if (isTitleDetailPath(pathname) && isCrawlerBot(userAgent)) {
     return new NextResponse(null, { status: 404 });
   }
 

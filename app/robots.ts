@@ -8,7 +8,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/design/"],
+      // Title detail URLs are human-only (middleware also blocks crawlers) to
+      // cap ISR writes. Browse SEO lives under /movies/ and /tv-shows/.
+      disallow: ["/api/", "/design/", "/movie/", "/tv/"],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };
